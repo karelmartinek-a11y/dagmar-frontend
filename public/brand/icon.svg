@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="DAGMAR">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2cc4ff"/>
+      <stop offset="1" stop-color="#0c62b7"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a4aa6"/>
+      <stop offset="1" stop-color="#35d3ff"/>
+    </linearGradient>
+  </defs>
+  <rect x="18" y="18" width="220" height="220" rx="56" fill="#061a3b"/>
+  <path d="M44 118c0-34 27-62 62-62h40c42 0 76 34 76 76s-34 76-76 76h-40c-35 0-62-27-62-62v-28z" fill="url(#g1)" opacity="0.95"/>
+  <path d="M98 82h34c28 0 50 22 50 50s-22 50-50 50H98c-8 0-14-6-14-14V96c0-8 6-14 14-14z" fill="url(#g2)"/>
+  <path d="M114 128l15 15 33-33" fill="none" stroke="#eaf6ff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M58 98c10-18 28-30 50-30" fill="none" stroke="#eaf6ff" stroke-opacity="0.45" stroke-width="10" stroke-linecap="round"/>
+  <path d="M58 126c12-18 30-30 52-30" fill="none" stroke="#eaf6ff" stroke-opacity="0.32" stroke-width="10" stroke-linecap="round"/>
+</svg>

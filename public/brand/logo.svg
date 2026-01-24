@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-label="docházkový systém DAGMAR">
+  <defs>
+    <linearGradient id="b1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#baf0ff"/>
+      <stop offset="1" stop-color="#2cc4ff"/>
+    </linearGradient>
+    <linearGradient id="b2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#0c62b7"/>
+      <stop offset="1" stop-color="#35d3ff"/>
+    </linearGradient>
+    <linearGradient id="b3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0b4fb6"/>
+      <stop offset="1" stop-color="#12a5ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <path d="M210 420c-80-68-105-166-66-238 48-87 188-125 304-80 52 20 94 54 136 72 90 38 205-6 286 46 76 49 89 156 23 223-51 52-141 70-219 53-60-13-119-46-179-54-109-14-218 48-285-22z" fill="url(#b1)" opacity="0.95"/>
+    <path d="M364 470c-66-42-104-117-86-188 23-89 141-150 266-134 102 13 154 72 252 83 121 13 255-41 318 39 45 57 8 154-68 193-79 41-170 25-249 3-88-25-179-61-271-50-62 7-108 60-162 54z" fill="url(#b2)" opacity="0.95"/>
+    <path d="M300 360c20-90 112-152 222-152h444c116 0 210 58 210 130s-94 130-210 130H522c-110 0-202-62-222-108z" fill="url(#b3)" opacity="0.92"/>
+  </g>
+
+  <g transform="translate(190 230)">
+    <rect x="0" y="60" width="220" height="150" rx="26" fill="#2cc4ff" opacity="0.22"/>
+    <rect x="20" y="84" width="180" height="110" rx="22" fill="#2cc4ff" opacity="0.35"/>
+    <rect x="36" y="98" width="148" height="82" rx="18" fill="#0f86d5" opacity="0.45"/>
+    <path d="M70 120h40" stroke="#eaf6ff" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+    <path d="M70 142h72" stroke="#eaf6ff" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+
+    <circle cx="176" cy="154" r="62" fill="#041a3c" opacity="0.25"/>
+    <circle cx="176" cy="154" r="56" fill="#eaf6ff" opacity="0.92"/>
+    <circle cx="176" cy="154" r="46" fill="#0f86d5" opacity="0.2"/>
+    <path d="M156 154l14 14 30-30" fill="none" stroke="#0c62b7" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M118 118c16-18 36-30 58-34" fill="none" stroke="#041a3c" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+    <path d="M116 154c18-18 38-30 60-34" fill="none" stroke="#041a3c" stroke-opacity="0.22" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <text x="560" y="265" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="54" fill="#eaf6ff" opacity="0.9" letter-spacing="1">docházkový systém</text>
+  <text x="560" y="370" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="140" font-weight="900" fill="#ffffff" letter-spacing="2">DAGMAR</text>
+</svg>

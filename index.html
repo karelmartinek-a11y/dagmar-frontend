@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="application-name" content="DAGMAR" />
+    <meta name="theme-color" content="#0f86d5" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="DAGMAR – docházkový systém (dagmar.hcasc.cz)." />
+
+    <!-- Brand -->
+    <link rel="icon" type="image/svg+xml" href="/brand/icon.svg" />
+    <link rel="apple-touch-icon" href="/brand/icon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <title>DAGMAR – Docházka</title>
+
+    <style>
+      /* Loading/boot shell to avoid white flash before React mounts */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: radial-gradient(1200px 600px at 30% 20%, #2cc4ff 0%, #0c62b7 40%, #041a3c 100%);
+        color: #eaf6ff;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
+      }
+      #root {
+        min-height: 100%;
+      }
+      .boot {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .boot-card {
+        width: min(520px, 100%);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+        padding: 22px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+      .boot-logo {
+        width: 210px;
+        max-width: 70%;
+        height: auto;
+        filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35));
+      }
+      .boot-spinner {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 3px solid rgba(255, 255, 255, 0.22);
+        border-top-color: rgba(255, 255, 255, 0.92);
+        animation: spin 1.1s linear infinite;
+      }
+      .boot-title {
+        font-weight: 850;
+        letter-spacing: 0.2px;
+        font-size: 16px;
+      }
+      .boot-sub {
+        opacity: 0.82;
+        font-size: 12px;
+        text-align: center;
+        line-height: 1.4;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>Pro použití aplikace je nutné povolit JavaScript.</noscript>
+
+    <div id="root">
+      <div class="boot" aria-label="Načítání aplikace">
+        <div class="boot-card" role="status">
+          <img class="boot-logo" src="/brand/logo.svg" alt="DAGMAR" />
+          <div class="boot-spinner" role="progressbar" aria-valuetext="Načítám" aria-busy="true"></div>
+          <div class="boot-title">Načítám aplikaci…</div>
+          <div class="boot-sub">Pokud používáte Android, instalace aplikace je volitelná.</div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

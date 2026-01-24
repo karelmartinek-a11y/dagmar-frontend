@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="DAGMAR">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b5bd3"/>
+      <stop offset="0.55" stop-color="#2aa8ff"/>
+      <stop offset="1" stop-color="#6fd3ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#071022"/>
+  <path d="M52 96c6-34 38-58 82-58 30 0 52 9 70 25 17 16 25 37 19 61-8 29-31 46-66 52-35 6-63 2-84-12-20-13-27-34-21-68z"
+        fill="url(#g)"/>
+  <text x="128" y="152" text-anchor="middle" fill="#fff" font-size="56" font-weight="900"
+        font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial">D</text>
+</svg>

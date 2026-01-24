@@ -1,0 +1,22 @@
+{
+  "name": "DAGMAR — docházkový systém",
+  "short_name": "DAGMAR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#041a3c",
+  "theme_color": "#0f86d5",
+  "icons": [
+    {
+      "src": "/brand/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
