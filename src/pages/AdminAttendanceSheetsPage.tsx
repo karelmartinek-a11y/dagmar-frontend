@@ -404,12 +404,28 @@ export default function AdminAttendanceSheetsPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 750, color: "rgba(15,23,42,0.92)", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {it.display_name || "— bez názvu —"}
+                    <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                      <div
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 8,
+                          background: "rgba(15,23,42,0.06)",
+                          border: "1px solid rgba(15,23,42,0.12)",
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img src="/brand/icon.svg" alt="DAGMAR" style={{ width: 18, height: 18, objectFit: "contain" }} />
                       </div>
-                      <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-                        {it.id.slice(0, 8)}…
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 750, color: "rgba(15,23,42,0.92)", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {it.display_name || "— bez názvu —"}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+                          {it.id.slice(0, 8)}…
+                        </div>
                       </div>
                     </div>
                     <div
