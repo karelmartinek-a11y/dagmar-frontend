@@ -666,7 +666,10 @@ export default function AdminAttendanceSheetsPage() {
                         error={errorByKey[`${d.date}:departure_time`] ?? null}
                         onCommit={(v) => commitTime(d.date, "departure_time", v)}
                       />
-                      <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins !== null ? "#0f172a" : "var(--muted)" }}>
+                      <div
+                        title={hoursTitle}
+                        style={{ textAlign: "right", fontWeight: 800, color: mins !== null ? "#0f172a" : "var(--muted)", fontSize: 14, letterSpacing: 0.1 }}
+                      >
                         {mins !== null ? `${formatHours(mins)} h` : "—"}
                       </div>
                     </div>
