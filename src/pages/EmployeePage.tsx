@@ -566,7 +566,7 @@ export function EmployeePage() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 10,
                 flexWrap: "wrap",
                 justifyContent: "space-between",
               }}
@@ -578,14 +578,15 @@ export function EmployeePage() {
                   background: "#dc2626",
                   color: "white",
                   border: "1px solid #b91c1c",
-                  padding: "0 14px",
-                  height: 40,
+                  padding: "0 20px",
+                  height: 44,
                   borderRadius: 12,
                   fontWeight: 800,
-                  fontSize: 15,
+                  fontSize: 16,
                   boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
+                  minWidth: 120,
                 }}
                 aria-label="Zapsat aktuální čas"
               >
