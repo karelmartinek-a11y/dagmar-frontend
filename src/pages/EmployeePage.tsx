@@ -926,9 +926,10 @@ function TimeInput(props: { label: string; placeholder: string; value: string; o
           border: ok ? "1px solid rgba(15, 23, 42, 0.18)" : "1px solid rgba(220, 38, 38, 0.6)",
           outline: "none",
           padding: "0 12px",
-          fontSize: 16,
+          fontSize: 15,
           fontWeight: 700,
-          letterSpacing: 0.2,
+          letterSpacing: 0,
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
           background: ok ? "white" : "rgba(220, 38, 38, 0.05)",
         }}
       />
