@@ -1,0 +1,45 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASS }}
+          script: |
+            set -e
+            if [ ! -d /srv/hcas/_repos/dagmar-frontend/.git ]; then
+              git clone https://github.com/karelmartinek-a11y/dagmar-frontend.git /srv/hcas/_repos/dagmar-frontend
+            fi
+            cd /srv/hcas/_repos/dagmar-frontend
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+            npm ci
+            npm run build
+            cd /opt/dagmar/sandbox && ./run-tests.sh
+            rsync -a --delete /srv/hcas/_repos/dagmar-frontend/dist/ /var/www/dagmar/frontend/
+            chown -R dagmar:dagmar /var/www/dagmar/frontend
+            printf '%s DAGMAR web: auto-deploy main\n' "$(date '+%F %T')" >> /var/log/dagmar/deploy.log
