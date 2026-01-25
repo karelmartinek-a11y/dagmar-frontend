@@ -470,7 +470,7 @@ export function EmployeePage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
+      <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
         <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="DAGMAR Docházka" />
       </div>
       <header
@@ -487,6 +487,7 @@ export function EmployeePage() {
       >
         <div
           style={{
+            width: "100%",
             maxWidth: 980,
             margin: "0 auto",
             padding: "8px 12px",
@@ -605,7 +606,7 @@ export function EmployeePage() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 980, margin: "0 auto", padding: "16px" }}>
+      <main style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "16px" }}>
         {monthLocked ? (
           <div style={cardStyle()}>
             <div style={{ fontWeight: 800, marginBottom: 6, color: "#b91c1c" }}>Měsíc uzavřen</div>
@@ -741,7 +742,7 @@ export function EmployeePage() {
         ) : null}
       </main>
 
-      <footer style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px", color: "#475569", fontSize: 12 }}>
+      <footer style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "14px 16px", color: "#475569", fontSize: 12 }}>
         <div
           style={{
             display: "grid",

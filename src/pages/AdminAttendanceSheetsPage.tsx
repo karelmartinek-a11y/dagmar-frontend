@@ -318,8 +318,8 @@ export default function AdminAttendanceSheetsPage() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ maxWidth: 1040 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
+      <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", padding: "0 12px" }}>
         <AndroidDownloadBanner downloadUrl="/download/dochazka-dagmar.apk" appName="DAGMAR Docházka" />
       </div>
       <div
@@ -329,6 +329,10 @@ export default function AdminAttendanceSheetsPage() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: 12,
+          width: "100%",
+          maxWidth: 1040,
+          margin: "0 auto",
+          padding: "0 12px",
         }}
       >
         <div>
@@ -337,8 +341,19 @@ export default function AdminAttendanceSheetsPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <section style={{ ...card, flex: "1 1 340px", minWidth: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          alignItems: "flex-start",
+          width: "100%",
+          maxWidth: 1040,
+          margin: "0 auto",
+          padding: "0 12px",
+        }}
+      >
+        <section style={{ ...card, flex: "1 1 340px", minWidth: 0, width: "100%", maxWidth: "100%" }}>
           <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>Výběr instance</div>
 
           <label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>Hledat (fulltext)</label>
