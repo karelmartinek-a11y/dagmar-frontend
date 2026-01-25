@@ -688,10 +688,10 @@ export default function AdminAttendanceSheetsPage() {
                           textAlign: "right",
                           fontWeight: 800,
                           color: mins !== null ? "#0f172a" : "var(--muted)",
-                          fontSize: 17,
-                          letterSpacing: -0.25,
+                          fontSize: 20,
+                          letterSpacing: -0.35,
                           fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                          transform: "scaleX(0.93)",
+                          transform: "scaleX(0.82)",
                           transformOrigin: "right center",
                         }}
                       >
