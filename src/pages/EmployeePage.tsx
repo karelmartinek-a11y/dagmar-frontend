@@ -579,15 +579,15 @@ export function EmployeePage() {
                   background: "#dc2626",
                   color: "white",
                   border: "1px solid #b91c1c",
-                  padding: "0 14px",
-                  height: 40,
+                  padding: "0 12px",
+                  height: 36,
                   borderRadius: 12,
                   fontWeight: 800,
-                  fontSize: 14,
-                  boxShadow: "0 10px 30px rgba(220,38,38,0.26)",
+                  fontSize: 13,
+                  boxShadow: "0 10px 22px rgba(220,38,38,0.22)",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
-                  minWidth: 100,
+                  minWidth: 94,
                 }}
                 aria-label="Zapsat aktuální čas"
               >
