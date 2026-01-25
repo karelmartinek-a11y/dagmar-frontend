@@ -688,9 +688,11 @@ export default function AdminAttendanceSheetsPage() {
                           textAlign: "right",
                           fontWeight: 800,
                           color: mins !== null ? "#0f172a" : "var(--muted)",
-                          fontSize: 15,
-                          letterSpacing: -0.2,
+                          fontSize: 17,
+                          letterSpacing: -0.25,
                           fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                          transform: "scaleX(0.93)",
+                          transformOrigin: "right center",
                         }}
                       >
                         {mins !== null ? `${formatHours(mins)} h` : "—"}
