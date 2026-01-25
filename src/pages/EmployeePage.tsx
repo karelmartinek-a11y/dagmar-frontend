@@ -489,68 +489,13 @@ export function EmployeePage() {
           style={{
             maxWidth: 980,
             margin: "0 auto",
-            padding: "14px 16px",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-          <div
-            style={{
-              width: 104,
-              height: 104,
-              borderRadius: 18,
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              padding: 10,
-              display: "grid",
-              placeItems: "center",
-              boxShadow: "0 16px 34px rgba(0,0,0,0.12)",
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src={logoUrl}
-              alt="DAGMAR"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-              decoding="async"
-              loading="eager"
-            />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {displayName || "DAGMAR Docházka"}
-            </div>
-              <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 10, rowGap: 6, alignItems: "center" }}>
-                <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
-                <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
-              </div>
-            </div>
-          </div>
-
-	            <div style={{ fontSize: 12, opacity: 0.9, textAlign: "right" }}>
-	              <div style={{ fontWeight: 600 }}>Instance</div>
-	              <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-	                {instanceId ? `${instanceId.slice(0, 8)}…` : "—"}
-	              </div>
-	            </div>
-	          </div>
-
-        <div
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            borderTop: "1px solid rgba(255,255,255,0.18)",
-            backdropFilter: "blur(6px)",
+            padding: "12px 16px 16px",
+            display: "grid",
+            gap: 12,
           }}
         >
           <div
             style={{
-              maxWidth: 980,
-              margin: "0 auto",
-              padding: "10px 16px",
               display: "flex",
               flexWrap: "wrap",
               alignItems: "center",
@@ -558,107 +503,169 @@ export function EmployeePage() {
               gap: 12,
             }}
           >
-            <button
-              type="button"
-              onClick={() => setMonth((m) => addMonths(m, -1))}
-              style={btnStyle()}
-              aria-label="Předchozí měsíc"
-            >
-              ←
-            </button>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{monthLabel(month)}</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                <div
-                  style={{
-                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                    fontSize: 12,
-                    padding: "4px 8px",
-                    borderRadius: 10,
-                    background: "rgba(255,255,255,0.2)",
-                    border: "1px solid rgba(255,255,255,0.3)",
-                  }}
-                >
-                  Součet: {formatHours(monthTotalMins)} h
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              <div
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 18,
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  padding: 10,
+                  display: "grid",
+                  placeItems: "center",
+                  boxShadow: "0 16px 34px rgba(0,0,0,0.12)",
+                  flexShrink: 0,
+                }}
+              >
+                <img
+                  src={logoUrl}
+                  alt="DAGMAR"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  decoding="async"
+                  loading="eager"
+                />
+              </div>
+              <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
+                <div style={{ fontWeight: 800, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {displayName || "DAGMAR Docházka"}
                 </div>
-                {employmentTemplate === "HPP" ? (
-                  <>
-                    <div
-                      style={{
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                        fontSize: 12,
-                        padding: "4px 8px",
-                        borderRadius: 10,
-                        background: "rgba(255,255,255,0.2)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                      }}
-                    >
-                      Víkend+svátek: {formatHours(monthStats.weekendHolidayMins)} h
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                        fontSize: 12,
-                        padding: "4px 8px",
-                        borderRadius: 10,
-                        background: "rgba(255,255,255,0.2)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                      }}
-                    >
-                      Odpolední ({afternoonCutoff}): {formatHours(monthStats.afternoonMins)} h
-                    </div>
-                  </>
-                ) : null}
-                <div
-                  style={{
-                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                    fontSize: 12,
-                    padding: "4px 8px",
-                    borderRadius: 10,
-                    background: "rgba(248, 180, 0, 0.2)",
-                    border: "1px solid rgba(248, 180, 0, 0.35)",
-                    color: "white",
-                  }}
-                >
-                  Pracovní fond: {workingFundHours} h
+                <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 10, rowGap: 6, alignItems: "center" }}>
+                  <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
+                  <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
                 </div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setMonth((m) => addMonths(m, +1))}
-              style={btnStyle()}
-              aria-label="Další měsíc"
-            >
-              →
-            </button>
-            <button
-              type="button"
-              onClick={handlePunchNow}
-              style={{
-                background: "#dc2626",
-                color: "white",
-                border: "1px solid #b91c1c",
-                padding: "0 16px",
-                height: 44,
-                borderRadius: 12,
-                fontWeight: 800,
-                fontSize: 16,
-                boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
-                cursor: "pointer",
-              }}
-              aria-label="Zapsat aktuální čas"
-            >
-              TEĎ
-            </button>
-            <button
-              type="button"
-              onClick={() => setRefreshTick((t) => t + 1)}
-              style={{ ...btnStyle(), width: "auto", padding: "0 12px" }}
-              aria-label="Obnovit"
-            >
-              ↻ Obnovit
-            </button>
+
+            <div style={{ display: "grid", gap: 4, fontSize: 12, opacity: 0.9, textAlign: "right", minWidth: 120 }}>
+              <div style={{ fontWeight: 700 }}>Instance</div>
+              <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontWeight: 800 }}>
+                {instanceId ? `${instanceId.slice(0, 8)}…` : "—"}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 10,
+              justifyContent: "space-between",
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.22)",
+              borderRadius: 14,
+              padding: "10px 12px",
+              boxShadow: "0 12px 28px rgba(0,0,0,0.14)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0, flex: 1 }}>
+              <button
+                type="button"
+                onClick={() => setMonth((m) => addMonths(m, -1))}
+                style={btnStyle()}
+                aria-label="Předchozí měsíc"
+              >
+                ←
+              </button>
+              <div style={{ display: "grid", gap: 6, minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 800, textTransform: "capitalize", letterSpacing: 0.1 }}>{monthLabel(month)}</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                  <div
+                    style={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontSize: 12,
+                      padding: "4px 8px",
+                      borderRadius: 10,
+                      background: "rgba(255,255,255,0.2)",
+                      border: "1px solid rgba(255,255,255,0.3)",
+                    }}
+                  >
+                    Součet: {formatHours(monthTotalMins)} h
+                  </div>
+                  {employmentTemplate === "HPP" ? (
+                    <>
+                      <div
+                        style={{
+                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                          fontSize: 12,
+                          padding: "4px 8px",
+                          borderRadius: 10,
+                          background: "rgba(255,255,255,0.2)",
+                          border: "1px solid rgba(255,255,255,0.3)",
+                        }}
+                      >
+                        Víkend+svátek: {formatHours(monthStats.weekendHolidayMins)} h
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                          fontSize: 12,
+                          padding: "4px 8px",
+                          borderRadius: 10,
+                          background: "rgba(255,255,255,0.2)",
+                          border: "1px solid rgba(255,255,255,0.3)",
+                        }}
+                      >
+                        Odpolední ({afternoonCutoff}): {formatHours(monthStats.afternoonMins)} h
+                      </div>
+                    </>
+                  ) : null}
+                  <div
+                    style={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontSize: 12,
+                      padding: "4px 8px",
+                      borderRadius: 10,
+                      background: "rgba(248, 180, 0, 0.2)",
+                      border: "1px solid rgba(248, 180, 0, 0.35)",
+                      color: "white",
+                    }}
+                  >
+                    Pracovní fond: {workingFundHours} h
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMonth((m) => addMonths(m, +1))}
+                style={btnStyle()}
+                aria-label="Další měsíc"
+              >
+                →
+              </button>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={handlePunchNow}
+                style={{
+                  background: "#dc2626",
+                  color: "white",
+                  border: "1px solid #b91c1c",
+                  padding: "0 16px",
+                  height: 44,
+                  borderRadius: 12,
+                  fontWeight: 800,
+                  fontSize: 16,
+                  boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+                aria-label="Zapsat aktuální čas"
+              >
+                TEĎ
+              </button>
+              <button
+                type="button"
+                onClick={() => setRefreshTick((t) => t + 1)}
+                style={{ ...btnStyle(), width: "auto", padding: "0 12px", whiteSpace: "nowrap" }}
+                aria-label="Obnovit"
+              >
+                ↻ Obnovit
+              </button>
+            </div>
           </div>
         </div>
       </header>
