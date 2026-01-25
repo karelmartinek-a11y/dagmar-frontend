@@ -489,32 +489,31 @@ export function EmployeePage() {
           style={{
             maxWidth: 980,
             margin: "0 auto",
-            padding: "12px 16px 16px",
+            padding: "10px 14px 14px",
             display: "grid",
-            gap: 12,
+            gap: 10,
           }}
         >
           <div
             style={{
-              display: "flex",
-              flexWrap: "wrap",
+              display: "grid",
+              gridTemplateColumns: "1fr auto",
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
+              gap: 10,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
               <div
                 style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 18,
+                  width: 76,
+                  height: 76,
+                  borderRadius: 14,
                   background: "rgba(255,255,255,0.12)",
                   border: "1px solid rgba(255,255,255,0.25)",
-                  padding: 10,
+                  padding: 8,
                   display: "grid",
                   placeItems: "center",
-                  boxShadow: "0 16px 34px rgba(0,0,0,0.12)",
+                  boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
                   flexShrink: 0,
                 }}
               >
@@ -526,20 +525,30 @@ export function EmployeePage() {
                   loading="eager"
                 />
               </div>
-              <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
-                <div style={{ fontWeight: 800, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ minWidth: 0, display: "grid", gap: 4 }}>
+                <div style={{ fontWeight: 900, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {displayName || "DAGMAR Docházka"}
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 10, rowGap: 6, alignItems: "center" }}>
+                <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 8, rowGap: 6, alignItems: "center" }}>
                   <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
                   <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
                 </div>
               </div>
             </div>
 
-            <div style={{ display: "grid", gap: 4, fontSize: 12, opacity: 0.9, textAlign: "right", minWidth: 120 }}>
-              <div style={{ fontWeight: 700 }}>Instance</div>
-              <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontWeight: 800 }}>
+            <div style={{ display: "grid", gap: 4, fontSize: 12, opacity: 0.9, textAlign: "right", minWidth: 110 }}>
+              <div style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3 }}>Instance</div>
+              <div
+                style={{
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                  fontWeight: 800,
+                  background: "rgba(255,255,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  padding: "4px 8px",
+                  borderRadius: 10,
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {instanceId ? `${instanceId.slice(0, 8)}…` : "—"}
               </div>
             </div>
@@ -547,30 +556,22 @@ export function EmployeePage() {
 
           <div
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 10,
-              justifyContent: "space-between",
+              display: "grid",
+              gap: 8,
               background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.22)",
+              border: "1px solid rgba(255,255,255,0.2)",
               borderRadius: 14,
               padding: "10px 12px",
-              boxShadow: "0 12px 28px rgba(0,0,0,0.14)",
+              boxShadow: "0 10px 22px rgba(0,0,0,0.12)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0, flex: 1 }}>
-              <button
-                type="button"
-                onClick={() => setMonth((m) => addMonths(m, -1))}
-                style={btnStyle()}
-                aria-label="Předchozí měsíc"
-              >
+            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 8, minWidth: 0 }}>
+              <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
                 ←
               </button>
-              <div style={{ display: "grid", gap: 6, minWidth: 0, flex: 1 }}>
-                <div style={{ fontWeight: 800, textTransform: "capitalize", letterSpacing: 0.1 }}>{monthLabel(month)}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
+                <div style={{ fontWeight: 900, textTransform: "capitalize", letterSpacing: 0.2, textAlign: "center" }}>{monthLabel(month)}</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", alignItems: "center" }}>
                   <div
                     style={{
                       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
@@ -578,10 +579,23 @@ export function EmployeePage() {
                       padding: "4px 8px",
                       borderRadius: 10,
                       background: "rgba(255,255,255,0.2)",
-                      border: "1px solid rgba(255,255,255,0.3)",
+                      border: "1px solid rgba(255,255,255,0.28)",
                     }}
                   >
                     Součet: {formatHours(monthTotalMins)} h
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontSize: 12,
+                      padding: "4px 8px",
+                      borderRadius: 10,
+                      background: "rgba(248, 180, 0, 0.18)",
+                      border: "1px solid rgba(248, 180, 0, 0.32)",
+                      color: "white",
+                    }}
+                  >
+                    Fond: {workingFundHours} h
                   </div>
                   {employmentTemplate === "HPP" ? (
                     <>
@@ -592,10 +606,10 @@ export function EmployeePage() {
                           padding: "4px 8px",
                           borderRadius: 10,
                           background: "rgba(255,255,255,0.2)",
-                          border: "1px solid rgba(255,255,255,0.3)",
+                          border: "1px solid rgba(255,255,255,0.28)",
                         }}
                       >
-                        Víkend+svátek: {formatHours(monthStats.weekendHolidayMins)} h
+                        Víkendy: {formatHours(monthStats.weekendHolidayMins)} h
                       </div>
                       <div
                         style={{
@@ -604,39 +618,29 @@ export function EmployeePage() {
                           padding: "4px 8px",
                           borderRadius: 10,
                           background: "rgba(255,255,255,0.2)",
-                          border: "1px solid rgba(255,255,255,0.3)",
+                          border: "1px solid rgba(255,255,255,0.28)",
                         }}
                       >
-                        Odpolední ({afternoonCutoff}): {formatHours(monthStats.afternoonMins)} h
+                        Odpolední {afternoonCutoff}: {formatHours(monthStats.afternoonMins)} h
                       </div>
                     </>
                   ) : null}
-                  <div
-                    style={{
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      fontSize: 12,
-                      padding: "4px 8px",
-                      borderRadius: 10,
-                      background: "rgba(248, 180, 0, 0.2)",
-                      border: "1px solid rgba(248, 180, 0, 0.35)",
-                      color: "white",
-                    }}
-                  >
-                    Pracovní fond: {workingFundHours} h
-                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setMonth((m) => addMonths(m, +1))}
-                style={btnStyle()}
-                aria-label="Další měsíc"
-              >
+              <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={btnStyle()} aria-label="Další měsíc">
                 →
               </button>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+              }}
+            >
               <button
                 type="button"
                 onClick={handlePunchNow}
@@ -644,11 +648,11 @@ export function EmployeePage() {
                   background: "#dc2626",
                   color: "white",
                   border: "1px solid #b91c1c",
-                  padding: "0 16px",
-                  height: 44,
+                  padding: "0 14px",
+                  height: 40,
                   borderRadius: 12,
                   fontWeight: 800,
-                  fontSize: 16,
+                  fontSize: 15,
                   boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
