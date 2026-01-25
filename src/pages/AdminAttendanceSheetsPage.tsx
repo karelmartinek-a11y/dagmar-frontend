@@ -716,44 +716,6 @@ export default function AdminAttendanceSheetsPage() {
         </section>
       </div>
     </div>
-      <div
-        style={{
-          marginTop: 18,
-          padding: "14px 16px",
-          borderRadius: 14,
-          border: "1px solid rgba(59,130,246,0.25)",
-          background: "rgba(59,130,246,0.05)",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "grid", gap: 4, minWidth: 220 }}>
-          <div style={{ fontWeight: 800 }}>DAGMAR Docházka pro Android</div>
-          <div style={{ fontSize: 13, color: "#0f172a" }}>APK lze instalovat mimo Google Play. Pro aktivaci zařízení použijte sekci Zařízení.</div>
-        </div>
-        <a
-          href="/download/dochazka-dagmar.apk"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            padding: "10px 12px",
-            borderRadius: 12,
-            border: "1px solid rgba(59,130,246,0.35)",
-            background: "white",
-            color: "#0f172a",
-            fontWeight: 800,
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-          }}
-          download
-        >
-          📥 Stáhnout APK
-        </a>
-      </div>
   );
 }
 
