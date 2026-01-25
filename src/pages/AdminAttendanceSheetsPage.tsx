@@ -3,6 +3,7 @@ import { ApiError } from "../api/client";
 import { adminGetAttendanceMonth, adminLockAttendance, adminUpsertAttendance, adminUnlockAttendance, type AdminAttendanceDay } from "../api/adminAttendance";
 import { adminGetSettings, adminListInstances, type AdminInstance } from "../api/admin";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
+import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -318,6 +319,9 @@ export default function AdminAttendanceSheetsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ maxWidth: 1040 }}>
+        <AndroidDownloadBanner downloadUrl="/download/dochazka-dagmar.apk" appName="DAGMAR Docházka" />
+      </div>
       <div
         style={{
           display: "flex",
@@ -594,11 +598,11 @@ export default function AdminAttendanceSheetsPage() {
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Odchod</div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
                   </div>
-                ) : null}
-                {days?.map((d) => {
-                  const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
-                  const mins = calc.workedMins;
-                  const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
+              ) : null}
+              {days?.map((d) => {
+                const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
+                const mins = calc.workedMins;
+                const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
                   const hoursTitle =
                     template === "HPP" && mins !== null
                       ? `Odpolední: ${formatHours(calc.afternoonMins)} h • Víkend/svátek: ${formatHours(calc.weekendHolidayMins)} h${calc.breakTooltip ? ` • ${calc.breakTooltip}` : ""}`
@@ -668,6 +672,44 @@ export default function AdminAttendanceSheetsPage() {
                     </div>
                   );
                 })}
+              </div>
+              <div
+                style={{
+                  marginTop: 14,
+                  border: "1px solid rgba(59,130,246,0.25)",
+                  borderRadius: 14,
+                  padding: 14,
+                  background: "rgba(59,130,246,0.06)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ display: "grid", gap: 4, minWidth: 220 }}>
+                  <div style={{ fontWeight: 800 }}>DAGMAR Docházka pro Android</div>
+                  <div style={{ fontSize: 13, color: "#0f172a" }}>APK pro zaměstnance; lze instalovat mimo Google Play. Aktivuje se v sekci Zařízení.</div>
+                </div>
+                <a
+                  href="/download/dochazka-dagmar.apk"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(59,130,246,0.35)",
+                    background: "white",
+                    color: "#0f172a",
+                    fontWeight: 800,
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                  download
+                >
+                  📥 Stáhnout APK
+                </a>
               </div>
             </>
           )}
