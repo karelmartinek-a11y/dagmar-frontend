@@ -668,7 +668,14 @@ export default function AdminAttendanceSheetsPage() {
                       />
                       <div
                         title={hoursTitle}
-                        style={{ textAlign: "right", fontWeight: 800, color: mins !== null ? "#0f172a" : "var(--muted)", fontSize: 14, letterSpacing: 0.1 }}
+                        style={{
+                          textAlign: "right",
+                          fontWeight: 800,
+                          color: mins !== null ? "#0f172a" : "var(--muted)",
+                          fontSize: 15,
+                          letterSpacing: -0.2,
+                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                        }}
                       >
                         {mins !== null ? `${formatHours(mins)} h` : "—"}
                       </div>
