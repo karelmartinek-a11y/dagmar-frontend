@@ -6,6 +6,7 @@ import AdminInstancesPage from "./pages/AdminInstancesPage";
 import AdminExportPage from "./pages/AdminExportPage";
 import AdminAttendanceSheetsPage from "./pages/AdminAttendanceSheetsPage";
 import { PendingPage } from "./pages/PendingPage";
+import { DeployStamp } from "./components/DeployStamp";
 
 /**
  * Routes:
@@ -15,21 +16,24 @@ import { PendingPage } from "./pages/PendingPage";
  */
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/app" replace />} />
+    <>
+      <DeployStamp />
+      <Routes>
+        <Route path="/" element={<Navigate to="/app" replace />} />
 
-      <Route path="/app" element={<EmployeePage />} />
-      <Route path="/pending" element={<PendingPage />} />
+        <Route path="/app" element={<EmployeePage />} />
+        <Route path="/pending" element={<PendingPage />} />
 
-      <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Navigate to="instances" replace />} />
-        <Route path="instances" element={<AdminInstancesPage />} />
-        <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
-        <Route path="export" element={<AdminExportPage />} />
-      </Route>
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="instances" replace />} />
+          <Route path="instances" element={<AdminInstancesPage />} />
+          <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
+          <Route path="export" element={<AdminExportPage />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/app" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/app" replace />} />
+      </Routes>
+    </>
   );
 }
