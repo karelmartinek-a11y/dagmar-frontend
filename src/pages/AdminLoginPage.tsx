@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { adminLogin, getAdminMe } from "../api/admin";
+import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 
 function parseNextParam(search: string): string | null {
   const params = new URLSearchParams(search);
@@ -71,6 +72,9 @@ export default function AdminLoginPage() {
         background: "linear-gradient(180deg, #e0f2ff 0%, #f8fbff 40%, #ffffff 100%)",
       }}
     >
+      <div style={{ width: "min(520px, 100%)", marginBottom: 10 }}>
+        <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
+      </div>
       <div className="card pad" style={{ width: "min(520px, 100%)", boxShadow: "var(--shadow-2)" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
           <img

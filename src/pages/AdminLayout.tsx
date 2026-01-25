@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { getAdminMe } from "../api/admin";
+import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 
 type MeState =
   | { kind: "loading" }
@@ -89,6 +90,9 @@ export default function AdminLayout() {
 
   return (
     <div className="container" style={{ padding: "10px 0 30px" }}>
+      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "0 12px 10px" }}>
+        <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
+      </div>
       {me.kind === "loading" ? (
         <div
           style={{

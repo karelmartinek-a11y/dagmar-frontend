@@ -3,14 +3,16 @@ import { useMemo, useState } from "react";
 type Props = {
   downloadUrl: string;
   appName: string;
+  storageKey?: string;
 };
 
-export function AndroidDownloadBanner({ downloadUrl, appName }: Props) {
+export function AndroidDownloadBanner({ downloadUrl, appName, storageKey }: Props) {
   const isAndroid = useMemo(() => typeof navigator !== "undefined" && /android/i.test(navigator.userAgent), []);
+  const key = storageKey || "dagmar_android_banner_dismissed";
   const [visible, setVisible] = useState<boolean>(() => {
     if (!isAndroid) return false;
     try {
-      return sessionStorage.getItem("dagmar_android_banner_dismissed") !== "1";
+      return sessionStorage.getItem(key) !== "1";
     } catch {
       return true;
     }
@@ -21,7 +23,7 @@ export function AndroidDownloadBanner({ downloadUrl, appName }: Props) {
   const dismiss = () => {
     setVisible(false);
     try {
-      sessionStorage.setItem("dagmar_android_banner_dismissed", "1");
+      sessionStorage.setItem(key, "1");
     } catch {
       // ignore
     }
