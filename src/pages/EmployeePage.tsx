@@ -667,7 +667,7 @@ export function EmployeePage() {
                   boxShadow: isToday ? "0 8px 24px rgba(37,99,235,0.12)" : "0 6px 18px rgba(15, 23, 42, 0.06)",
                   background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "white",
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                  gridTemplateColumns: "1fr 1.25fr 1.25fr 0.9fr",
                   gap: 12,
                   alignItems: "center",
                 }}
