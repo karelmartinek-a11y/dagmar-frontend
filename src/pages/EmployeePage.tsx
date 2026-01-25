@@ -482,16 +482,16 @@ export function EmployeePage() {
           backgroundColor: "#0a1a34",
           color: "white",
           borderBottom: "1px solid rgba(255,255,255,0.18)",
-          minHeight: 140,
+          minHeight: 96,
         }}
       >
         <div
           style={{
             maxWidth: 980,
             margin: "0 auto",
-            padding: "10px 14px 14px",
+            padding: "8px 12px",
             display: "grid",
-            gap: 10,
+            gap: 8,
           }}
         >
           <div
@@ -499,21 +499,21 @@ export function EmployeePage() {
               display: "grid",
               gridTemplateColumns: "1fr auto",
               alignItems: "center",
-              gap: 10,
+              gap: 8,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
               <div
                 style={{
-                  width: 76,
-                  height: 76,
-                  borderRadius: 14,
-                  background: "rgba(255,255,255,0.12)",
-                  border: "1px solid rgba(255,255,255,0.25)",
-                  padding: 8,
+                  width: 64,
+                  height: 64,
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.10)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  padding: 6,
                   display: "grid",
                   placeItems: "center",
-                  boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
+                  boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
                   flexShrink: 0,
                 }}
               >
@@ -525,44 +525,29 @@ export function EmployeePage() {
                   loading="eager"
                 />
               </div>
-              <div style={{ minWidth: 0, display: "grid", gap: 4 }}>
+              <div style={{ minWidth: 0, display: "grid", gap: 3 }}>
                 <div style={{ fontWeight: 900, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {displayName || "DAGMAR Docházka"}
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 8, rowGap: 6, alignItems: "center" }}>
+                <div style={{ fontSize: 11, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 6, rowGap: 6, alignItems: "center" }}>
                   <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
                   <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
                 </div>
               </div>
             </div>
 
-            <div style={{ display: "grid", gap: 4, fontSize: 12, opacity: 0.9, textAlign: "right", minWidth: 110 }}>
-              <div style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3 }}>Instance</div>
-              <div
-                style={{
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  fontWeight: 800,
-                  background: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  padding: "4px 8px",
-                  borderRadius: 10,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {instanceId ? `${instanceId.slice(0, 8)}…` : "—"}
-              </div>
-            </div>
+            <div style={{ fontSize: 11, opacity: 0.9, textAlign: "right", minWidth: 90 }} />
           </div>
 
           <div
             style={{
               display: "grid",
-              gap: 8,
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 14,
-              padding: "10px 12px",
-              boxShadow: "0 10px 22px rgba(0,0,0,0.12)",
+              gap: 6,
+              background: "rgba(255,255,255,0.10)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              borderRadius: 12,
+              padding: "8px 10px",
+              boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
             }}
           >
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 8, minWidth: 0 }}>
@@ -571,61 +556,6 @@ export function EmployeePage() {
               </button>
               <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
                 <div style={{ fontWeight: 900, textTransform: "capitalize", letterSpacing: 0.2, textAlign: "center" }}>{monthLabel(month)}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", alignItems: "center" }}>
-                  <div
-                    style={{
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      fontSize: 12,
-                      padding: "4px 8px",
-                      borderRadius: 10,
-                      background: "rgba(255,255,255,0.2)",
-                      border: "1px solid rgba(255,255,255,0.28)",
-                    }}
-                  >
-                    Součet: {formatHours(monthTotalMins)} h
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      fontSize: 12,
-                      padding: "4px 8px",
-                      borderRadius: 10,
-                      background: "rgba(248, 180, 0, 0.18)",
-                      border: "1px solid rgba(248, 180, 0, 0.32)",
-                      color: "white",
-                    }}
-                  >
-                    Fond: {workingFundHours} h
-                  </div>
-                  {employmentTemplate === "HPP" ? (
-                    <>
-                      <div
-                        style={{
-                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                          fontSize: 12,
-                          padding: "4px 8px",
-                          borderRadius: 10,
-                          background: "rgba(255,255,255,0.2)",
-                          border: "1px solid rgba(255,255,255,0.28)",
-                        }}
-                      >
-                        Víkendy: {formatHours(monthStats.weekendHolidayMins)} h
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                          fontSize: 12,
-                          padding: "4px 8px",
-                          borderRadius: 10,
-                          background: "rgba(255,255,255,0.2)",
-                          border: "1px solid rgba(255,255,255,0.28)",
-                        }}
-                      >
-                        Odpolední {afternoonCutoff}: {formatHours(monthStats.afternoonMins)} h
-                      </div>
-                    </>
-                  ) : null}
-                </div>
               </div>
               <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={btnStyle()} aria-label="Další měsíc">
                 →
@@ -810,34 +740,100 @@ export function EmployeePage() {
         ) : null}
       </main>
 
-      <footer style={{ maxWidth: 980, margin: "0 auto", padding: "20px 16px", color: "#64748b", fontSize: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <span>Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.</span>
-          <span>
-            Součet hodin ({monthLabel(month)}):{" "}
-            <strong>
-              {formatHours(monthTotalMins)}
-              h
-            </strong>
-          </span>
-          {employmentTemplate === "HPP" ? (
-            <>
-              <span>
-                Víkend+svátek:{" "}
-                <strong>{formatHours(monthStats.weekendHolidayMins)} h</strong>
+      <footer style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px", color: "#475569", fontSize: 12 }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            alignItems: "center",
+            background: "white",
+            border: "1px solid rgba(15,23,42,0.08)",
+            borderRadius: 14,
+            padding: 12,
+            boxShadow: "0 6px 14px rgba(0,0,0,0.08)",
+          }}
+        >
+          <div style={{ display: "grid", gap: 6 }}>
+            <div style={{ color: "#0f172a", fontWeight: 800 }}>Souhrn ({monthLabel(month)})</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, rowGap: 8 }}>
+              <span
+                style={{
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                  padding: "4px 8px",
+                  borderRadius: 10,
+                  background: "rgba(37,99,235,0.08)",
+                  color: "#1d4ed8",
+                  border: "1px solid rgba(37,99,235,0.18)",
+                  fontWeight: 800,
+                }}
+              >
+                Součet: {formatHours(monthTotalMins)} h
               </span>
-              <span>
-                Odpolední ({afternoonCutoff}):{" "}
-                <strong>{formatHours(monthStats.afternoonMins)} h</strong>
+              <span
+                style={{
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                  padding: "4px 8px",
+                  borderRadius: 10,
+                  background: "rgba(248,180,0,0.14)",
+                  color: "#92400e",
+                  border: "1px solid rgba(248,180,0,0.32)",
+                  fontWeight: 800,
+                }}
+              >
+                Fond: {workingFundHours} h
               </span>
-            </>
-          ) : null}
-          <span>
-            Pracovní fond:{" "}
-            <strong>
-              {workingFundHours} h
-            </strong>
-          </span>
+              {employmentTemplate === "HPP" ? (
+                <>
+                  <span
+                    style={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      padding: "4px 8px",
+                      borderRadius: 10,
+                      background: "rgba(15,23,42,0.06)",
+                      border: "1px solid rgba(15,23,42,0.12)",
+                      fontWeight: 800,
+                    }}
+                  >
+                    Víkendy: {formatHours(monthStats.weekendHolidayMins)} h
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      padding: "4px 8px",
+                      borderRadius: 10,
+                      background: "rgba(15,23,42,0.06)",
+                      border: "1px solid rgba(15,23,42,0.12)",
+                      fontWeight: 800,
+                    }}
+                  >
+                    Odpolední {afternoonCutoff}: {formatHours(monthStats.afternoonMins)} h
+                  </span>
+                </>
+              ) : null}
+            </div>
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            <div style={{ color: "#0f172a", fontWeight: 800 }}>Instance</div>
+            <div
+              style={{
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                padding: "6px 10px",
+                borderRadius: 10,
+                background: "rgba(15,23,42,0.06)",
+                border: "1px solid rgba(15,23,42,0.12)",
+                fontWeight: 800,
+                display: "inline-block",
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              title={instanceId ?? undefined}
+            >
+              {instanceId ? instanceId : "—"}
+            </div>
+            <div style={{ color: "#64748b" }}>Docházka se ukládá pouze na serveru; offline změny jsou dočasné.</div>
+          </div>
         </div>
       </footer>
     </div>
