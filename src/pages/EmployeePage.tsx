@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getAttendance, putAttendance } from "../api/attendance";
 import { ApiError } from "../api/client";
-import { claimToken, getStatus, registerInstance, type EmploymentTemplate } from "../api/instances";
+import { claimToken, getStatus, type EmploymentTemplate } from "../api/instances";
 import { ConnectivityPill } from "../components/ConnectivityPill";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
@@ -101,6 +102,7 @@ const POLL_STATUS_MS = 8_000;
 const POLL_CLAIM_MS = 6_000;
 
 export function EmployeePage() {
+  const nav = useNavigate();
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [statusText, setStatusText] = useState<string>("Kontroluji stav…");
   const [activationState, setActivationState] = useState<"unknown" | "pending" | "revoked" | "deactivated" | "active">("unknown");
@@ -175,8 +177,6 @@ export function EmployeePage() {
 
   // Ensure instance registration (get server instance_id for this fingerprint).
   useEffect(() => {
-    let cancelled = false;
-
     async function ensureRegistered() {
       if (!online) return;
       if (instanceId) return;
@@ -187,9 +187,6 @@ export function EmployeePage() {
     }
 
     ensureRegistered();
-    return () => {
-      cancelled = true;
-    };
   }, [clientType, deviceFingerprint, deviceInfo, instanceId, online, nav]);
 
   // Poll status and claim token when ACTIVE
