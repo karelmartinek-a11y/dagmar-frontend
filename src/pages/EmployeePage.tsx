@@ -181,26 +181,16 @@ export function EmployeePage() {
       if (!online) return;
       if (instanceId) return;
 
-      try {
-        const res = await registerInstance({
-          client_type: clientType,
-          device_fingerprint: deviceFingerprint,
-          device_info: deviceInfo,
-        });
-        if (cancelled) return;
-        instanceStore.setInstanceId(res.instance_id);
-        setActivationState("pending");
-        setStatusText("Zařízení není aktivováno");
-      } catch {
-        // ignore; status poll will keep user informed
-      }
+      setActivationState("pending");
+      setStatusText("Zařízení není aktivováno. Otevřete stránku čekající na schválení a odešlete žádost.");
+      nav("/pending", { replace: true });
     }
 
     ensureRegistered();
     return () => {
       cancelled = true;
     };
-  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online]);
+  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online, nav]);
 
   // Poll status and claim token when ACTIVE
   useEffect(() => {
