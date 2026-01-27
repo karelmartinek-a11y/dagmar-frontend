@@ -228,7 +228,7 @@ export default function AdminShiftPlanPage() {
         ) : (
           <div className="dg-card pad" style={{ overflowX: "auto" }}>
             <div style={{ marginBottom: 8, fontWeight: 800 }}>{monthLabel(month)}</div>
-            <table className="plan-table">
+            <table className="plan-table plan-table-compact">
               <DaysHeader days={days} />
               <tbody>
                 {selectedRows.map((row) => {
@@ -247,12 +247,12 @@ export default function AdminShiftPlanPage() {
                         const departure = drafts[dKey] ?? val?.departure_time ?? "";
                         const saving = savingCell[aKey] || savingCell[dKey];
                         return (
-                          <td key={d.date}>
-                            <div style={{ display: "grid", gap: 4 }}>
+                          <td key={d.date} className="plan-compact-cell">
+                            <div className="plan-compact-grid">
+                              <label className="plan-compact-label">P</label>
                               <input
-                                className="input"
-                                style={{ padding: "6px 8px", fontSize: 13 }}
-                                placeholder="Příchod"
+                                className="input plan-compact-input"
+                                placeholder="--:--"
                                 value={arrival}
                                 onChange={(e) => {
                                   const v = e.target.value;
@@ -262,10 +262,10 @@ export default function AdminShiftPlanPage() {
                                 }}
                                 onBlur={(e) => saveCell(row.instance_id, d.date, "arrival_time", e.target.value)}
                               />
+                              <label className="plan-compact-label">O</label>
                               <input
-                                className="input"
-                                style={{ padding: "6px 8px", fontSize: 13 }}
-                                placeholder="Odchod"
+                                className="input plan-compact-input"
+                                placeholder="--:--"
                                 value={departure}
                                 onChange={(e) => {
                                   const v = e.target.value;
@@ -275,8 +275,8 @@ export default function AdminShiftPlanPage() {
                                 }}
                                 onBlur={(e) => saveCell(row.instance_id, d.date, "departure_time", e.target.value)}
                               />
-                              {saving ? <div style={{ fontSize: 11, color: "var(--muted)" }}>Ukládám…</div> : null}
                             </div>
+                            {saving ? <div style={{ fontSize: 10, color: "var(--muted)" }}>Ukládám…</div> : null}
                           </td>
                         );
                       })}

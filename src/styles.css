@@ -345,6 +345,28 @@ html[data-device="desktop"] { --header-h: 70px; }
   background: rgba(4, 156, 227, 0.10);
 }
 
+.plan-table-compact {
+  font-size: 12px;
+}
+.plan-compact-cell {
+  min-width: 90px;
+}
+.plan-compact-grid {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 4px;
+  align-items: center;
+}
+.plan-compact-label {
+  font-weight: 800;
+  color: #0f172a;
+  text-align: right;
+}
+.plan-compact-input {
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
 .btn.primary { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); color: #fff; }
 .btn.primary:hover { background: rgba(255,255,255,0.20); }
 
