@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { adminLogin, getAdminMe } from "../api/admin";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
+import { useDeviceVariant } from "../hooks/useDeviceVariant";
+import dagmarLogo from "../assets/dagmar-logo.png";
 
 function parseNextParam(search: string): string | null {
   const params = new URLSearchParams(search);
@@ -14,11 +16,12 @@ function parseNextParam(search: string): string | null {
 }
 
 export default function AdminLoginPage() {
+  useDeviceVariant();
+
   const nav = useNavigate();
   const loc = useLocation();
 
   const nextPath = useMemo(() => parseNextParam(loc.search) ?? "/admin/instances", [loc.search]);
-  const logoUrl = useMemo(() => "/brand/logo.svg", []);
 
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -63,36 +66,28 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        padding: 24,
-        background: "linear-gradient(180deg, #e0f2ff 0%, #f8fbff 40%, #ffffff 100%)",
-      }}
-    >
+    <div className="dg-page" style={{ display: "grid", placeItems: "center", padding: 24 }}>
       <div style={{ width: "min(520px, 100%)", marginBottom: 10 }}>
         <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
       </div>
-      <div className="card pad" style={{ width: "min(520px, 100%)", boxShadow: "var(--shadow-2)" }}>
+      <div className="dg-card pad" style={{ width: "min(520px, 100%)", boxShadow: "var(--shadow-2)" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
           <img
-            src={logoUrl}
-            alt="DAGMAR Docházka"
+            src={dagmarLogo}
+            alt="DAGMAR"
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              background: "#e0f2fe",
-              padding: 8,
-              border: "1px solid #bae6fd",
+              width: 52,
+              height: 52,
+              borderRadius: 16,
+              background: "rgba(10,196,254,0.14)",
+              padding: 9,
+              border: "1px solid rgba(10,196,254,0.28)",
             }}
             loading="eager"
             decoding="async"
           />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 850 }}>DAGMAR — Admin</div>
+            <div style={{ fontSize: 18, fontWeight: 900 }}>DAGMAR — Admin</div>
             <div style={{ fontSize: 13, color: "var(--muted)" }}>Přihlášení do administrace</div>
           </div>
         </div>
@@ -102,11 +97,12 @@ export default function AdminLoginPage() {
             style={{
               border: "1px solid rgba(239,68,68,0.35)",
               background: "rgba(239,68,68,0.08)",
-              borderRadius: 12,
+              borderRadius: 14,
               padding: 12,
               color: "#b91c1c",
               marginBottom: 12,
               fontSize: 13,
+              fontWeight: 700,
             }}
           >
             {error}
@@ -127,7 +123,7 @@ export default function AdminLoginPage() {
             />
           </div>
 
-          <button type="submit" disabled={submitting} className="btn solid" style={{ width: "100%", justifyContent: "center" }}>
+          <button type="submit" disabled={submitting} className="dg-btn solid" style={{ width: "100%", justifyContent: "center" }}>
             {submitting ? "Přihlašuji…" : "Přihlásit"}
           </button>
 
@@ -144,11 +140,11 @@ export default function AdminLoginPage() {
               justifyContent: "center",
               gap: 8,
               padding: "10px 12px",
-              borderRadius: 12,
-              border: "1px solid rgba(59,130,246,0.35)",
-              background: "rgba(59,130,246,0.08)",
-              color: "#0f172a",
-              fontWeight: 700,
+              borderRadius: 14,
+              border: "1px solid rgba(10,196,254,0.30)",
+              background: "rgba(10,196,254,0.10)",
+              color: "rgba(7,20,36,0.92)",
+              fontWeight: 900,
               textDecoration: "none",
               width: "100%",
             }}

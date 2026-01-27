@@ -4,6 +4,9 @@ import { getAttendance, putAttendance } from "../api/attendance";
 import { ApiError } from "../api/client";
 import { claimToken, getStatus, type EmploymentTemplate } from "../api/instances";
 import { ConnectivityPill } from "../components/ConnectivityPill";
+import { BrandLoader } from "../components/BrandLoader";
+import { useDeviceVariant } from "../hooks/useDeviceVariant";
+import dagmarLogo from "../assets/dagmar-logo.png";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
@@ -102,6 +105,8 @@ const POLL_STATUS_MS = 8_000;
 const POLL_CLAIM_MS = 6_000;
 
 export function EmployeePage() {
+  useDeviceVariant();
+
   const nav = useNavigate();
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [statusText, setStatusText] = useState<string>("Kontroluji stav…");
@@ -130,7 +135,7 @@ export function EmployeePage() {
   const [instanceId, setInstanceId] = useState<string | null>(() => instanceStore.get().instanceId);
   const [deviceFingerprint, setDeviceFingerprint] = useState<string>(() => getOrCreateDeviceFingerprint());
 
-  const logoUrl = useMemo(() => "/brand/icon.svg", []);
+  const logoUrl = useMemo(() => dagmarLogo, []);
   const clientType = useMemo(() => detectClientType(), []);
   const deviceInfo = useMemo(
     () => ({
@@ -456,32 +461,13 @@ export function EmployeePage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
+    <div className="dg-page dg-employee">
       <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
         <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="DAGMAR Docházka" />
       </div>
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
-          backgroundColor: "#0a1a34",
-          color: "white",
-          borderBottom: "1px solid rgba(255,255,255,0.18)",
-          minHeight: 96,
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 980,
-            margin: "0 auto",
-            padding: "8px 12px",
-            display: "grid",
-            gap: 8,
-          }}
-        >
+      <header className="dg-topbar">
+        <div className="dg-topbar-inner" style={{ maxWidth: 980 }}>
+          <div style={{ width: "100%", display: "grid", gap: 8 }}>
           <div
             style={{
               display: "grid",
@@ -490,34 +476,11 @@ export function EmployeePage() {
               gap: 8,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-              <div
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 12,
-                  background: "rgba(255,255,255,0.10)",
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  padding: 6,
-                  display: "grid",
-                  placeItems: "center",
-                  boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
-                  flexShrink: 0,
-                }}
-              >
-                <img
-                  src={logoUrl}
-                  alt="DAGMAR"
-                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                  decoding="async"
-                  loading="eager"
-                />
-              </div>
-              <div style={{ minWidth: 0, display: "grid", gap: 3 }}>
-                <div style={{ fontWeight: 900, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {displayName || "DAGMAR Docházka"}
-                </div>
-                <div style={{ fontSize: 11, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 6, rowGap: 6, alignItems: "center" }}>
+            <div className="dg-brand" style={{ gap: 10 }}>
+              <img src={logoUrl} alt="DAGMAR" className="dg-brand-logo" decoding="async" loading="eager" />
+              <div className="dg-brand-text">
+                <div className="dg-brand-title">{displayName || "DAGMAR Docházka"}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.86)", display: "flex", flexWrap: "wrap", gap: 8, rowGap: 8, alignItems: "center" }}>
                   <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
                   <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
                 </div>
@@ -527,17 +490,7 @@ export function EmployeePage() {
             <div style={{ fontSize: 11, opacity: 0.9, textAlign: "right", minWidth: 90 }} />
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gap: 6,
-              background: "rgba(255,255,255,0.10)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              borderRadius: 12,
-              padding: "8px 10px",
-              boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
-            }}
-          >
+          <div className="dg-soft" style={{ display: "grid", gap: 10, padding: "10px 12px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 8, minWidth: 0 }}>
               <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
                 ←
@@ -591,9 +544,10 @@ export function EmployeePage() {
             </div>
           </div>
         </div>
+        </div>
       </header>
 
-      <main style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "16px" }}>
+      <main className="dg-main" style={{ maxWidth: 980 }}>
         {monthLocked ? (
           <div style={cardStyle()}>
             <div style={{ fontWeight: 800, marginBottom: 6, color: "#b91c1c" }}>Měsíc uzavřen</div>
@@ -723,9 +677,11 @@ export function EmployeePage() {
         </div>
 
         {rows.length === 0 ? (
-          <div style={{ marginTop: 14, color: "#64748b", fontSize: 13 }}>
-            {online ? "Načítám… (pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu)" : ""}
-          </div>
+          online ? (
+            <div style={{ marginTop: 14 }}>
+              <BrandLoader logoSrc={logoUrl} title="Načítám docházku…" subtitle="Pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu." />
+            </div>
+          ) : null
         ) : null}
       </main>
 
