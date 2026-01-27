@@ -10,6 +10,7 @@ export type AttendanceDay = {
 
 export type AttendanceMonthResponse = {
   days: AttendanceDay[];
+  instance_display_name?: string;
 };
 
 export type AttendanceUpsertBody = {

@@ -304,6 +304,10 @@ export function EmployeePage() {
         const res = await getAttendance(y, m, token);
         if (cancelled) return;
 
+        if (res.instance_display_name) {
+          setInstanceDisplayName(res.instance_display_name);
+        }
+
         // Normalize to full month list
         const dim = daysInMonth(y, m);
         const byDate = new Map<string, DayRow>();
@@ -548,7 +552,20 @@ export function EmployeePage() {
               <button
                 type="button"
                 onClick={() => setRefreshTick((t) => t + 1)}
-                style={{ ...btnStyle(), width: "auto", padding: "0 12px", whiteSpace: "nowrap" }}
+                style={{
+                  background: "rgba(14,165,233,0.14)",
+                  border: "1px solid rgba(14,165,233,0.35)",
+                  color: "#0f172a",
+                  width: "auto",
+                  padding: "0 12px",
+                  whiteSpace: "nowrap",
+                  height: 36,
+                  borderRadius: 12,
+                  fontWeight: 800,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  boxShadow: "0 8px 18px rgba(14,165,233,0.18)",
+                }}
                 aria-label="Obnovit"
               >
                 ↻ Obnovit

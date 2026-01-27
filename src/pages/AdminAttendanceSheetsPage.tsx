@@ -800,8 +800,9 @@ function miniBtn(): React.CSSProperties {
     height: 34,
     width: 40,
     borderRadius: 10,
-    border: "1px solid var(--line)",
-    background: "white",
+    border: "1px solid rgba(14,165,233,0.35)",
+    background: "rgba(14,165,233,0.14)",
+    color: "#0f172a",
     fontWeight: 900,
     cursor: "pointer",
   };
