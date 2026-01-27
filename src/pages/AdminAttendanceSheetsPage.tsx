@@ -110,6 +110,7 @@ export default function AdminAttendanceSheetsPage() {
   const [instances, setInstances] = useState<AdminInstance[] | null>(null);
   const [instancesLoading, setInstancesLoading] = useState(false);
   const [instancesError, setInstancesError] = useState<string | null>(null);
+  const [activeName, setActiveName] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<AdminInstance | null>(null);
@@ -211,6 +212,7 @@ export default function AdminAttendanceSheetsPage() {
         if (cancelled) return;
         setDays(res.days);
         setLocked(res.locked || false);
+        setActiveName(selected.display_name || selected.id);
         // Optional extras (backend may include these; keep backward compatible).
         const anyRes = res as any;
         const anySel = selected as any;
@@ -337,7 +339,12 @@ export default function AdminAttendanceSheetsPage() {
       >
         <div>
           <div style={{ fontSize: 20, fontWeight: 700 }}>Docházkové listy</div>
-          <div style={{ color: "var(--muted)" }}>Vyhledejte instanci podle názvu a upravte docházku za vybraný měsíc.</div>
+          <div style={{ color: "var(--muted)" }}>
+            Vyhledejte instanci podle názvu a upravte docházku za vybraný měsíc.
+            {activeName ? (
+              <span style={{ fontWeight: 800, marginLeft: 6, color: "#0f172a" }}>Aktuálně: {activeName}</span>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -635,6 +642,10 @@ export default function AdminAttendanceSheetsPage() {
                 const mins = calc.workedMins;
                 const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
                 const hasPlan = !!(d.planned_arrival_time || d.planned_departure_time);
+                const planLabel =
+                  d.planned_arrival_time || d.planned_departure_time
+                    ? `Plán: ${d.planned_arrival_time ?? "--"} – ${d.planned_departure_time ?? "--"}`
+                    : null;
                   const hoursTitle =
                     template === "HPP" && mins !== null
                       ? `Odpolední: ${formatHours(calc.afternoonMins)} h • Víkend/svátek: ${formatHours(calc.weekendHolidayMins)} h${calc.breakTooltip ? ` • ${calc.breakTooltip}` : ""}`
@@ -644,10 +655,10 @@ export default function AdminAttendanceSheetsPage() {
                       key={d.date}
                       className="attendance-grid-row"
                       style={{
-                        background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "rgba(255,255,255,0.86)",
+                        background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "rgba(255,255,255,0.92)",
                         borderRadius: 16,
                         padding: 14,
-                        border: hasPlan ? "2px solid rgba(14,165,233,0.35)" : "1px solid rgba(15, 23, 42, 0.08)",
+                        border: hasPlan ? "2px solid rgba(14,165,233,0.45)" : "1px solid rgba(15, 23, 42, 0.08)",
                         boxShadow: hasPlan ? "0 8px 22px rgba(14,165,233,0.10)" : "0 6px 18px rgba(15, 23, 42, 0.06)",
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr 1fr",
@@ -661,6 +672,24 @@ export default function AdminAttendanceSheetsPage() {
                           {toDowLabel(d.date)}
                           {template === "HPP" && calc.holidayName ? ` • ${calc.holidayName}` : ""}
                         </div>
+                        {planLabel ? (
+                          <div
+                            style={{
+                              display: "inline-block",
+                              marginTop: 6,
+                              fontSize: 11,
+                              fontWeight: 800,
+                              color: "#0ea5e9",
+                              background: "rgba(14,165,233,0.12)",
+                              border: "1px solid rgba(14,165,233,0.24)",
+                              padding: "4px 8px",
+                              borderRadius: 10,
+                            }}
+                          >
+                            {planLabel}
+                          </div>
+                        ) : null}
+
                         {template === "HPP" && calc.breakLabel ? (
                           <div
                             title={calc.breakTooltip ?? undefined}
