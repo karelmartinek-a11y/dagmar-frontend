@@ -148,6 +148,11 @@ export function EmployeePage() {
     []
   );
   const androidDownloadUrl = "https://dagmar.hcasc.cz/download/dochazka-dagmar.apk";
+  const brandTitle = useMemo(() => {
+    if (displayName && displayName.trim()) return displayName;
+    if (instanceId) return `Zařízení ${instanceId.slice(0, 8)}`;
+    return "DAGMAR Docházka";
+  }, [displayName, instanceId]);
 
   useEffect(() => {
     const unsubscribe = instanceStore.subscribe((st) => {
@@ -236,6 +241,7 @@ export function EmployeePage() {
         setAfternoonCutoff(st.afternoon_cutoff ?? "17:00");
         setStatusText("Aktivováno");
         setActivationState("active");
+        if (st.display_name) setDisplayName(st.display_name);
       } catch (e: any) {
         // If the stored id isn't a server instance_id, recover by treating it as fingerprint and re-registering.
         if (e instanceof ApiError && e.status === 404) {
@@ -303,6 +309,7 @@ export function EmployeePage() {
 
         if (res.instance_display_name) {
           setInstanceDisplayName(res.instance_display_name);
+          setDisplayName(res.instance_display_name);
         }
 
         // Normalize to full month list
@@ -489,10 +496,10 @@ export function EmployeePage() {
               gap: 8,
             }}
           >
-            <div className="dg-brand" style={{ gap: 10 }}>
+              <div className="dg-brand" style={{ gap: 10 }}>
               <img src={logoUrl} alt="DAGMAR" className="dg-brand-logo" decoding="async" loading="eager" />
               <div className="dg-brand-text">
-                <div className="dg-brand-title">{displayName || "DAGMAR Docházka"}</div>
+                <div className="dg-brand-title">{brandTitle}</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.86)", display: "flex", flexWrap: "wrap", gap: 8, rowGap: 8, alignItems: "center" }}>
                   <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
                   <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
