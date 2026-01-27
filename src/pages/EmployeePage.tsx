@@ -16,6 +16,8 @@ type DayRow = {
   date: string; // YYYY-MM-DD
   arrival_time: string | null;
   departure_time: string | null;
+  planned_arrival_time?: string | null;
+  planned_departure_time?: string | null;
 };
 
 type QueueItem = {
@@ -305,7 +307,15 @@ export function EmployeePage() {
         // Normalize to full month list
         const dim = daysInMonth(y, m);
         const byDate = new Map<string, DayRow>();
-        for (const d of res.days) byDate.set(d.date, d);
+        for (const d of res.days) {
+          byDate.set(d.date, {
+            date: d.date,
+            arrival_time: d.arrival_time,
+            departure_time: d.departure_time,
+            planned_arrival_time: d.planned_arrival_time ?? null,
+            planned_departure_time: d.planned_departure_time ?? null,
+          });
+        }
 
         const out: DayRow[] = [];
         for (let day = 1; day <= dim; day++) {
@@ -315,6 +325,8 @@ export function EmployeePage() {
               date,
               arrival_time: null,
               departure_time: null,
+              planned_arrival_time: null,
+              planned_departure_time: null,
             },
           );
         }
@@ -659,6 +671,7 @@ export function EmployeePage() {
                   label="Příchod"
                   placeholder="HH:MM"
                   value={r.arrival_time ?? ""}
+                  planned={r.planned_arrival_time ?? null}
                   onChange={(v) => onChangeTime(r.date, "arrival_time", v)}
                 />
 
@@ -666,6 +679,7 @@ export function EmployeePage() {
                   label="Odchod"
                   placeholder="HH:MM"
                   value={r.departure_time ?? ""}
+                  planned={r.planned_departure_time ?? null}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
                 />
                 <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
@@ -841,8 +855,8 @@ function cardStyle(): React.CSSProperties {
   };
 }
 
-function TimeInput(props: { label: string; placeholder: string; value: string; onChange: (v: string) => void }) {
-  const { label, placeholder, value, onChange } = props;
+function TimeInput(props: { label: string; placeholder: string; value: string; planned?: string | null; onChange: (v: string) => void }) {
+  const { label, placeholder, value, planned, onChange } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -854,6 +868,11 @@ function TimeInput(props: { label: string; placeholder: string; value: string; o
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
+      {planned ? (
+        <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+          Plán: {planned}
+        </div>
+      ) : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}

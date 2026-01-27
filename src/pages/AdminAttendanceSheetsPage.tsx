@@ -830,17 +830,15 @@ function TimeInput(props: {
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
         <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, minWidth: 0 }}>
-          {planned ? (
-            <div style={{ fontSize: 11, color: "#0f172a", fontWeight: 800, whiteSpace: "nowrap" }}>
-              Plán: <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>{planned}</span>
-            </div>
-          ) : null}
-          <div style={{ fontSize: 11, color: saving ? "#0369a1" : "rgba(15,23,42,0.55)", fontWeight: 700, whiteSpace: "nowrap" }}>
-            {saving ? "Ukládám…" : ""}
-          </div>
+        <div style={{ fontSize: 11, color: saving ? "#0369a1" : "rgba(15,23,42,0.55)", fontWeight: 700, whiteSpace: "nowrap" }}>
+          {saving ? "Ukládám…" : ""}
         </div>
       </div>
+      {planned ? (
+        <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+          Plán: {planned}
+        </div>
+      ) : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}

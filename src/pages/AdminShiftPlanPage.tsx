@@ -66,19 +66,27 @@ function isValidTimeOrEmpty(value: string): boolean {
 
 function DaysHeader({ days }: { days: ShiftPlanDay[] }) {
   return (
-    <thead>
+    <thead className="plan-shift-head">
       <tr>
-        <th style={{ minWidth: 180 }}>Zařízení</th>
+        <th rowSpan={2} style={{ minWidth: 180 }}>Zařízení</th>
         {days.map((d) => {
           const dt = new Date(d.date);
           const dow = dt.toLocaleDateString("cs-CZ", { weekday: "short" });
           return (
-            <th key={d.date} style={{ minWidth: 90, textAlign: "center" }}>
-              <div style={{ fontWeight: 800 }}>{dt.getDate()}. {dt.getMonth() + 1}.</div>
-              <div style={{ fontSize: 11, color: "var(--muted)" }}>{dow}</div>
+            <th key={d.date} className="plan-day-cell">
+              <div className="plan-day-number">{dt.getDate()}. {dt.getMonth() + 1}.</div>
+              <div className="plan-day-dow">{dow}</div>
             </th>
           );
         })}
+      </tr>
+      <tr className="plan-po-head">
+        {days.map((d) => (
+          <th key={`${d.date}-po`} className="plan-po-labels">
+            <div>P</div>
+            <div>O</div>
+          </th>
+        ))}
       </tr>
     </thead>
   );
@@ -228,7 +236,7 @@ export default function AdminShiftPlanPage() {
         ) : (
           <div className="dg-card pad" style={{ overflowX: "auto" }}>
             <div style={{ marginBottom: 8, fontWeight: 800 }}>{monthLabel(month)}</div>
-            <table className="plan-table plan-table-compact">
+            <table className="plan-table plan-table-compact plan-table-shift">
               <DaysHeader days={days} />
               <tbody>
                 {selectedRows.map((row) => {
@@ -237,7 +245,7 @@ export default function AdminShiftPlanPage() {
                     <tr key={row.instance_id}>
                       <th style={{ textAlign: "left" }}>
                         <div style={{ fontWeight: 850 }}>{row.display_name || "Bez názvu"}</div>
-                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{row.instance_id.slice(0, 8)}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>{row.instance_id.slice(0, 8)}</div>
                       </th>
                       {days.map((d) => {
                         const val = dayMap.get(d.date);
@@ -247,36 +255,40 @@ export default function AdminShiftPlanPage() {
                         const departure = drafts[dKey] ?? val?.departure_time ?? "";
                         const saving = savingCell[aKey] || savingCell[dKey];
                         return (
-                          <td key={d.date} className="plan-compact-cell">
-                            <div className="plan-compact-grid">
-                              <label className="plan-compact-label">P</label>
-                              <input
-                                className="input plan-compact-input"
-                                placeholder="--:--"
-                                value={arrival}
-                                onChange={(e) => {
-                                  const v = e.target.value;
-                                  if (isValidTimeOrEmpty(v)) {
-                                    setDrafts((prev) => ({ ...prev, [aKey]: v }));
-                                  }
-                                }}
-                                onBlur={(e) => saveCell(row.instance_id, d.date, "arrival_time", e.target.value)}
-                              />
-                              <label className="plan-compact-label">O</label>
-                              <input
-                                className="input plan-compact-input"
-                                placeholder="--:--"
-                                value={departure}
-                                onChange={(e) => {
-                                  const v = e.target.value;
-                                  if (isValidTimeOrEmpty(v)) {
-                                    setDrafts((prev) => ({ ...prev, [dKey]: v }));
-                                  }
-                                }}
-                                onBlur={(e) => saveCell(row.instance_id, d.date, "departure_time", e.target.value)}
-                              />
+                          <td key={d.date} className="plan-compact-cell plan-po-cell">
+                            <div className="plan-po-grid">
+                              <div className="plan-po-row">
+                                <span className="plan-po-label">P</span>
+                                <input
+                                  className="input plan-compact-input plan-po-input"
+                                  placeholder="--:--"
+                                  value={arrival}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    if (isValidTimeOrEmpty(v)) {
+                                      setDrafts((prev) => ({ ...prev, [aKey]: v }));
+                                    }
+                                  }}
+                                  onBlur={(e) => saveCell(row.instance_id, d.date, "arrival_time", e.target.value)}
+                                />
+                              </div>
+                              <div className="plan-po-row">
+                                <span className="plan-po-label">O</span>
+                                <input
+                                  className="input plan-compact-input plan-po-input"
+                                  placeholder="--:--"
+                                  value={departure}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    if (isValidTimeOrEmpty(v)) {
+                                      setDrafts((prev) => ({ ...prev, [dKey]: v }));
+                                    }
+                                  }}
+                                  onBlur={(e) => saveCell(row.instance_id, d.date, "departure_time", e.target.value)}
+                                />
+                              </div>
+                              {saving ? <div className="plan-saving-hint">Ukládám…</div> : null}
                             </div>
-                            {saving ? <div style={{ fontSize: 10, color: "var(--muted)" }}>Ukládám…</div> : null}
                           </td>
                         );
                       })}
