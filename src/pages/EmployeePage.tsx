@@ -121,6 +121,7 @@ export function EmployeePage() {
   const [monthLocked, setMonthLocked] = useState(false);
   const monthStats = useMemo(() => computeMonthStats(rows, employmentTemplate, cutoffMinutes), [rows, employmentTemplate, cutoffMinutes]);
   const monthTotalMins = monthStats.totalMins;
+  const [displayName, setDisplayName] = useState<string | null>(() => getInstanceDisplayName());
 
   const [queuedCount, setQueuedCount] = useState<number>(0);
   const [sending, setSending] = useState<boolean>(false);
@@ -146,26 +147,13 @@ export function EmployeePage() {
     }),
     []
   );
-  const displayName = useMemo(() => getInstanceDisplayName(), [statusText, instanceId]);
   const androidDownloadUrl = "https://dagmar.hcasc.cz/download/dochazka-dagmar.apk";
 
   useEffect(() => {
-    const onUp = () => setOnline(true);
-    const onDown = () => setOnline(false);
-    window.addEventListener("online", onUp);
-    window.addEventListener("offline", onDown);
-    return () => {
-      window.removeEventListener("online", onUp);
-      window.removeEventListener("offline", onDown);
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
     const unsubscribe = instanceStore.subscribe((st) => {
-      if (cancelled) return;
       setInstanceId(st.instanceId);
       setDeviceFingerprint(st.deviceFingerprint ?? getOrCreateDeviceFingerprint());
+      setDisplayName(st.displayName);
       setActivationState("unknown");
       setEmploymentTemplate("DPP_DPC");
       setAfternoonCutoff("17:00");
@@ -175,10 +163,19 @@ export function EmployeePage() {
       setQueuedCount(0);
       setSending(false);
     });
-
     return () => {
-      cancelled = true;
       unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const onUp = () => setOnline(true);
+    const onDown = () => setOnline(false);
+    window.addEventListener("online", onUp);
+    window.addEventListener("offline", onDown);
+    return () => {
+      window.removeEventListener("online", onUp);
+      window.removeEventListener("offline", onDown);
     };
   }, []);
 
