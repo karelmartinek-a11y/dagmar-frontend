@@ -410,6 +410,7 @@ export default function AdminAttendanceSheetsPage() {
                     type="button"
                     onClick={() => {
                       setSelected(it);
+                      setActiveName(it.display_name || it.id);
                       const anyIt = it as any;
                       setAfternoonCutoff(anyIt?.afternoon_cutoff ?? "17:00");
                     }}
