@@ -305,6 +305,30 @@ html[data-device="desktop"] { --header-h: 70px; }
   gap: 8px;
 }
 
+/* Shift plan grid */
+.plan-grid {
+  display: grid;
+  grid-template-columns: 180px repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.plan-grid-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.plan-cell {
+  border: 1px solid rgba(7, 20, 36, 0.10);
+  border-radius: 10px;
+  padding: 8px;
+  background: #ffffff;
+  min-width: 0;
+}
+.plan-cell.head {
+  background: rgba(4, 156, 227, 0.08);
+  border-color: rgba(4, 156, 227, 0.20);
+}
+
 .btn.primary { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); color: #fff; }
 .btn.primary:hover { background: rgba(255,255,255,0.20); }
 
