@@ -19,8 +19,6 @@ export type AdminAttendanceDay = {
   departure_time: string | null; // HH:MM
   planned_arrival_time?: string | null; // HH:MM
   planned_departure_time?: string | null; // HH:MM
-  planned_arrival_time?: string | null; // HH:MM
-  planned_departure_time?: string | null; // HH:MM
 };
 
 export type AdminAttendanceMonthResponse = {

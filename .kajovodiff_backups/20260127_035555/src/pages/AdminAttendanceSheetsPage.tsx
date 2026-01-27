@@ -634,7 +634,6 @@ export default function AdminAttendanceSheetsPage() {
                 const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
                 const mins = calc.workedMins;
                 const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
-                const hasPlan = !!(d.planned_arrival_time || d.planned_departure_time);
                   const hoursTitle =
                     template === "HPP" && mins !== null
                       ? `Odpolední: ${formatHours(calc.afternoonMins)} h • Víkend/svátek: ${formatHours(calc.weekendHolidayMins)} h${calc.breakTooltip ? ` • ${calc.breakTooltip}` : ""}`
@@ -647,8 +646,8 @@ export default function AdminAttendanceSheetsPage() {
                         background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "rgba(255,255,255,0.86)",
                         borderRadius: 16,
                         padding: 14,
-                        border: hasPlan ? "2px solid rgba(14,165,233,0.35)" : "1px solid rgba(15, 23, 42, 0.08)",
-                        boxShadow: hasPlan ? "0 8px 22px rgba(14,165,233,0.10)" : "0 6px 18px rgba(15, 23, 42, 0.06)",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr 1fr",
                         gap: 10,
@@ -685,7 +684,6 @@ export default function AdminAttendanceSheetsPage() {
                         label="Příchod"
                         placeholder="HH:MM"
                         value={d.arrival_time ?? ""}
-                        planned={d.planned_arrival_time ?? null}
                         saving={!!savingByKey[`${d.date}:arrival_time`]}
                         error={errorByKey[`${d.date}:arrival_time`] ?? null}
                         onCommit={(v) => commitTime(d.date, "arrival_time", v)}
@@ -695,7 +693,6 @@ export default function AdminAttendanceSheetsPage() {
                         label="Odchod"
                         placeholder="HH:MM"
                         value={d.departure_time ?? ""}
-                        planned={d.planned_departure_time ?? null}
                         saving={!!savingByKey[`${d.date}:departure_time`]}
                         error={errorByKey[`${d.date}:departure_time`] ?? null}
                         onCommit={(v) => commitTime(d.date, "departure_time", v)}
@@ -781,12 +778,11 @@ function TimeInput(props: {
   label: string;
   placeholder: string;
   value: string;
-  planned: string | null;
   saving: boolean;
   error: string | null;
   onCommit: (v: string) => void;
 }) {
-  const { label, placeholder, value, planned, saving, error, onCommit } = props;
+  const { label, placeholder, value, saving, error, onCommit } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -800,15 +796,8 @@ function TimeInput(props: {
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
         <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, minWidth: 0 }}>
-          {planned ? (
-            <div style={{ fontSize: 11, color: "#0f172a", fontWeight: 800, whiteSpace: "nowrap" }}>
-              Plán: <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>{planned}</span>
-            </div>
-          ) : null}
-          <div style={{ fontSize: 11, color: saving ? "#0369a1" : "rgba(15,23,42,0.55)", fontWeight: 700, whiteSpace: "nowrap" }}>
-            {saving ? "Ukládám…" : ""}
-          </div>
+        <div style={{ fontSize: 11, color: saving ? "#0369a1" : "rgba(15,23,42,0.55)", fontWeight: 700, whiteSpace: "nowrap" }}>
+          {saving ? "Ukládám…" : ""}
         </div>
       </div>
       <input

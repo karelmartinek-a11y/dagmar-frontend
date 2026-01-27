@@ -1,0 +1,1424 @@
+--- a/src/styles.css+++ b/src/styles.css@@ -1,134 +1,139 @@-/* DAGMAR – minimalistický prémiový styl (bez UI frameworku)
+-   Brand: jemný modrý gradient + čisté bílé plochy, velké inputy.
++/* DAGMAR – redesign 2026
++   - Paleta odvozena z dagmar-logo.png (brand modrá/cyan)
++   - Jednotný design systém (tokeny + komponentní třídy)
++   - 3 varianty zařízení: mobile / tablet / desktop (data-device na <html>)
+ */
+ 
+ :root {
+-  --bg: #f6f9ff;
++  /* Core */
++  --bg: #f6fbff;
+   --surface: #ffffff;
+-  --surface-2: #f2f6ff;
+-  --text: #0b1220;
+-  --muted: #5b667a;
+-  --line: rgba(20, 40, 80, 0.12);
+-
+-  --brand-1: #0b5cff;
+-  --brand-2: #22b2ff;
+-  --brand-3: #6ad3ff;
+-
++  --surface-2: rgba(255, 255, 255, 0.70);
++  --text: #071424;
++  --muted: rgba(7, 20, 36, 0.62);
++  --line: rgba(7, 20, 36, 0.10);
++
++  /* Brand (logo-driven) */
++  --brand-ink: #05243a;
++  --brand-1: #0176cb;   /* deep */
++  --brand-2: #049ce3;   /* primary */
++  --brand-3: #0ac4fe;   /* accent */
++  --brand-4: #96dcf5;   /* soft */
++
++  /* States */
+   --ok: #0f9d58;
+   --warn: #d97706;
+   --danger: #dc2626;
+ 
+-  --shadow: 0 10px 35px rgba(15, 35, 80, 0.08);
+-  --shadow-2: 0 6px 20px rgba(15, 35, 80, 0.10);
+-
+-  --radius: 16px;
+-  --radius-sm: 12px;
+-
+-  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+-}
+-
++  /* Elevation */
++  --shadow: 0 10px 36px rgba(2, 12, 28, 0.10);
++  --shadow-2: 0 16px 46px rgba(2, 12, 28, 0.14);
++
++  /* Shape */
++  --radius: 18px;
++  --radius-sm: 14px;
++  --radius-xs: 12px;
++
++  /* Typography */
++  --font: ui-sans-serif, system-ui, -apple-system, "Inter", Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
++
++  /* Layout */
++  --container: 1180px;
++  --gap: 14px;
++  --header-h: 66px;
++}
++
++/* ===== Base ===== */
+ * { box-sizing: border-box; }
+ html, body { height: 100%; }
+-
+ body {
+   margin: 0;
+   font-family: var(--font);
+   color: var(--text);
+   background:
+-    radial-gradient(1200px 600px at 20% -10%, rgba(34, 178, 255, 0.25), transparent 55%),
+-    radial-gradient(900px 600px at 80% -20%, rgba(106, 211, 255, 0.22), transparent 55%),
+-    linear-gradient(180deg, var(--bg), #ffffff 40%);
++    radial-gradient(1200px 700px at 18% -10%, rgba(10, 196, 254, 0.20), transparent 56%),
++    radial-gradient(1000px 680px at 82% -20%, rgba(4, 156, 227, 0.18), transparent 55%),
++    radial-gradient(900px 520px at 50% 10%, rgba(150, 220, 245, 0.14), transparent 65%),
++    linear-gradient(180deg, var(--bg), #ffffff 42%);
+ }
+ 
+ a { color: inherit; text-decoration: none; }
+-button, input { font-family: inherit; }
+-
+-/* Layout primitives */
+-.container { width: min(1180px, calc(100% - 26px)); margin: 0 auto; }
+-
+-.stack { display: flex; flex-direction: column; gap: 14px; }
+-.row { display: flex; align-items: center; gap: 12px; }
+-
+-.card {
++button, input, select, textarea { font-family: inherit; }
++
++/* Device hints (data-device is set by hook; CSS still works without it) */
++html[data-device="mobile"] { --header-h: 62px; }
++html[data-device="tablet"] { --header-h: 66px; }
++html[data-device="desktop"] { --header-h: 70px; }
++
++/* ===== Primitives ===== */
++.container { width: min(var(--container), calc(100% - 26px)); margin: 0 auto; }
++.stack { display: flex; flex-direction: column; gap: var(--gap); }
++.row { display: flex; align-items: center; gap: 12px; min-width: 0; }
++
++.dg-page { min-height: 100vh; }
++.dg-main { width: min(980px, calc(100% - 26px)); margin: 0 auto; padding: 16px 0 40px; }
++
++.dg-card {
+   background: var(--surface);
+   border: 1px solid var(--line);
+   border-radius: var(--radius);
+   box-shadow: var(--shadow);
+ }
+ 
+-.card.pad { padding: 18px; }
+-
+-/* Header */
+-.header {
++.dg-card.pad { padding: 18px; }
++
++.dg-soft {
++  background: rgba(255, 255, 255, 0.70);
++  border: 1px solid rgba(7, 20, 36, 0.10);
++  border-radius: var(--radius);
++  box-shadow: 0 10px 30px rgba(2, 12, 28, 0.08);
++  backdrop-filter: blur(8px);
++}
++
++/* ===== Topbar / Brand ===== */
++.dg-topbar {
+   position: sticky;
+   top: 0;
+-  z-index: 20;
+-  background: linear-gradient(100deg, rgba(11, 92, 255, 0.95), rgba(34, 178, 255, 0.90) 55%, rgba(106, 211, 255, 0.85));
++  z-index: 30;
++  background: linear-gradient(105deg, rgba(1, 118, 203, 0.95), rgba(4, 156, 227, 0.92) 52%, rgba(10, 196, 254, 0.88));
+   color: #ffffff;
+   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+-  backdrop-filter: blur(8px);
+-}
+-
+-.header-inner {
++  backdrop-filter: blur(10px);
++}
++
++.dg-topbar-inner {
++  height: var(--header-h);
++  width: min(var(--container), calc(100% - 26px));
++  margin: 0 auto;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+-  padding: 14px 0;
+-  width: min(1180px, calc(100% - 26px));
+-  margin: 0 auto;
+-}
+-
+-.brand {
+-  display: flex;
+-  align-items: center;
+   gap: 12px;
+ }
+ 
+-.brand img {
+-  width: 34px;
+-  height: 34px;
+-  border-radius: 10px;
+-  background: rgba(255, 255, 255, 0.18);
+-  border: 1px solid rgba(255, 255, 255, 0.28);
+-  padding: 6px;
+-}
+-
+-.brand .title {
+-  font-weight: 650;
++.dg-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
++.dg-brand-logo {
++  width: 38px;
++  height: 38px;
++  border-radius: 14px;
++  background: rgba(255, 255, 255, 0.16);
++  border: 1px solid rgba(255, 255, 255, 0.26);
++  padding: 7px;
++  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
++  flex: 0 0 auto;
++}
++.dg-brand-text { display: grid; gap: 1px; min-width: 0; }
++.dg-brand-title {
++  font-weight: 850;
+   letter-spacing: 0.2px;
+-}
+-
+-.brand .subtitle {
+-  font-size: 12px;
+-  color: rgba(255, 255, 255, 0.86);
+-}
+-
+-.header-actions { display: flex; align-items: center; gap: 10px; }
+-
+-.pill {
+-  display: inline-flex;
+-  align-items: center;
+-  gap: 8px;
+-  border: 1px solid rgba(255, 255, 255, 0.26);
+-  background: rgba(0, 0, 0, 0.10);
+-  padding: 8px 10px;
+-  border-radius: 999px;
+-  font-size: 12px;
+-}
+-
+-.dot {
+-  width: 8px;
+-  height: 8px;
+-  border-radius: 999px;
+-  background: rgba(255, 255, 255, 0.7);
+-}
+-
+-.dot.ok { background: rgba(13, 255, 168, 0.95); }
+-.dot.off { background: rgba(255, 255, 255, 0.55); }
+-.dot.warn { background: rgba(255, 201, 71, 0.95); }
+-
+-/* Buttons */
+-.btn {
++  white-space: nowrap;
++  overflow: hidden;
++  text-overflow: ellipsis;
++}
++.dg-brand-subtitle { font-size: 12px; color: rgba(255, 255, 255, 0.86); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
++
++/* ===== Buttons ===== */
++.dg-btn {
+   appearance: none;
+   display: inline-flex;
+   align-items: center;
+@@ -138,188 +143,231 @@   background: #ffffff;
+   color: var(--text);
+   padding: 10px 12px;
+-  border-radius: 12px;
++  border-radius: 14px;
+   cursor: pointer;
+-  font-weight: 600;
+-  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease;
+-}
+-
+-.btn:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
++  font-weight: 800;
++  font-size: 14px;
++  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease, filter 120ms ease;
++  user-select: none;
++}
++
++.dg-btn:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
++.dg-btn:active { transform: translateY(0px); }
++
++.dg-btn.sm { padding: 8px 10px; border-radius: 12px; font-size: 13px; }
++.dg-btn.ghost { background: transparent; border-color: rgba(255,255,255,0.22); color: #fff; box-shadow: none; }
++.dg-btn.ghost:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.30); transform: none; }
++.dg-btn.solid {
++  border-color: rgba(255,255,255,0.24);
++  background: linear-gradient(105deg, rgba(1,118,203,1), rgba(4,156,227,1));
++  color: #ffffff;
++}
++.dg-btn.solid:hover { filter: brightness(1.02); }
++
++.dg-btn.danger {
++  border-color: rgba(220, 38, 38, 0.25);
++  background: rgba(220, 38, 38, 0.10);
++  color: #b91c1c;
++}
++
++/* Backward compatible button classes used in existing pages */
++.btn {
++  appearance: none;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  gap: 8px;
++  border: 1px solid var(--line);
++  background: #ffffff;
++  color: var(--text);
++  padding: 10px 12px;
++  border-radius: 14px;
++  cursor: pointer;
++  font-weight: 800;
++  font-size: 14px;
++  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease, filter 120ms ease;
++  user-select: none;
++}
++.btn:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+ .btn:active { transform: translateY(0px); }
+-
+-.btn.sm {
+-  padding: 8px 10px;
+-  border-radius: 10px;
+-  font-size: 13px;
+-}
+-
+-.btn.primary {
+-  border-color: rgba(255, 255, 255, 0.35);
+-  background: rgba(255, 255, 255, 0.16);
++.btn.sm { padding: 8px 10px; border-radius: 12px; font-size: 13px; }
++
++.btn.ghost { background: transparent; border-color: rgba(255,255,255,0.22); color: #fff; box-shadow: none; }
++.btn.ghost:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.30); transform: none; }
++
++.btn.solid {
++  border-color: rgba(255,255,255,0.24);
++  background: linear-gradient(105deg, rgba(1,118,203,1), rgba(4,156,227,1));
+   color: #ffffff;
+ }
+-
+-.btn.primary:hover {
+-  background: rgba(255, 255, 255, 0.22);
+-}
+-
+-.btn.solid {
+-  border-color: rgba(11, 92, 255, 0.25);
+-  background: linear-gradient(100deg, rgba(11, 92, 255, 1), rgba(34, 178, 255, 1));
+-  color: #ffffff;
+-}
+-
+-.btn.solid:hover {
+-  filter: brightness(1.02);
+-}
+-
+-.btn.danger {
+-  border-color: rgba(220, 38, 38, 0.25);
+-  background: rgba(220, 38, 38, 0.08);
+-  color: #b91c1c;
+-}
+-
+-.btn.ghost {
+-  background: transparent;
+-}
+-
+-.btn:disabled {
+-  opacity: 0.55;
+-  cursor: not-allowed;
+-  transform: none;
+-  box-shadow: none;
+-}
+-
+-/* Form */
+-.label {
+-  font-size: 12px;
+-  color: var(--muted);
+-  margin-bottom: 6px;
+-}
+-
++.btn.solid:hover { filter: brightness(1.02); }
++
++.btn.primary { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); color: #fff; }
++.btn.primary:hover { background: rgba(255,255,255,0.20); }
++
++/* ===== Form ===== */
++.label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 750; }
+ .input {
+   width: 100%;
+-  border: 1px solid var(--line);
++  border: 1px solid rgba(7, 20, 36, 0.16);
+   border-radius: 14px;
+   padding: 12px 12px;
+   font-size: 16px;
+   outline: none;
+   background: #ffffff;
+-  transition: border-color 120ms ease, box-shadow 120ms ease;
+-}
+-
++  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
++}
+ .input:focus {
+-  border-color: rgba(11, 92, 255, 0.35);
+-  box-shadow: 0 0 0 4px rgba(34, 178, 255, 0.18);
+-}
+-
+-.help {
++  border-color: rgba(4, 156, 227, 0.45);
++  box-shadow: 0 0 0 4px rgba(10, 196, 254, 0.18);
++}
++.help { font-size: 12px; color: var(--muted); }
++
++/* ===== Loader ===== */
++.dg-loader-backdrop {
++  position: fixed;
++  inset: 0;
++  z-index: 9999;
++  display: grid;
++  place-items: center;
++  padding: 18px;
++  background:
++    radial-gradient(1200px 700px at 18% -10%, rgba(10, 196, 254, 0.22), transparent 56%),
++    radial-gradient(1000px 680px at 82% -20%, rgba(4, 156, 227, 0.20), transparent 55%),
++    linear-gradient(180deg, rgba(5, 36, 58, 0.92) 0%, rgba(7, 20, 36, 0.92) 70%, rgba(7, 20, 36, 0.96) 100%);
++  color: rgba(255,255,255,0.92);
++}
++
++.dg-loader {
++  width: min(520px, 100%);
++  border-radius: 22px;
++  border: 1px solid rgba(255,255,255,0.16);
++  background: rgba(255,255,255,0.08);
++  backdrop-filter: blur(10px);
++  box-shadow: 0 30px 90px rgba(0,0,0,0.28);
++  padding: 18px;
++}
++
++.dg-loader-head { display: flex; align-items: center; gap: 14px; }
++.dg-loader-logo {
++  width: 62px;
++  height: 62px;
++  border-radius: 18px;
++  background: rgba(255,255,255,0.14);
++  border: 1px solid rgba(255,255,255,0.22);
++  padding: 10px;
++  display: grid;
++  place-items: center;
++}
++.dg-loader-logo img { width: 100%; height: 100%; object-fit: contain; }
++.dg-loader-title { font-weight: 900; font-size: 16px; }
++.dg-loader-subtitle { font-size: 13px; color: rgba(255,255,255,0.78); margin-top: 2px; }
++
++.dg-progress {
++  margin-top: 14px;
++  height: 12px;
++  border-radius: 999px;
++  background: rgba(255,255,255,0.12);
++  border: 1px solid rgba(255,255,255,0.18);
++  overflow: hidden;
++}
++
++.dg-progress > div {
++  height: 100%;
++  border-radius: 999px;
++  background: linear-gradient(90deg, rgba(10,196,254,0.95), rgba(4,156,227,0.95), rgba(150,220,245,0.95));
++  width: 35%;
++  animation: dg-indeterminate 1.15s ease-in-out infinite;
++}
++
++.dg-progress[data-mode="uploading"] > div { animation-duration: 0.85s; }
++
++.dg-progress[data-mode="error"] {
++  background: rgba(220,38,38,0.14);
++  border-color: rgba(220,38,38,0.30);
++}
++.dg-progress[data-mode="error"] > div {
++  width: 100%;
++  animation: none;
++  background: linear-gradient(90deg, rgba(220,38,38,0.92), rgba(245,158,11,0.84));
++}
++
++@keyframes dg-indeterminate {
++  0% { transform: translateX(-80%); }
++  50% { transform: translateX(60%); }
++  100% { transform: translateX(180%); }
++}
++
++.dg-loader-hints {
++  margin-top: 10px;
++  display: flex;
++  justify-content: space-between;
++  gap: 10px;
++  flex-wrap: wrap;
+   font-size: 12px;
+-  color: var(--muted);
+-}
+-
+-/* Employee attendance */
+-.page {
+-  padding: 18px 0 40px;
+-}
+-
+-.page-title {
+-  font-size: 18px;
+-  font-weight: 700;
+-  margin: 0;
+-}
+-
+-.monthbar {
++  color: rgba(255,255,255,0.76);
++}
++
++/* ===== Admin shell ===== */
++.dg-admin-shell {
++  width: min(var(--container), calc(100% - 26px));
++  margin: 0 auto;
++  padding: 16px 0 40px;
++  display: grid;
++  grid-template-columns: 280px 1fr;
++  gap: 16px;
++  align-items: start;
++}
++
++.dg-sidebar {
+   position: sticky;
+-  top: 64px; /* header height-ish */
+-  z-index: 10;
+-  padding: 10px 0;
+-  background: linear-gradient(180deg, rgba(246, 249, 255, 0.92), rgba(246, 249, 255, 0.70));
++  top: calc(var(--header-h) + 12px);
++  border-radius: var(--radius);
++  border: 1px solid var(--line);
++  background: rgba(255, 255, 255, 0.88);
+   backdrop-filter: blur(8px);
+-}
+-
+-.monthbar-inner {
++  box-shadow: var(--shadow);
++  overflow: hidden;
++}
++
++.dg-sidebar-head {
++  padding: 14px;
++  border-bottom: 1px solid var(--line);
++  background: linear-gradient(180deg, rgba(4,156,227,0.08), rgba(10,196,254,0.02));
++}
++
++.dg-nav { display: flex; flex-direction: column; padding: 10px; gap: 8px; }
++.dg-nav a {
+   display: flex;
++  align-items: center;
+   gap: 10px;
+-  align-items: center;
+-  justify-content: space-between;
+-}
+-
+-.month-label {
+-  display: flex;
+-  flex-direction: column;
+-  gap: 2px;
+-}
+-
+-.month-label .big {
+-  font-weight: 750;
+-  font-size: 16px;
+-}
+-
+-.month-label .small {
+-  font-size: 12px;
+-  color: var(--muted);
+-}
+-
+-.days {
+-  display: grid;
+-  gap: 10px;
+-}
+-
+-.day {
+-  display: grid;
+-  grid-template-columns: 110px 1fr;
+-  gap: 12px;
+-  align-items: center;
+-  padding: 14px;
+-  border: 1px solid var(--line);
+-  border-radius: var(--radius);
+-  background: rgba(255, 255, 255, 0.86);
+-}
+-
+-.day.today {
+-  border-color: rgba(34, 178, 255, 0.45);
+-  box-shadow: 0 0 0 4px rgba(34, 178, 255, 0.10);
+-}
+-
+-.day-left {
+-  display: flex;
+-  flex-direction: column;
+-  gap: 2px;
+-}
+-
+-.day-left .d {
+-  font-weight: 800;
+-  font-size: 18px;
+-}
+-
+-.day-left .w {
+-  font-size: 12px;
+-  color: var(--muted);
+-}
+-
+-.day-right {
+-  display: grid;
+-  grid-template-columns: 1fr 1fr;
+-  gap: 10px;
+-}
+-
+-.time-field {
+-  display: flex;
+-  flex-direction: column;
+-  gap: 6px;
+-}
+-
+-.time-field .cap {
+-  font-size: 12px;
+-  color: var(--muted);
+-}
+-
+-.time-field input {
+-  height: 44px;
+-}
+-
+-/* Shared grid for attendance rows (employee + admin edit views) */
++  padding: 10px 12px;
++  border-radius: 14px;
++  border: 1px solid transparent;
++  font-weight: 850;
++  color: rgba(7, 20, 36, 0.92);
++}
++.dg-nav a:hover { background: rgba(10,196,254,0.10); border-color: rgba(10,196,254,0.18); }
++.dg-nav a.active { background: rgba(4,156,227,0.12); border-color: rgba(4,156,227,0.22); }
++
++.dg-admin-main { min-width: 0; }
++
++/* ===== Responsive ===== */
++@media (max-width: 980px) {
++  .dg-admin-shell { grid-template-columns: 1fr; }
++  .dg-sidebar { position: relative; top: 0; }
++}
++
++@media (max-width: 560px) {
++  .container { width: calc(100% - 22px); }
++  .dg-topbar-inner { width: calc(100% - 22px); }
++  .dg-main { width: calc(100% - 22px); padding: 14px 0 32px; }
++
++  .dg-brand-logo { width: 34px; height: 34px; padding: 6px; border-radius: 12px; }
++  .dg-brand-subtitle { display: none; }
++}
++
++/* Existing employee grid responsiveness preserved */
+ .attendance-grid-row {
+   display: grid;
+   grid-template-columns: minmax(100px, 140px) minmax(0, 1fr) minmax(0, 1fr);
+@@ -328,286 +376,7 @@   width: 100%;
+   min-width: 0;
+ }
+-
+-/* Admin */
+-.admin-shell {
+-  display: grid;
+-  grid-template-columns: 260px 1fr;
+-  gap: 18px;
+-  padding: 18px 0 40px;
+-}
+-
+-.sidebar {
+-  position: sticky;
+-  top: 74px;
+-  align-self: start;
+-  border-radius: var(--radius);
+-  border: 1px solid var(--line);
+-  background: rgba(255, 255, 255, 0.9);
+-  box-shadow: var(--shadow);
+-  overflow: hidden;
+-}
+-
+-.sidebar-head {
+-  padding: 14px 14px;
+-  border-bottom: 1px solid var(--line);
+-  background: linear-gradient(180deg, rgba(11, 92, 255, 0.06), rgba(34, 178, 255, 0.03));
+-}
+-
+-.sidebar-head .h {
+-  font-weight: 800;
+-}
+-
+-.nav {
+-  display: flex;
+-  flex-direction: column;
+-  padding: 10px;
+-  gap: 8px;
+-}
+-
+-.nav a {
+-  display: flex;
+-  align-items: center;
+-  gap: 10px;
+-  min-width: 0;
+-  padding: 10px 12px;
+-  border-radius: 12px;
+-  border: 1px solid transparent;
+-  color: var(--text);
+-  background: transparent;
+-  font-weight: 650;
+-}
+-
+-.nav a:hover {
+-  background: rgba(34, 178, 255, 0.08);
+-  border-color: rgba(34, 178, 255, 0.14);
+-}
+-
+-.nav a.active {
+-  background: rgba(11, 92, 255, 0.10);
+-  border-color: rgba(11, 92, 255, 0.18);
+-}
+-
+-.admin-main {
+-  min-width: 0;
+-}
+-
+-.table {
+-  width: 100%;
+-  border-collapse: separate;
+-  border-spacing: 0;
+-  overflow: hidden;
+-  border: 1px solid var(--line);
+-  border-radius: var(--radius);
+-  background: rgba(255, 255, 255, 0.92);
+-}
+-
+-.table th, .table td {
+-  padding: 12px 12px;
+-  border-bottom: 1px solid var(--line);
+-  text-align: left;
+-  vertical-align: middle;
+-  font-size: 14px;
+-}
+-
+-.table th {
+-  position: sticky;
+-  top: 0;
+-  background: linear-gradient(180deg, rgba(246, 249, 255, 0.96), rgba(246, 249, 255, 0.86));
+-  font-weight: 800;
+-}
+-
+-.table tr:last-child td { border-bottom: 0; }
+-
+-.badge {
+-  display: inline-flex;
+-  align-items: center;
+-  gap: 8px;
+-  padding: 6px 10px;
+-  border-radius: 999px;
+-  border: 1px solid var(--line);
+-  font-weight: 750;
+-  font-size: 12px;
+-  background: rgba(255, 255, 255, 0.7);
+-}
+-
+-.badge .b-dot { width: 8px; height: 8px; border-radius: 999px; }
+-
+-.badge.pending { background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.22); }
+-.badge.pending .b-dot { background: rgba(217, 119, 6, 0.85); }
+-
+-.badge.active { background: rgba(15, 157, 88, 0.08); border-color: rgba(15, 157, 88, 0.22); }
+-.badge.active .b-dot { background: rgba(15, 157, 88, 0.85); }
+-
+-.badge.revoked { background: rgba(220, 38, 38, 0.06); border-color: rgba(220, 38, 38, 0.18); }
+-.badge.revoked .b-dot { background: rgba(220, 38, 38, 0.78); }
+-
+-/* Admin – approvals / instance selection */
+-.pill-filter {
+-  appearance: none;
+-  border: 1px solid var(--line);
+-  background: rgba(255, 255, 255, 0.75);
+-  color: var(--text);
+-  padding: 8px 12px;
+-  border-radius: 999px;
+-  cursor: pointer;
+-  font-weight: 750;
+-  font-size: 12px;
+-  display: inline-flex;
+-  align-items: center;
+-  gap: 8px;
+-  white-space: nowrap;
+-}
+-
+-.pill-filter .count {
+-  display: inline-flex;
+-  align-items: center;
+-  justify-content: center;
+-  min-width: 20px;
+-  height: 20px;
+-  padding: 0 7px;
+-  border-radius: 999px;
+-  border: 1px solid var(--line);
+-  background: rgba(15, 23, 42, 0.04);
+-  font-size: 12px;
+-  font-weight: 850;
+-  color: rgba(15, 23, 42, 0.75);
+-}
+-
+-.pill-filter.active {
+-  border-color: rgba(11, 92, 255, 0.25);
+-  background: rgba(11, 92, 255, 0.10);
+-}
+-
+-.pill-filter.active .count {
+-  border-color: rgba(11, 92, 255, 0.22);
+-  background: rgba(255, 255, 255, 0.70);
+-}
+-
+-.instance-cards {
+-  display: grid;
+-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+-  gap: 12px;
+-}
+-
+-.instance-card {
+-  border: 1px solid var(--line);
+-  border-radius: var(--radius);
+-  background: rgba(255, 255, 255, 0.92);
+-  box-shadow: var(--shadow);
+-  padding: 14px;
+-  display: flex;
+-  flex-direction: column;
+-  gap: 12px;
+-  min-width: 0;
+-}
+-
+-.instance-card-head {
+-  display: flex;
+-  gap: 12px;
+-  align-items: flex-start;
+-  min-width: 0;
+-}
+-
+-.instance-card-icon {
+-  width: 46px;
+-  height: 46px;
+-  border-radius: 16px;
+-  display: grid;
+-  place-items: center;
+-  color: #ffffff;
+-  background: linear-gradient(135deg, rgba(11, 92, 255, 0.95), rgba(34, 178, 255, 0.85));
+-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+-  flex: 0 0 auto;
+-}
+-
+-.instance-card-meta {
+-  display: flex;
+-  flex-wrap: wrap;
+-  gap: 10px;
+-  margin-top: 6px;
+-  font-size: 12px;
+-  color: var(--muted);
+-}
+-
+-.instance-card-id {
+-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+-  font-size: 12px;
+-  padding: 10px 12px;
+-  border-radius: 12px;
+-  border: 1px solid var(--line);
+-  background: rgba(15, 23, 42, 0.03);
+-  word-break: break-all;
+-}
+-
+-.instance-card-actions {
+-  display: flex;
+-  flex-wrap: wrap;
+-  gap: 10px;
+-}
+-
+-/* Modal */
+-.modal-backdrop {
+-  position: fixed;
+-  inset: 0;
+-  background: rgba(0, 10, 40, 0.40);
+-  display: grid;
+-  place-items: center;
+-  padding: 18px;
+-  z-index: 50;
+-}
+-
+-.modal {
+-  width: min(520px, 100%);
+-  background: var(--surface);
+-  border: 1px solid var(--line);
+-  border-radius: var(--radius);
+-  box-shadow: var(--shadow-2);
+-  overflow: hidden;
+-}
+-
+-.modal-head {
+-  padding: 14px 14px;
+-  border-bottom: 1px solid var(--line);
+-  background: linear-gradient(180deg, rgba(11, 92, 255, 0.06), rgba(34, 178, 255, 0.03));
+-}
+-
+-.modal-head .t { font-weight: 850; }
+-
+-.modal-body { padding: 14px; }
+-.modal-actions {
+-  display: flex;
+-  justify-content: flex-end;
+-  gap: 10px;
+-  padding: 14px;
+-  border-top: 1px solid var(--line);
+-  background: rgba(246, 249, 255, 0.7);
+-}
+-
+-/* Small screens */
+-@media (max-width: 860px) {
+-  .admin-shell {
+-    grid-template-columns: 1fr;
+-  }
+-  .sidebar {
+-    position: relative;
+-    top: 0;
+-  }
+-}
+-
+ @media (max-width: 560px) {
+-  .day {
+-    grid-template-columns: 1fr;
+-  }
+-  .day-right {
+-    grid-template-columns: 1fr;
+-  }
+-  .attendance-grid-row {
+-    grid-template-columns: 1fr;
+-  }
+-  .attendance-grid-header {
+-    display: none;
+-  }
+-  .monthbar { top: 60px; }
+-  .container { width: calc(100% - 22px); }
+-}
++  .attendance-grid-row { grid-template-columns: 1fr; }
++  .attendance-grid-header { display: none; }
++}
+
+
+--- a/src/pages/AdminLayout.tsx+++ b/src/pages/AdminLayout.tsx@@ -2,6 +2,9 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
+ import { getAdminMe } from "../api/admin";
+ import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
++import { BrandLoader } from "../components/BrandLoader";
++import { useDeviceVariant } from "../hooks/useDeviceVariant";
++import dagmarLogo from "../assets/dagmar-logo.png";
+ 
+ type MeState =
+   | { kind: "loading" }
+@@ -13,6 +16,8 @@ }
+ 
+ export default function AdminLayout() {
++  useDeviceVariant();
++
+   const navigate = useNavigate();
+   const [me, setMe] = React.useState<MeState>({ kind: "loading" });
+ 
+@@ -89,45 +94,26 @@   ];
+ 
+   return (
+-    <div className="container" style={{ padding: "10px 0 30px" }}>
+-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "0 12px 10px" }}>
+-        <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
++    <div className="dg-page">
++      <div className="container" style={{ padding: "10px 0 0" }}>
++        <div style={{ maxWidth: 1040, margin: "0 auto", padding: "0 12px 10px" }}>
++          <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
++        </div>
+       </div>
+-      {me.kind === "loading" ? (
+-        <div
+-          style={{
+-            position: "fixed",
+-            inset: 0,
+-            zIndex: 9999,
+-            display: "grid",
+-            placeItems: "center",
+-            background: "linear-gradient(180deg, #0b1b3a 0%, #0a1226 35%, #070b14 100%)",
+-            color: "#e8eefc",
+-          }}
+-        >
+-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+-            <img src="/brand/logo.svg" alt="DAGMAR" style={{ width: 180, height: 180, objectFit: "contain" }} />
+-            <div style={{ fontWeight: 800, fontSize: 18 }}>Načítám…</div>
+-          </div>
+-        </div>
+-      ) : null}
+ 
+-      <header className="header" style={{ position: "sticky", top: 0, zIndex: 50, marginBottom: 18 }}>
+-        <div className="header-inner">
+-          <div className="brand" style={{ gap: 12 }}>
+-            <img src="/brand/icon.svg" alt="DAGMAR" />
+-            <div>
+-              <div className="title">DAGMAR Admin</div>
+-              <div className="subtitle">{me.kind === "auth" ? me.username : ""}</div>
++      {me.kind === "loading" ? <BrandLoader fullscreen logoSrc={dagmarLogo} title="Načítám administraci…" subtitle="DAGMAR Admin" /> : null}
++
++      <header className="dg-topbar" style={{ marginBottom: 0 }}>
++        <div className="dg-topbar-inner">
++          <div className="dg-brand">
++            <img src={dagmarLogo} alt="DAGMAR" className="dg-brand-logo" decoding="async" loading="eager" />
++            <div className="dg-brand-text">
++              <div className="dg-brand-title">DAGMAR Admin</div>
++              <div className="dg-brand-subtitle">{me.kind === "auth" ? me.username : ""}</div>
+             </div>
+           </div>
+-          <nav className="header-actions" aria-label="Admin menu">
+-            {items.map((it) => (
+-              <NavLink key={it.to} to={it.to} className={({ isActive }) => cx("btn", "ghost", isActive && "primary")} end>
+-                {it.icon}
+-                <span>{it.label}</span>
+-              </NavLink>
+-            ))}
++
++          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+             <form
+               method="post"
+               action="/api/v1/admin/logout"
+@@ -140,13 +126,30 @@                 Odhlásit
+               </button>
+             </form>
+-          </nav>
++          </div>
+         </div>
+       </header>
+ 
+-      <main className="stack">
+-        <Outlet />
+-      </main>
++      <div className="dg-admin-shell">
++        <aside className="dg-sidebar" aria-label="Admin navigace">
++          <div className="dg-sidebar-head">
++            <div style={{ fontWeight: 900 }}>Menu</div>
++            <div style={{ fontSize: 12, color: "rgba(7,20,36,0.60)", marginTop: 3 }}>Správa instancí a exportů</div>
++          </div>
++          <nav className="dg-nav">
++            {items.map((it) => (
++              <NavLink key={it.to} to={it.to} className={({ isActive }) => cx(isActive && "active")} end>
++                {it.icon}
++                <span>{it.label}</span>
++              </NavLink>
++            ))}
++          </nav>
++        </aside>
++
++        <main className="dg-admin-main">
++          <Outlet />
++        </main>
++      </div>
+     </div>
+   );
+ }
+
+
+--- a/src/pages/AdminLoginPage.tsx+++ b/src/pages/AdminLoginPage.tsx@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
+ import { adminLogin, getAdminMe } from "../api/admin";
+ import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
++import { useDeviceVariant } from "../hooks/useDeviceVariant";
++import dagmarLogo from "../assets/dagmar-logo.png";
+ 
+ function parseNextParam(search: string): string | null {
+   const params = new URLSearchParams(search);
+@@ -14,11 +16,12 @@ }
+ 
+ export default function AdminLoginPage() {
++  useDeviceVariant();
++
+   const nav = useNavigate();
+   const loc = useLocation();
+ 
+   const nextPath = useMemo(() => parseNextParam(loc.search) ?? "/admin/instances", [loc.search]);
+-  const logoUrl = useMemo(() => "/brand/logo.svg", []);
+ 
+   const [password, setPassword] = useState("");
+   const [submitting, setSubmitting] = useState(false);
+@@ -63,36 +66,29 @@   }
+ 
+   return (
+-    <div
+-      style={{
+-        minHeight: "100vh",
+-        display: "grid",
+-        placeItems: "center",
+-        padding: 24,
+-        background: "linear-gradient(180deg, #e0f2ff 0%, #f8fbff 40%, #ffffff 100%)",
+-      }}
+-    >
++    <div className="dg-page" style={{ display: "grid", placeItems: "center", padding: 24 }}>
+       <div style={{ width: "min(520px, 100%)", marginBottom: 10 }}>
+         <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
+       </div>
+-      <div className="card pad" style={{ width: "min(520px, 100%)", boxShadow: "var(--shadow-2)" }}>
++
++      <div className="dg-card pad" style={{ width: "min(520px, 100%)", boxShadow: "var(--shadow-2)" }}>
+         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
+           <img
+-            src={logoUrl}
+-            alt="DAGMAR Docházka"
++            src={dagmarLogo}
++            alt="DAGMAR"
+             style={{
+-              width: 48,
+-              height: 48,
+-              borderRadius: 14,
+-              background: "#e0f2fe",
+-              padding: 8,
+-              border: "1px solid #bae6fd",
++              width: 52,
++              height: 52,
++              borderRadius: 16,
++              background: "rgba(10,196,254,0.14)",
++              padding: 9,
++              border: "1px solid rgba(10,196,254,0.28)",
+             }}
+             loading="eager"
+             decoding="async"
+           />
+           <div style={{ minWidth: 0 }}>
+-            <div style={{ fontSize: 18, fontWeight: 850 }}>DAGMAR — Admin</div>
++            <div style={{ fontSize: 18, fontWeight: 900 }}>DAGMAR — Admin</div>
+             <div style={{ fontSize: 13, color: "var(--muted)" }}>Přihlášení do administrace</div>
+           </div>
+         </div>
+@@ -102,11 +98,12 @@             style={{
+               border: "1px solid rgba(239,68,68,0.35)",
+               background: "rgba(239,68,68,0.08)",
+-              borderRadius: 12,
++              borderRadius: 14,
+               padding: 12,
+               color: "#b91c1c",
+               marginBottom: 12,
+               fontSize: 13,
++              fontWeight: 700,
+             }}
+           >
+             {error}
+@@ -127,7 +124,7 @@             />
+           </div>
+ 
+-          <button type="submit" disabled={submitting} className="btn solid" style={{ width: "100%", justifyContent: "center" }}>
++          <button type="submit" disabled={submitting} className="dg-btn solid" style={{ width: "100%", justifyContent: "center" }}>
+             {submitting ? "Přihlašuji…" : "Přihlásit"}
+           </button>
+ 
+@@ -144,11 +141,11 @@               justifyContent: "center",
+               gap: 8,
+               padding: "10px 12px",
+-              borderRadius: 12,
+-              border: "1px solid rgba(59,130,246,0.35)",
+-              background: "rgba(59,130,246,0.08)",
+-              color: "#0f172a",
+-              fontWeight: 700,
++              borderRadius: 14,
++              border: "1px solid rgba(10,196,254,0.30)",
++              background: "rgba(10,196,254,0.10)",
++              color: "rgba(7,20,36,0.92)",
++              fontWeight: 900,
+               textDecoration: "none",
+               width: "100%",
+             }}
+
+
+--- a/src/pages/EmployeePage.tsx+++ b/src/pages/EmployeePage.tsx@@ -4,6 +4,9 @@ import { ApiError } from "../api/client";
+ import { claimToken, getStatus, type EmploymentTemplate } from "../api/instances";
+ import { ConnectivityPill } from "../components/ConnectivityPill";
++import { BrandLoader } from "../components/BrandLoader";
++import { useDeviceVariant } from "../hooks/useDeviceVariant";
++import dagmarLogo from "../assets/dagmar-logo.png";
+ import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
+ import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
+ import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
+@@ -102,6 +105,8 @@ const POLL_CLAIM_MS = 6_000;
+ 
+ export function EmployeePage() {
++  useDeviceVariant();
++
+   const nav = useNavigate();
+   const [online, setOnline] = useState<boolean>(navigator.onLine);
+   const [statusText, setStatusText] = useState<string>("Kontroluji stav…");
+@@ -130,7 +135,7 @@   const [instanceId, setInstanceId] = useState<string | null>(() => instanceStore.get().instanceId);
+   const [deviceFingerprint, setDeviceFingerprint] = useState<string>(() => getOrCreateDeviceFingerprint());
+ 
+-  const logoUrl = useMemo(() => "/brand/icon.svg", []);
++  const logoUrl = useMemo(() => dagmarLogo, []);
+   const clientType = useMemo(() => detectClientType(), []);
+   const deviceInfo = useMemo(
+     () => ({
+@@ -456,32 +461,13 @@   }
+ 
+   return (
+-    <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
++    <div className="dg-page dg-employee">
+       <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
+         <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="DAGMAR Docházka" />
+       </div>
+-      <header
+-        style={{
+-          position: "sticky",
+-          top: 0,
+-          zIndex: 20,
+-          backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
+-          backgroundColor: "#0a1a34",
+-          color: "white",
+-          borderBottom: "1px solid rgba(255,255,255,0.18)",
+-          minHeight: 96,
+-        }}
+-      >
+-        <div
+-          style={{
+-            width: "100%",
+-            maxWidth: 980,
+-            margin: "0 auto",
+-            padding: "8px 12px",
+-            display: "grid",
+-            gap: 8,
+-          }}
+-        >
++      <header className="dg-topbar">
++        <div className="dg-topbar-inner" style={{ maxWidth: 980 }}>
++          <div style={{ width: "100%", display: "grid", gap: 8 }}>
+           <div
+             style={{
+               display: "grid",
+@@ -490,34 +476,11 @@               gap: 8,
+             }}
+           >
+-            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+-              <div
+-                style={{
+-                  width: 64,
+-                  height: 64,
+-                  borderRadius: 12,
+-                  background: "rgba(255,255,255,0.10)",
+-                  border: "1px solid rgba(255,255,255,0.22)",
+-                  padding: 6,
+-                  display: "grid",
+-                  placeItems: "center",
+-                  boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
+-                  flexShrink: 0,
+-                }}
+-              >
+-                <img
+-                  src={logoUrl}
+-                  alt="DAGMAR"
+-                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+-                  decoding="async"
+-                  loading="eager"
+-                />
+-              </div>
+-              <div style={{ minWidth: 0, display: "grid", gap: 3 }}>
+-                <div style={{ fontWeight: 900, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+-                  {displayName || "DAGMAR Docházka"}
+-                </div>
+-                <div style={{ fontSize: 11, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 6, rowGap: 6, alignItems: "center" }}>
++            <div className="dg-brand" style={{ gap: 10 }}>
++              <img src={logoUrl} alt="DAGMAR" className="dg-brand-logo" decoding="async" loading="eager" />
++              <div className="dg-brand-text">
++                <div className="dg-brand-title">{displayName || "DAGMAR Docházka"}</div>
++                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.86)", display: "flex", flexWrap: "wrap", gap: 8, rowGap: 8, alignItems: "center" }}>
+                   <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
+                   <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
+                 </div>
+@@ -527,17 +490,7 @@             <div style={{ fontSize: 11, opacity: 0.9, textAlign: "right", minWidth: 90 }} />
+           </div>
+ 
+-          <div
+-            style={{
+-              display: "grid",
+-              gap: 6,
+-              background: "rgba(255,255,255,0.10)",
+-              border: "1px solid rgba(255,255,255,0.18)",
+-              borderRadius: 12,
+-              padding: "8px 10px",
+-              boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
+-            }}
+-          >
++          <div className="dg-soft" style={{ display: "grid", gap: 10, padding: "10px 12px" }}>
+             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 8, minWidth: 0 }}>
+               <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
+                 ←
+@@ -591,9 +544,11 @@             </div>
+           </div>
+         </div>
++          </div>
++        </div>
+       </header>
+ 
+-      <main style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "16px" }}>
++      <main className="dg-main" style={{ maxWidth: 980 }}>
+         {monthLocked ? (
+           <div style={cardStyle()}>
+             <div style={{ fontWeight: 800, marginBottom: 6, color: "#b91c1c" }}>Měsíc uzavřen</div>
+@@ -723,9 +678,11 @@         </div>
+ 
+         {rows.length === 0 ? (
+-          <div style={{ marginTop: 14, color: "#64748b", fontSize: 13 }}>
+-            {online ? "Načítám… (pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu)" : ""}
+-          </div>
++          online ? (
++            <div style={{ marginTop: 14 }}>
++              <BrandLoader logoSrc={logoUrl} title="Načítám docházku…" subtitle="Pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu." />
++            </div>
++          ) : null
+         ) : null}
+       </main>
+ 
+
+
+diff --git a/src/components/BrandLoader.tsx b/src/components/BrandLoader.tsx
+new file mode 100644
+--- /dev/null
++++ b/src/components/BrandLoader.tsx
++import React from "react";
++
++export type BrandLoaderMode = "loading" | "uploading" | "error";
++
++export function BrandLoader(props: {
++  title?: string;
++  subtitle?: string;
++  mode?: BrandLoaderMode;
++  fullscreen?: boolean;
++  logoSrc: string;
++}) {
++  const { title = "Načítám…", subtitle, mode = "loading", fullscreen = false, logoSrc } = props;
++
++  const [hint, setHint] = React.useState<string>("Probíhá načítání");
++  const [sinceMs, setSinceMs] = React.useState<number>(0);
++
++  React.useEffect(() => {
++    const t0 = Date.now();
++    const id = window.setInterval(() => setSinceMs(Date.now() - t0), 250);
++    return () => window.clearInterval(id);
++  }, []);
++
++  React.useEffect(() => {
++    // 0-2s: standard, 2-6s: still loading, 6s+: connectivity hint
++    if (mode === "error") {
++      setHint("Něco se nepovedlo");
++      return;
++    }
++    if (mode === "uploading") {
++      setHint("Odesílám data");
++      return;
++    }
++    if (sinceMs < 2_000) setHint("Probíhá načítání");
++    else if (sinceMs < 6_000) setHint("Ještě chvilku…");
++    else setHint("Ověřuji připojení a dostupnost serveru…");
++  }, [sinceMs, mode]);
++
++  const content = (
++    <div className="dg-loader" role="status" aria-live="polite" aria-busy="true">
++      <div className="dg-loader-head">
++        <div className="dg-loader-logo" aria-hidden="true">
++          <img src={logoSrc} alt="" decoding="async" loading="eager" />
++        </div>
++        <div style={{ minWidth: 0 }}>
++          <div className="dg-loader-title">{title}</div>
++          <div className="dg-loader-subtitle">{subtitle ?? hint}</div>
++        </div>
++      </div>
++
++      <div className="dg-progress" data-mode={mode}>
++        <div />
++      </div>
++
++      <div className="dg-loader-hints">
++        <span>{mode === "uploading" ? "Upload" : "Načítání"}</span>
++        <span>{Math.floor(sinceMs / 1000)}s</span>
++      </div>
++    </div>
++  );
++
++  if (fullscreen) return <div className="dg-loader-backdrop">{content}</div>;
++  return content;
++}
+
+
+diff --git a/src/hooks/useDeviceVariant.ts b/src/hooks/useDeviceVariant.ts
+new file mode 100644
+--- /dev/null
++++ b/src/hooks/useDeviceVariant.ts
++import React from "react";
++
++export type DeviceVariant = "mobile" | "tablet" | "desktop";
++
++function computeVariant(): DeviceVariant {
++  const w = window.innerWidth;
++  if (w < 640) return "mobile";
++  if (w < 1024) return "tablet";
++  return "desktop";
++}
++
++export function useDeviceVariant(): DeviceVariant {
++  const [v, setV] = React.useState<DeviceVariant>(() => {
++    if (typeof window === "undefined") return "desktop";
++    return computeVariant();
++  });
++
++  React.useEffect(() => {
++    const apply = (next: DeviceVariant) => {
++      try {
++        document.documentElement.dataset.device = next;
++      } catch {
++        // ignore
++      }
++    };
++
++    apply(v);
++
++    let raf = 0;
++    const onResize = () => {
++      window.cancelAnimationFrame(raf);
++      raf = window.requestAnimationFrame(() => {
++        const next = computeVariant();
++        setV((cur) => {
++          if (cur === next) return cur;
++          apply(next);
++          return next;
++        });
++      });
++    };
++
++    window.addEventListener("resize", onResize, { passive: true });
++    return () => {
++      window.cancelAnimationFrame(raf);
++      window.removeEventListener("resize", onResize);
++    };
++  }, [v]);
++
++  return v;
++}
+
+
+diff --git a/src/types/assets.d.ts b/src/types/assets.d.ts
+new file mode 100644
+--- /dev/null
++++ b/src/types/assets.d.ts
++declare module "*.png" {
++  const src: string;
++  export default src;
++}
+
