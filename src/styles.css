@@ -198,6 +198,33 @@ html[data-device="desktop"] { --header-h: 70px; }
 }
 .btn.solid:hover { filter: brightness(1.02); }
 
+/* ===== Tabulky (admin sekce) ===== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(7, 20, 36, 0.08);
+}
+.table th {
+  background: rgba(7, 20, 36, 0.04);
+  font-weight: 800;
+  color: #0f172a;
+}
+.table tr:nth-child(even) td {
+  background: rgba(7, 20, 36, 0.02);
+}
+.table tr:hover td {
+  background: rgba(4, 156, 227, 0.08);
+}
+
 .btn.primary { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); color: #fff; }
 .btn.primary:hover { background: rgba(255,255,255,0.20); }
 
