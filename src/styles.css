@@ -225,6 +225,86 @@ html[data-device="desktop"] { --header-h: 70px; }
   background: rgba(4, 156, 227, 0.08);
 }
 
+/* ===== Admin Instances: filtry a karty ===== */
+.pill-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(7, 20, 36, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.pill-filter .count {
+  min-width: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(7, 20, 36, 0.06);
+  border: 1px solid rgba(7, 20, 36, 0.12);
+  text-align: center;
+  font-size: 12px;
+}
+.pill-filter.active {
+  border-color: rgba(1, 118, 203, 0.4);
+  background: linear-gradient(120deg, rgba(4, 156, 227, 0.12), rgba(10, 196, 254, 0.10));
+  color: #0b3c60;
+  box-shadow: 0 10px 24px rgba(4, 156, 227, 0.18);
+}
+.pill-filter.active .count {
+  background: rgba(4, 156, 227, 0.14);
+  border-color: rgba(4, 156, 227, 0.28);
+}
+
+.instance-card {
+  border: 1px solid rgba(7, 20, 36, 0.10);
+  border-radius: 14px;
+  padding: 12px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+  display: grid;
+  gap: 10px;
+}
+.instance-card + .instance-card { margin-top: 12px; }
+.instance-card-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.instance-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(4, 156, 227, 0.10);
+  border: 1px solid rgba(4, 156, 227, 0.24);
+  display: grid;
+  place-items: center;
+  color: #0b3c60;
+}
+.instance-card-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.instance-card-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(7, 20, 36, 0.06);
+  border: 1px solid rgba(7, 20, 36, 0.12);
+  word-break: break-all;
+}
+.instance-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .btn.primary { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); color: #fff; }
 .btn.primary:hover { background: rgba(255,255,255,0.20); }
 
