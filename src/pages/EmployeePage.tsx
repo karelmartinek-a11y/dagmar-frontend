@@ -236,12 +236,13 @@ export function EmployeePage() {
         }
 
         // ACTIVE
-        if (st.display_name) setInstanceDisplayName(st.display_name);
         setEmploymentTemplate(st.employment_template ?? "DPP_DPC");
         setAfternoonCutoff(st.afternoon_cutoff ?? "17:00");
         setStatusText("Aktivováno");
         setActivationState("active");
-        if (st.display_name) setDisplayName(st.display_name);
+        const name = st.display_name && st.display_name.trim() ? st.display_name : `Zařízení ${instanceId.slice(0, 8)}`;
+        setInstanceDisplayName(name);
+        setDisplayName(name);
       } catch (e: any) {
         // If the stored id isn't a server instance_id, recover by treating it as fingerprint and re-registering.
         if (e instanceof ApiError && e.status === 404) {
@@ -310,6 +311,10 @@ export function EmployeePage() {
         if (res.instance_display_name) {
           setInstanceDisplayName(res.instance_display_name);
           setDisplayName(res.instance_display_name);
+        } else if (instanceId) {
+          const fallback = `Zařízení ${instanceId.slice(0, 8)}`;
+          setInstanceDisplayName(fallback);
+          setDisplayName(fallback);
         }
 
         // Normalize to full month list
