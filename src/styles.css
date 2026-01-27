@@ -363,13 +363,9 @@ html[data-device="desktop"] { --header-h: 70px; }
 .plan-day-cell { min-width: 90px; text-align: center; }
 .plan-day-number { font-weight: 800; }
 .plan-day-dow { font-size: 11px; color: var(--muted); text-transform: lowercase; }
-.plan-po-head th { background: rgba(7, 20, 36, 0.04); font-size: 11px; color: #475569; padding: 4px 6px; }
-.plan-po-labels { display: grid; grid-template-columns: 1fr; row-gap: 2px; text-align: center; }
+.plan-po-label-col { width: 32px; text-align: center; font-weight: 800; background: rgba(7, 20, 36, 0.04); }
 .plan-po-cell { background: #fdfefe; }
-.plan-po-grid { display: grid; gap: 6px; }
-.plan-po-row { display: grid; grid-template-columns: 16px 1fr; gap: 6px; align-items: center; }
-.plan-po-label { font-weight: 800; color: #0f172a; text-align: center; }
-.plan-po-input { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.plan-po-input { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; border-radius: 0; }
 .plan-saving-hint { font-size: 10px; color: var(--muted); text-align: right; }
 
 .btn.primary { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); color: #fff; }

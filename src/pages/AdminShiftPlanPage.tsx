@@ -69,6 +69,7 @@ function DaysHeader({ days }: { days: ShiftPlanDay[] }) {
     <thead className="plan-shift-head">
       <tr>
         <th rowSpan={2} style={{ minWidth: 180 }}>Zařízení</th>
+        <th rowSpan={2} className="plan-po-label-col" />
         {days.map((d) => {
           const dt = new Date(d.date);
           const dow = dt.toLocaleDateString("cs-CZ", { weekday: "short" });
@@ -79,14 +80,6 @@ function DaysHeader({ days }: { days: ShiftPlanDay[] }) {
             </th>
           );
         })}
-      </tr>
-      <tr className="plan-po-head">
-        {days.map((d) => (
-          <th key={`${d.date}-po`} className="plan-po-labels">
-            <div>P</div>
-            <div>O</div>
-          </th>
-        ))}
       </tr>
     </thead>
   );
@@ -242,57 +235,64 @@ export default function AdminShiftPlanPage() {
                 {selectedRows.map((row) => {
                   const dayMap = new Map(row.days.map((d) => [d.date, d]));
                   return (
-                    <tr key={row.instance_id}>
-                      <th style={{ textAlign: "left" }}>
-                        <div style={{ fontWeight: 850 }}>{row.display_name || "Bez názvu"}</div>
-                        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>{row.instance_id.slice(0, 8)}</div>
-                      </th>
-                      {days.map((d) => {
-                        const val = dayMap.get(d.date);
-                        const aKey = `${row.instance_id}-${d.date}-arrival_time`;
-                        const dKey = `${row.instance_id}-${d.date}-departure_time`;
-                        const arrival = drafts[aKey] ?? val?.arrival_time ?? "";
-                        const departure = drafts[dKey] ?? val?.departure_time ?? "";
-                        const saving = savingCell[aKey] || savingCell[dKey];
-                        return (
-                          <td key={d.date} className="plan-compact-cell plan-po-cell">
-                            <div className="plan-po-grid">
-                              <div className="plan-po-row">
-                                <span className="plan-po-label">P</span>
-                                <input
-                                  className="input plan-compact-input plan-po-input"
-                                  placeholder="--:--"
-                                  value={arrival}
-                                  onChange={(e) => {
-                                    const v = e.target.value;
-                                    if (isValidTimeOrEmpty(v)) {
-                                      setDrafts((prev) => ({ ...prev, [aKey]: v }));
-                                    }
-                                  }}
-                                  onBlur={(e) => saveCell(row.instance_id, d.date, "arrival_time", e.target.value)}
-                                />
-                              </div>
-                              <div className="plan-po-row">
-                                <span className="plan-po-label">O</span>
-                                <input
-                                  className="input plan-compact-input plan-po-input"
-                                  placeholder="--:--"
-                                  value={departure}
-                                  onChange={(e) => {
-                                    const v = e.target.value;
-                                    if (isValidTimeOrEmpty(v)) {
-                                      setDrafts((prev) => ({ ...prev, [dKey]: v }));
-                                    }
-                                  }}
-                                  onBlur={(e) => saveCell(row.instance_id, d.date, "departure_time", e.target.value)}
-                                />
-                              </div>
+                    <>
+                      <tr key={`${row.instance_id}-p`}>
+                        <th rowSpan={2} style={{ textAlign: "left" }}>
+                          <div style={{ fontWeight: 850 }}>{row.display_name || "Bez názvu"}</div>
+                          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>{row.instance_id.slice(0, 8)}</div>
+                        </th>
+                        <td className="plan-po-label-col">P</td>
+                        {days.map((d) => {
+                          const val = dayMap.get(d.date);
+                          const aKey = `${row.instance_id}-${d.date}-arrival_time`;
+                          const arrival = drafts[aKey] ?? val?.arrival_time ?? "";
+                          const saving = savingCell[aKey] || savingCell[`${row.instance_id}-${d.date}-departure_time`];
+                          return (
+                            <td key={`${d.date}-p`} className="plan-compact-cell plan-po-cell">
+                              <input
+                                className="input plan-compact-input plan-po-input"
+                                placeholder="--:--"
+                                value={arrival}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (isValidTimeOrEmpty(v)) {
+                                    setDrafts((prev) => ({ ...prev, [aKey]: v }));
+                                  }
+                                }}
+                                onBlur={(e) => saveCell(row.instance_id, d.date, "arrival_time", e.target.value)}
+                              />
                               {saving ? <div className="plan-saving-hint">Ukládám…</div> : null}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr key={`${row.instance_id}-o`}>
+                        <td className="plan-po-label-col">O</td>
+                        {days.map((d) => {
+                          const val = dayMap.get(d.date);
+                          const dKey = `${row.instance_id}-${d.date}-departure_time`;
+                          const departure = drafts[dKey] ?? val?.departure_time ?? "";
+                          const saving = savingCell[dKey] || savingCell[`${row.instance_id}-${d.date}-arrival_time`];
+                          return (
+                            <td key={`${d.date}-o`} className="plan-compact-cell plan-po-cell">
+                              <input
+                                className="input plan-compact-input plan-po-input"
+                                placeholder="--:--"
+                                value={departure}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (isValidTimeOrEmpty(v)) {
+                                    setDrafts((prev) => ({ ...prev, [dKey]: v }));
+                                  }
+                                }}
+                                onBlur={(e) => saveCell(row.instance_id, d.date, "departure_time", e.target.value)}
+                              />
+                              {saving ? <div className="plan-saving-hint">Ukládám…</div> : null}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </>
                   );
                 })}
               </tbody>
