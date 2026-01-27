@@ -66,19 +66,21 @@ function isValidTimeOrEmpty(value: string): boolean {
 
 function DaysHeader({ days }: { days: ShiftPlanDay[] }) {
   return (
-    <div className="plan-grid plan-grid-head">
-      <div className="plan-cell head">Zařízení</div>
-      {days.map((d) => {
-        const dt = new Date(d.date);
-        const dow = dt.toLocaleDateString("cs-CZ", { weekday: "short" });
-        return (
-          <div key={d.date} className="plan-cell head">
-            <div style={{ fontWeight: 800 }}>{dt.getDate()}. {dt.getMonth() + 1}.</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{dow}</div>
-          </div>
-        );
-      })}
-    </div>
+    <thead>
+      <tr>
+        <th style={{ minWidth: 180 }}>Zařízení</th>
+        {days.map((d) => {
+          const dt = new Date(d.date);
+          const dow = dt.toLocaleDateString("cs-CZ", { weekday: "short" });
+          return (
+            <th key={d.date} style={{ minWidth: 90, textAlign: "center" }}>
+              <div style={{ fontWeight: 800 }}>{dt.getDate()}. {dt.getMonth() + 1}.</div>
+              <div style={{ fontSize: 11, color: "var(--muted)" }}>{dow}</div>
+            </th>
+          );
+        })}
+      </tr>
+    </thead>
   );
 }
 
@@ -89,6 +91,7 @@ export default function AdminShiftPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const [savingSelection, setSavingSelection] = useState(false);
   const [savingCell, setSavingCell] = useState<Record<string, boolean>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const days = useMemo<ShiftPlanDay[]>(() => {
     const parsed = parseYYYYMM(month);
@@ -146,6 +149,7 @@ export default function AdminShiftPlanPage() {
     if (!isValidTimeOrEmpty(parsed)) return;
     const key = `${instanceId}-${date}-${field}`;
     setSavingCell((prev) => ({ ...prev, [key]: true }));
+    setDrafts((prev) => ({ ...prev, [key]: parsed }));
     try {
       await adminUpsertShiftPlan({
         instance_id: instanceId,
@@ -224,56 +228,63 @@ export default function AdminShiftPlanPage() {
         ) : (
           <div className="dg-card pad" style={{ overflowX: "auto" }}>
             <div style={{ marginBottom: 8, fontWeight: 800 }}>{monthLabel(month)}</div>
-            <DaysHeader days={days} />
-            {selectedRows.map((row) => {
-              const dayMap = new Map(row.days.map((d) => [d.date, d]));
-              return (
-                <div key={row.instance_id} className="plan-grid">
-                  <div className="plan-cell head" style={{ fontWeight: 850 }}>
-                    <div>{row.display_name || "Bez názvu"}</div>
-                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{row.instance_id.slice(0, 8)}</div>
-                  </div>
-                  {days.map((d) => {
-                    const val = dayMap.get(d.date);
-                    const arrival = val?.arrival_time ?? "";
-                    const departure = val?.departure_time ?? "";
-                    return (
-                      <div key={d.date} className="plan-cell">
-                        <div style={{ display: "grid", gap: 6 }}>
-                          <input
-                            className="input"
-                            style={{ padding: "8px 10px" }}
-                            placeholder="Příchod"
-                            value={arrival}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (isValidTimeOrEmpty(v)) {
-                                saveCell(row.instance_id, d.date, "arrival_time", v);
-                              }
-                            }}
-                          />
-                          <input
-                            className="input"
-                            style={{ padding: "8px 10px" }}
-                            placeholder="Odchod"
-                            value={departure}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (isValidTimeOrEmpty(v)) {
-                                saveCell(row.instance_id, d.date, "departure_time", v);
-                              }
-                            }}
-                          />
-                          {savingCell[`${row.instance_id}-${d.date}-arrival_time`] || savingCell[`${row.instance_id}-${d.date}-departure_time`]
-                            ? <div style={{ fontSize: 11, color: "var(--muted)" }}>Ukládám…</div>
-                            : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+            <table className="plan-table">
+              <DaysHeader days={days} />
+              <tbody>
+                {selectedRows.map((row) => {
+                  const dayMap = new Map(row.days.map((d) => [d.date, d]));
+                  return (
+                    <tr key={row.instance_id}>
+                      <th style={{ textAlign: "left" }}>
+                        <div style={{ fontWeight: 850 }}>{row.display_name || "Bez názvu"}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{row.instance_id.slice(0, 8)}</div>
+                      </th>
+                      {days.map((d) => {
+                        const val = dayMap.get(d.date);
+                        const aKey = `${row.instance_id}-${d.date}-arrival_time`;
+                        const dKey = `${row.instance_id}-${d.date}-departure_time`;
+                        const arrival = drafts[aKey] ?? val?.arrival_time ?? "";
+                        const departure = drafts[dKey] ?? val?.departure_time ?? "";
+                        const saving = savingCell[aKey] || savingCell[dKey];
+                        return (
+                          <td key={d.date}>
+                            <div style={{ display: "grid", gap: 4 }}>
+                              <input
+                                className="input"
+                                style={{ padding: "6px 8px", fontSize: 13 }}
+                                placeholder="Příchod"
+                                value={arrival}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (isValidTimeOrEmpty(v)) {
+                                    setDrafts((prev) => ({ ...prev, [aKey]: v }));
+                                  }
+                                }}
+                                onBlur={(e) => saveCell(row.instance_id, d.date, "arrival_time", e.target.value)}
+                              />
+                              <input
+                                className="input"
+                                style={{ padding: "6px 8px", fontSize: 13 }}
+                                placeholder="Odchod"
+                                value={departure}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (isValidTimeOrEmpty(v)) {
+                                    setDrafts((prev) => ({ ...prev, [dKey]: v }));
+                                  }
+                                }}
+                                onBlur={(e) => saveCell(row.instance_id, d.date, "departure_time", e.target.value)}
+                              />
+                              {saving ? <div style={{ fontSize: 11, color: "var(--muted)" }}>Ukládám…</div> : null}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </main>
