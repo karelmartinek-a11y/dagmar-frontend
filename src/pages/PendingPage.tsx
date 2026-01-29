@@ -110,8 +110,6 @@ export function PendingPage({ instanceId }: Props) {
   // While on the pending screen, keep polling status so the app unlocks automatically after admin activation.
   useEffect(() => {
     let cancelled = false;
-    let t: number | undefined;
-
     async function pollStatus() {
       if (cancelled) return;
       if (!online) return;
@@ -137,11 +135,11 @@ export function PendingPage({ instanceId }: Props) {
     }
 
     pollStatus();
-    t = window.setInterval(pollStatus, 5_000);
+    const t = window.setInterval(pollStatus, 5_000);
 
     return () => {
       cancelled = true;
-      if (t) window.clearInterval(t);
+      window.clearInterval(t);
     };
   }, [nav, online, currentId]);
 
