@@ -82,7 +82,7 @@ export async function fetchJson<T>(opts: FetchJsonOptions): Promise<T> {
 
   let body: BodyInit | undefined;
   if (opts.body !== undefined) {
-    const val = opts.body as any;
+    const val = opts.body as unknown;
     if (
       typeof val === 'string' ||
       val instanceof FormData ||
@@ -191,9 +191,13 @@ export async function apiFetch<T>(pathOrOpts: string | FetchJsonOptions, init?: 
     return fetchJson<T>(pathOrOpts);
   }
 
+  const method =
+    typeof init?.method === 'string' && ['GET', 'POST', 'PUT', 'DELETE'].includes(init.method)
+      ? (init.method as FetchJsonOptions['method'])
+      : undefined;
   const opts: FetchJsonOptions = {
     path: pathOrOpts,
-    method: (init?.method as any) ?? 'GET',
+    method: method ?? 'GET',
     query: init?.query,
     headers: init?.headers as Record<string, string> | undefined,
     credentials: init?.credentials,

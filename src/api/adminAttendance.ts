@@ -22,6 +22,7 @@ export type AdminAttendanceDay = {
 export type AdminAttendanceMonthResponse = {
   days: AdminAttendanceDay[];
   locked: boolean;
+  afternoon_cutoff?: string | null;
 };
 
 export type AdminAttendanceUpsertBody = {

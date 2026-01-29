@@ -59,6 +59,12 @@ function toDowLabel(dateStr: string) {
   return dt.toLocaleDateString("cs-CZ", { weekday: "short" });
 }
 
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  return fallback;
+}
+
 function formatHours(mins: number): string {
   return (mins / 60).toFixed(1);
 }
@@ -142,9 +148,9 @@ export default function AdminAttendanceSheetsPage() {
         const res = await adminListInstances();
         if (cancelled) return;
         setInstances(res.instances);
-      } catch (e: any) {
+      } catch (err: unknown) {
         if (cancelled) return;
-        setInstancesError(e?.message ?? "Nepodařilo se načíst seznam instancí.");
+        setInstancesError(errorMessage(err, "Nepodařilo se načíst seznam instancí."));
       } finally {
         if (!cancelled) setInstancesLoading(false);
       }
@@ -210,13 +216,10 @@ export default function AdminAttendanceSheetsPage() {
         if (cancelled) return;
         setDays(res.days);
         setLocked(res.locked || false);
-        // Optional extras (backend may include these; keep backward compatible).
-        const anyRes = res as any;
-        const anySel = selected as any;
-        setAfternoonCutoff(anyRes?.afternoon_cutoff ?? anySel?.afternoon_cutoff ?? "17:00");
-      } catch (e: any) {
+        setAfternoonCutoff(res.afternoon_cutoff ?? selected.afternoon_cutoff ?? "17:00");
+      } catch (err: unknown) {
         if (cancelled) return;
-        const msg = e?.message ?? "Docházku se nepodařilo načíst.";
+        const msg = errorMessage(err, "Docházku se nepodařilo načíst.");
         setDaysError(msg);
         setDays(null);
         setLocked(false);
@@ -269,8 +272,8 @@ export default function AdminAttendanceSheetsPage() {
 
     try {
       await adminUpsertAttendance(payload);
-    } catch (e: any) {
-      const msg = e instanceof ApiError ? e.message : (e?.message ?? "Uložení se nezdařilo.");
+    } catch (err: unknown) {
+      const msg = err instanceof ApiError ? err.message : errorMessage(err, "Uložení se nezdařilo.");
       setErrorByKey((prev) => ({ ...prev, [key]: msg }));
     } finally {
       setSavingByKey((prev) => ({ ...prev, [key]: false }));
@@ -297,11 +300,9 @@ export default function AdminAttendanceSheetsPage() {
       });
       setDays(res.days);
       setLocked(res.locked || false);
-      const anyRes = res as any;
-      const anySel = selected as any;
-      setAfternoonCutoff(anyRes?.afternoon_cutoff ?? anySel?.afternoon_cutoff ?? "17:00");
-    } catch (e: any) {
-      const msg = e?.message ?? "Operace se nezdařila.";
+      setAfternoonCutoff(res.afternoon_cutoff ?? selected.afternoon_cutoff ?? "17:00");
+    } catch (err: unknown) {
+      const msg = errorMessage(err, "Operace se nezdařila.");
       setDaysError(msg);
     } finally {
       setDaysLoading(false);
@@ -384,8 +385,7 @@ export default function AdminAttendanceSheetsPage() {
                     type="button"
                     onClick={() => {
                       setSelected(it);
-                      const anyIt = it as any;
-                      setAfternoonCutoff(anyIt?.afternoon_cutoff ?? "17:00");
+                      setAfternoonCutoff(it.afternoon_cutoff ?? "17:00");
                     }}
                     style={{
                       width: "100%",

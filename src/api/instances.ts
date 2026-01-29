@@ -32,6 +32,7 @@ export async function registerInstance(
   body: RegisterInstanceRequest,
   _clientId?: string // ignored, kept for backward compatibility
 ): Promise<RegisterInstanceResponse> {
+  void _clientId;
   return await httpJson<RegisterInstanceResponse>(
     "/api/v1/instances/register",
     {

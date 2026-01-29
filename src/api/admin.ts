@@ -16,6 +16,7 @@ export type AdminInstance = {
   display_name: string | null;
   created_at: string;
   last_seen_at: string | null;
+  afternoon_cutoff?: string | null;
   activated_at?: string | null;
   revoked_at?: string | null;
   deactivated_at?: string | null;
@@ -213,14 +214,17 @@ export const listInstances = async (): Promise<
   }>
 > => {
   const res = await adminListInstances();
-  return res.instances.map((i) => ({
+  return res.instances.map((i) => {
+    const legacyLastSeen = "last_seen" in i ? (i as { last_seen?: string | null }).last_seen : null;
+    return {
     id: i.id,
     client_type: i.client_type,
     status: i.status,
     display_name: i.display_name,
     created_at: i.created_at,
-    last_seen: (i as any).last_seen_at ?? (i as any).last_seen ?? null,
-  }));
+      last_seen: i.last_seen_at ?? legacyLastSeen ?? null,
+    };
+  });
 };
 export const activateInstance = adminActivateInstance;
 export const renameInstance = adminRenameInstance;
