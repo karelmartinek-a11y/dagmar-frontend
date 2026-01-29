@@ -43,6 +43,12 @@ function normDisplayName(v: string): string {
     .slice(0, 120);
 }
 
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  return fallback;
+}
+
 function clientTypeLabel(t: AdminInstanceRow["client_type"]): string {
   return t === "ANDROID" ? "Android" : "Web";
 }
@@ -103,8 +109,8 @@ export default function AdminInstancesPage() {
       const [instancesRes, settingsRes] = await Promise.all([adminListInstances(), adminGetSettings()]);
       setRows(instancesRes.instances);
       setSettingsCutoff(settingsRes.afternoon_cutoff);
-    } catch (e: any) {
-      setPageError(e?.message ?? "Nepodařilo se načíst seznam instancí.");
+    } catch (err: unknown) {
+      setPageError(errorMessage(err, "Nepodařilo se načíst seznam instancí."));
     } finally {
       setLoading(false);
     }
@@ -117,8 +123,8 @@ export default function AdminInstancesPage() {
       await adminSetSettings(settingsCutoff);
       const s = await adminGetSettings();
       setSettingsCutoff(s.afternoon_cutoff);
-    } catch (e: any) {
-      setPageError(e?.message ?? "Uložení nastavení se nezdařilo.");
+    } catch (err: unknown) {
+      setPageError(errorMessage(err, "Uložení nastavení se nezdařilo."));
     } finally {
       setSettingsSaving(false);
     }
@@ -126,7 +132,6 @@ export default function AdminInstancesPage() {
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const counts = useMemo(() => {
@@ -191,8 +196,8 @@ export default function AdminInstancesPage() {
     try {
       await adminDeletePendingInstances();
       await refresh();
-    } catch (e: any) {
-      setPageError(e?.message ?? "Hromadné smazání se nezdařilo.");
+    } catch (err: unknown) {
+      setPageError(errorMessage(err, "Hromadné smazání se nezdařilo."));
     } finally {
       setBulkDeleting(false);
     }
@@ -219,8 +224,8 @@ export default function AdminInstancesPage() {
       setActivateOpen(false);
       setSelected(null);
       await refresh();
-    } catch (e: any) {
-      setModalError(e?.message ?? "Aktivace se nezdařila.");
+    } catch (err: unknown) {
+      setModalError(errorMessage(err, "Aktivace se nezdařila."));
     } finally {
       setSaving(false);
     }
@@ -240,8 +245,8 @@ export default function AdminInstancesPage() {
       setRenameOpen(false);
       setSelected(null);
       await refresh();
-    } catch (e: any) {
-      setModalError(e?.message ?? "Přejmenování se nezdařilo.");
+    } catch (err: unknown) {
+      setModalError(errorMessage(err, "Přejmenování se nezdařilo."));
     } finally {
       setSaving(false);
     }
@@ -257,8 +262,8 @@ export default function AdminInstancesPage() {
     try {
       await adminRevokeInstance(r.id);
       await refresh();
-    } catch (e: any) {
-      setPageError(e?.message ?? "Revokace se nezdařila.");
+    } catch (err: unknown) {
+      setPageError(errorMessage(err, "Revokace se nezdařila."));
     } finally {
       setSaving(false);
     }
@@ -275,8 +280,8 @@ export default function AdminInstancesPage() {
     try {
       await adminDeactivateInstance(r.id);
       await refresh();
-    } catch (e: any) {
-      setPageError(e?.message ?? "Deaktivace se nezdařila.");
+    } catch (err: unknown) {
+      setPageError(errorMessage(err, "Deaktivace se nezdařila."));
     } finally {
       setSaving(false);
     }
@@ -294,8 +299,8 @@ export default function AdminInstancesPage() {
     try {
       await adminDeleteInstance(r.id);
       await refresh();
-    } catch (e: any) {
-      setPageError(e?.message ?? "Smazání se nezdařilo.");
+    } catch (err: unknown) {
+      setPageError(errorMessage(err, "Smazání se nezdařilo."));
     } finally {
       setSaving(false);
     }
@@ -536,8 +541,8 @@ export default function AdminInstancesPage() {
                         try {
                           await adminSetTemplate(r.id, e.target.value as EmploymentTemplate);
                           await refresh();
-                        } catch (err: any) {
-                          setPageError(err?.message ?? "Nepodařilo se uložit typ smlouvy.");
+                        } catch (err: unknown) {
+                          setPageError(errorMessage(err, "Nepodařilo se uložit typ smlouvy."));
                         } finally {
                           setSaving(false);
                         }

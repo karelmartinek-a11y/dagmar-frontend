@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { adminLogin, getAdminMe } from "../api/admin";
 
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  return fallback;
+}
+
 function parseNextParam(search: string): string | null {
   const params = new URLSearchParams(search);
   const next = params.get("next");
@@ -53,9 +59,8 @@ export default function AdminLoginPage() {
     try {
       await adminLogin({ password });
       nav(nextPath, { replace: true });
-    } catch (err: any) {
-      const msg = typeof err?.message === "string" ? err.message : null;
-      setError(msg ?? "Přihlášení se nezdařilo.");
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Přihlášení se nezdařilo."));
     } finally {
       setSubmitting(false);
     }

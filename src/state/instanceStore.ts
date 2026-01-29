@@ -50,8 +50,7 @@ function safeJsonParse<T>(value: string | null): T | null {
 }
 
 function genDeviceFingerprint(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    // @ts-ignore
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
   // Fallback simple UUID-ish

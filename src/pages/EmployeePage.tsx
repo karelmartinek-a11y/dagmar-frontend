@@ -137,7 +137,7 @@ export function EmployeePage() {
     }),
     []
   );
-  const displayName = useMemo(() => getInstanceDisplayName(), [statusText, instanceId]);
+  const displayName = getInstanceDisplayName();
   const androidDownloadUrl = "https://dagmar.hcasc.cz/download/dochazka-dagmar.apk";
 
   useEffect(() => {
@@ -205,9 +205,6 @@ export function EmployeePage() {
   // Poll status and claim token when ACTIVE
   useEffect(() => {
     let cancelled = false;
-    let t1: number | undefined;
-    let t2: number | undefined;
-
     async function pollStatus() {
       if (cancelled) return;
       if (!online) {
@@ -245,9 +242,9 @@ export function EmployeePage() {
         setAfternoonCutoff(st.afternoon_cutoff ?? "17:00");
         setStatusText("Aktivováno");
         setActivationState("active");
-      } catch (e: any) {
+      } catch (err: unknown) {
         // If the stored id isn't a server instance_id, recover by treating it as fingerprint and re-registering.
-        if (e instanceof ApiError && e.status === 404) {
+        if (err instanceof ApiError && err.status === 404) {
           instanceStore.setDeviceFingerprint(instanceId);
           setStatusText("Zařízení není aktivováno");
           setActivationState("pending");
@@ -278,13 +275,13 @@ export function EmployeePage() {
     pollStatus();
     pollClaim();
 
-    t1 = window.setInterval(pollStatus, POLL_STATUS_MS);
-    t2 = window.setInterval(pollClaim, POLL_CLAIM_MS);
+    const t1 = window.setInterval(pollStatus, POLL_STATUS_MS);
+    const t2 = window.setInterval(pollClaim, POLL_CLAIM_MS);
 
     return () => {
       cancelled = true;
-      if (t1) window.clearInterval(t1);
-      if (t2) window.clearInterval(t2);
+      window.clearInterval(t1);
+      window.clearInterval(t2);
     };
   }, [instanceId, online, activationState]);
 
@@ -328,9 +325,9 @@ export function EmployeePage() {
         }
         setRows(out);
         setMonthLocked(false);
-      } catch (e: any) {
+      } catch (err: unknown) {
         if (cancelled) return;
-        if (e instanceof ApiError && e.status === 423) {
+        if (err instanceof ApiError && err.status === 423) {
           setMonthLocked(true);
           setRows([]);
           setStatusText("Docházka pro tento měsíc je uzavřena administrátorem");

@@ -10,6 +10,12 @@ type Props = {
 
 const logoUrl = "/brand/logo.svg";
 
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  return fallback;
+}
+
 export function PendingPage({ instanceId }: Props) {
   const nav = useNavigate();
   const [online, setOnline] = useState<boolean>(navigator.onLine);
@@ -69,9 +75,9 @@ export function PendingPage({ instanceId }: Props) {
         try {
           await getStatus(id);
           return;
-        } catch (e: any) {
+        } catch (err: unknown) {
           // Legacy clients stored device_fingerprint as instanceId; status will be 404.
-          if (e instanceof ApiError && e.status === 404) {
+          if (err instanceof ApiError && err.status === 404) {
             instanceStore.setDeviceFingerprint(id);
             id = null;
           } else {
@@ -91,9 +97,9 @@ export function PendingPage({ instanceId }: Props) {
       }
     }
 
-    ensureServerInstanceId().catch((e: any) => {
+    ensureServerInstanceId().catch((err: unknown) => {
       if (cancelled) return;
-      setError(e?.message ?? "Registrace se nezdařila. Zkuste to prosím znovu.");
+      setError(errorMessage(err, "Registrace se nezdařila. Zkuste to prosím znovu."));
     });
 
     return () => {
@@ -156,8 +162,8 @@ export function PendingPage({ instanceId }: Props) {
       );
       instanceStore.setInstanceId(res.instance_id);
       setDeactivated(false);
-    } catch (e: any) {
-      setError(e?.message ?? "Registrace se nezdařila. Zkuste to prosím znovu.");
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Registrace se nezdařila. Zkuste to prosím znovu."));
     } finally {
       setCreating(false);
     }
@@ -191,12 +197,12 @@ export function PendingPage({ instanceId }: Props) {
       } else {
         setStatusMessage("Zařízení čeká na schválení administrátorem.");
       }
-    } catch (e: any) {
-      setStatusMessage(e?.message ?? "Stav se nepodařilo ověřit. Zkuste znovu.");
+    } catch (err: unknown) {
+      setStatusMessage(errorMessage(err, "Stav se nepodařilo ověřit. Zkuste znovu."));
     } finally {
       setChecking(false);
     }
-  }, [nav, deactivated]);
+  }, [nav]);
 
   const handleSaveName = useCallback(async () => {
     if (!online) {
@@ -222,8 +228,8 @@ export function PendingPage({ instanceId }: Props) {
       }
       setInstanceDisplayName(trimmed);
       setStatusMessage("Jméno bylo odesláno administrátorovi.");
-    } catch (e: any) {
-      setError(e?.message ?? "Odeslání jména se nezdařilo. Zkuste to prosím znovu.");
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Odeslání jména se nezdařilo. Zkuste to prosím znovu."));
     } finally {
       setSavingName(false);
     }
