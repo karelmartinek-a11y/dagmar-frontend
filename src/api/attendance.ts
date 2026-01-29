@@ -4,13 +4,10 @@ export type AttendanceDay = {
   date: string; // YYYY-MM-DD
   arrival_time: string | null; // HH:MM
   departure_time: string | null; // HH:MM
-  planned_arrival_time?: string | null; // HH:MM
-  planned_departure_time?: string | null; // HH:MM
 };
 
 export type AttendanceMonthResponse = {
   days: AttendanceDay[];
-  instance_display_name?: string;
 };
 
 export type AttendanceUpsertBody = {

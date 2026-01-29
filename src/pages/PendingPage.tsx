@@ -18,10 +18,6 @@ export function PendingPage({ instanceId }: Props) {
   const [creating, setCreating] = useState(false);
   const [checking, setChecking] = useState(false);
   const [savingName, setSavingName] = useState(false);
-  const [dialog, setDialog] = useState<{ state: "idle" | "progress" | "done" | "error"; text: string }>({
-    state: "idle",
-    text: "",
-  });
   const [displayName, setDisplayName] = useState<string>(() => instanceStore.get().displayName ?? "");
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -35,12 +31,6 @@ export function PendingPage({ instanceId }: Props) {
     }),
     []
   );
-
-  const openDialog = useCallback((state: "progress" | "done" | "error", text: string) => {
-    setDialog({ state, text });
-  }, []);
-
-  const closeDialog = useCallback(() => setDialog({ state: "idle", text: "" }), []);
 
   useEffect(() => {
     const onUp = () => setOnline(true);
@@ -74,21 +64,30 @@ export function PendingPage({ instanceId }: Props) {
       if (!online) return;
       setError(null);
 
-      const id = instanceStore.get().instanceId;
+      let id = instanceStore.get().instanceId;
       if (id) {
         try {
           await getStatus(id);
           return;
         } catch (e: any) {
+          // Legacy clients stored device_fingerprint as instanceId; status will be 404.
           if (e instanceof ApiError && e.status === 404) {
-            instanceStore.setInstanceId(null);
-            setStatusMessage("Zadejte jméno a odešlete žádost o aktivaci.");
+            instanceStore.setDeviceFingerprint(id);
+            id = null;
           } else {
             return;
           }
         }
-      } else {
-        setStatusMessage("Zadejte jméno a odešlete žádost o aktivaci.");
+      }
+
+      if (!id) {
+        const fp = getOrCreateDeviceFingerprint();
+        const res = await registerInstance(
+          { client_type: clientType, device_fingerprint: fp, device_info: deviceInfo },
+          fp
+        );
+        if (cancelled) return;
+        instanceStore.setInstanceId(res.instance_id);
       }
     }
 
@@ -145,40 +144,29 @@ export function PendingPage({ instanceId }: Props) {
       setStatusMessage("Zařízení bylo deaktivováno. Kontaktujte administrátora.");
       return;
     }
-    const trimmed = displayName.trim();
-    if (!trimmed) {
-      setError("Zadejte prosím jméno.");
-      return;
-    }
     setCreating(true);
     setError(null);
     setStatusMessage(null);
-    openDialog("progress", "Odesílám žádost o aktivaci...");
     try {
       // Generate a fresh fingerprint (also clears previous server instance id + token).
       const fp = startNewRegistration();
       const res = await registerInstance(
-        { client_type: clientType, device_fingerprint: fp, device_info: deviceInfo, display_name: trimmed },
+        { client_type: clientType, device_fingerprint: fp, device_info: deviceInfo },
         fp
       );
       instanceStore.setInstanceId(res.instance_id);
       setDeactivated(false);
-      setInstanceDisplayName(trimmed);
-      setStatusMessage("Žádost odeslána. Vyčkejte na schválení administrátorem.");
-      openDialog("done", "Žádost odeslána. Vyčkejte na schválení administrátorem.");
     } catch (e: any) {
-      const msg = e?.message ?? "Registrace se nezdařila. Zkuste to prosím znovu.";
-      setError(msg);
-      openDialog("error", msg);
+      setError(e?.message ?? "Registrace se nezdařila. Zkuste to prosím znovu.");
     } finally {
       setCreating(false);
     }
-  }, [clientType, deviceInfo, deactivated, displayName, openDialog]);
+  }, [clientType, deviceInfo, deactivated]);
 
   const handleCheckStatus = useCallback(async () => {
     const id = instanceStore.get().instanceId;
     if (!id) {
-      setStatusMessage("Zařízení ještě není registrované. Zadejte jméno a odešlete žádost.");
+      setStatusMessage("Zařízení ještě není registrované.");
       return;
     }
 
@@ -223,7 +211,6 @@ export function PendingPage({ instanceId }: Props) {
     setSavingName(true);
     setError(null);
     setStatusMessage(null);
-    openDialog("progress", "Odesílám žádost o aktivaci...");
     try {
       const fp = instanceStore.get().deviceFingerprint ?? getOrCreateDeviceFingerprint();
       const res = await registerInstance(
@@ -234,16 +221,13 @@ export function PendingPage({ instanceId }: Props) {
         instanceStore.setInstanceId(res.instance_id);
       }
       setInstanceDisplayName(trimmed);
-      setStatusMessage("Žádost odeslána. Vyčkejte na schválení administrátorem.");
-      openDialog("done", "Žádost odeslána. Vyčkejte na schválení administrátorem.");
+      setStatusMessage("Jméno bylo odesláno administrátorovi.");
     } catch (e: any) {
-      const msg = e?.message ?? "Odeslání jména se nezdařilo. Zkuste to prosím znovu.";
-      setError(msg);
-      openDialog("error", msg);
+      setError(e?.message ?? "Odeslání jména se nezdařilo. Zkuste to prosím znovu.");
     } finally {
       setSavingName(false);
     }
-  }, [clientType, deviceInfo, displayName, online, openDialog]);
+  }, [clientType, deviceInfo, displayName, online]);
 
   return (
     <div
@@ -290,8 +274,8 @@ export function PendingPage({ instanceId }: Props) {
         </div>
 
         <p style={{ marginTop: 14, marginBottom: 0, lineHeight: 1.55, color: "rgba(232,238,252,0.88)" }}>
-          Novou žádost o aktivaci odešlete až po vyplnění jména a potvrzení. Teprve poté se vygeneruje ID instance a
-          žádost se zobrazí administrátorovi ke schválení.
+          Toto zařízení je zaregistrované, ale zatím čeká na schválení administrátorem. Jakmile bude aktivované,
+          aplikace se automaticky odemkne.
         </p>
 
         <div
@@ -303,7 +287,7 @@ export function PendingPage({ instanceId }: Props) {
             background: "rgba(0,0,0,0.18)",
           }}
         >
-          <div style={{ fontSize: 12, opacity: 0.78, marginBottom: 6 }}>Jméno pro administrátora (povinné)</div>
+          <div style={{ fontSize: 12, opacity: 0.78, marginBottom: 6 }}>Jméno pro administrátora</div>
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -322,7 +306,7 @@ export function PendingPage({ instanceId }: Props) {
             <button
               type="button"
               onClick={handleSaveName}
-              disabled={savingName || !online || !displayName.trim()}
+              disabled={savingName || !online}
               style={{
                 border: "1px solid rgba(56,189,248,0.45)",
                 background: "linear-gradient(90deg, rgba(14,165,233,0.35), rgba(56,189,248,0.25))",
@@ -333,10 +317,10 @@ export function PendingPage({ instanceId }: Props) {
                 cursor: savingName || !online ? "not-allowed" : "pointer",
               }}
             >
-              {!online ? "Offline" : savingName ? "Odesílám…" : "Odeslat žádost"}
+              {!online ? "Offline" : savingName ? "Odesílám…" : "Odeslat jméno"}
             </button>
             <div style={{ fontSize: 12, opacity: 0.7 }}>
-              Bez jména nelze vygenerovat nové ID ani odeslat žádost.
+              Jméno se zobrazí v adminu u PENDING zařízení.
             </div>
           </div>
         </div>
@@ -399,7 +383,7 @@ export function PendingPage({ instanceId }: Props) {
             <button
               type="button"
               onClick={handleReRegister}
-              disabled={creating || !online || deactivated || !displayName.trim()}
+              disabled={creating || !online || deactivated}
               style={{
                 border: "1px solid rgba(56,189,248,0.45)",
                 background: "linear-gradient(90deg, rgba(14,165,233,0.35), rgba(56,189,248,0.25))",
@@ -410,13 +394,7 @@ export function PendingPage({ instanceId }: Props) {
                 cursor: creating || !online || deactivated ? "not-allowed" : "pointer",
               }}
             >
-              {!online
-                ? "Offline"
-                : deactivated
-                  ? "Deaktivováno"
-                  : creating
-                    ? "Generuji…"
-                    : "Vygenerovat nové ID + odeslat"}
+              {!online ? "Offline" : deactivated ? "Deaktivováno" : creating ? "Generuji…" : "Vygenerovat nové ID"}
             </button>
             <button
               type="button"
@@ -488,62 +466,6 @@ export function PendingPage({ instanceId }: Props) {
           Pozn.: Bez aktivace není možné pokračovat v používání aplikace.
         </div>
       </div>
-      {dialog.state !== "idle" ? (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(7,11,20,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 18,
-            zIndex: 9999,
-          }}
-        >
-          <div
-            style={{
-              background: "#0b1323",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 16,
-              padding: 18,
-              width: "min(440px, 100%)",
-              color: "#e8eefc",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
-              display: "grid",
-              gap: 10,
-            }}
-          >
-            <div style={{ fontWeight: 800, fontSize: 18 }}>
-              {dialog.state === "progress"
-                ? "Odesílám žádost..."
-                : dialog.state === "done"
-                  ? "Žádost odeslána"
-                  : "Chyba při odesílání"}
-            </div>
-            <div style={{ fontSize: 14, color: "rgba(232,238,252,0.82)" }}>{dialog.text}</div>
-            {dialog.state === "progress" ? (
-              <div style={{ fontSize: 12, color: "rgba(232,238,252,0.7)" }}>Vyčkejte prosím...</div>
-            ) : (
-              <button
-                type="button"
-                onClick={closeDialog}
-                style={{
-                  border: "1px solid rgba(56,189,248,0.45)",
-                  background: "linear-gradient(90deg, rgba(14,165,233,0.35), rgba(56,189,248,0.25))",
-                  color: "white",
-                  fontWeight: 750,
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                }}
-              >
-                OK
-              </button>
-            )}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

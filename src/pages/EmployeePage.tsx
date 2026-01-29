@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { getAttendance, putAttendance } from "../api/attendance";
 import { ApiError } from "../api/client";
-import { claimToken, getStatus, type EmploymentTemplate } from "../api/instances";
+import { claimToken, getStatus, registerInstance, type EmploymentTemplate } from "../api/instances";
 import { ConnectivityPill } from "../components/ConnectivityPill";
-import { BrandLoader } from "../components/BrandLoader";
-import { useDeviceVariant } from "../hooks/useDeviceVariant";
-import dagmarLogo from "../assets/dagmar-logo.png";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
@@ -16,8 +12,6 @@ type DayRow = {
   date: string; // YYYY-MM-DD
   arrival_time: string | null;
   departure_time: string | null;
-  planned_arrival_time?: string | null;
-  planned_departure_time?: string | null;
 };
 
 type QueueItem = {
@@ -107,9 +101,6 @@ const POLL_STATUS_MS = 8_000;
 const POLL_CLAIM_MS = 6_000;
 
 export function EmployeePage() {
-  useDeviceVariant();
-
-  const nav = useNavigate();
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [statusText, setStatusText] = useState<string>("Kontroluji stav…");
   const [activationState, setActivationState] = useState<"unknown" | "pending" | "revoked" | "deactivated" | "active">("unknown");
@@ -121,7 +112,6 @@ export function EmployeePage() {
   const [monthLocked, setMonthLocked] = useState(false);
   const monthStats = useMemo(() => computeMonthStats(rows, employmentTemplate, cutoffMinutes), [rows, employmentTemplate, cutoffMinutes]);
   const monthTotalMins = monthStats.totalMins;
-  const [displayName, setDisplayName] = useState<string | null>(() => getInstanceDisplayName());
 
   const [queuedCount, setQueuedCount] = useState<number>(0);
   const [sending, setSending] = useState<boolean>(false);
@@ -138,7 +128,7 @@ export function EmployeePage() {
   const [instanceId, setInstanceId] = useState<string | null>(() => instanceStore.get().instanceId);
   const [deviceFingerprint, setDeviceFingerprint] = useState<string>(() => getOrCreateDeviceFingerprint());
 
-  const logoUrl = useMemo(() => dagmarLogo, []);
+  const logoUrl = useMemo(() => "/brand/icon.svg", []);
   const clientType = useMemo(() => detectClientType(), []);
   const deviceInfo = useMemo(
     () => ({
@@ -147,31 +137,8 @@ export function EmployeePage() {
     }),
     []
   );
+  const displayName = useMemo(() => getInstanceDisplayName(), [statusText, instanceId]);
   const androidDownloadUrl = "https://dagmar.hcasc.cz/download/dochazka-dagmar.apk";
-  const brandTitle = useMemo(() => {
-    if (displayName && displayName.trim()) return displayName;
-    if (instanceId) return `Zařízení ${instanceId.slice(0, 8)}`;
-    return "DAGMAR Docházka";
-  }, [displayName, instanceId]);
-
-  useEffect(() => {
-    const unsubscribe = instanceStore.subscribe((st) => {
-      setInstanceId(st.instanceId);
-      setDeviceFingerprint(st.deviceFingerprint ?? getOrCreateDeviceFingerprint());
-      setDisplayName(st.displayName);
-      setActivationState("unknown");
-      setEmploymentTemplate("DPP_DPC");
-      setAfternoonCutoff("17:00");
-
-      // reset offline queue when switching identity to avoid mixing data across devices
-      queueRef.current = [];
-      setQueuedCount(0);
-      setSending(false);
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     const onUp = () => setOnline(true);
@@ -184,19 +151,56 @@ export function EmployeePage() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    const unsubscribe = instanceStore.subscribe((st) => {
+      if (cancelled) return;
+      setInstanceId(st.instanceId);
+      setDeviceFingerprint(st.deviceFingerprint ?? getOrCreateDeviceFingerprint());
+      setActivationState("unknown");
+      setEmploymentTemplate("DPP_DPC");
+      setAfternoonCutoff("17:00");
+
+      // reset offline queue when switching identity to avoid mixing data across devices
+      queueRef.current = [];
+      setQueuedCount(0);
+      setSending(false);
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
+
   // Ensure instance registration (get server instance_id for this fingerprint).
   useEffect(() => {
+    let cancelled = false;
+
     async function ensureRegistered() {
       if (!online) return;
       if (instanceId) return;
 
-      setActivationState("pending");
-      setStatusText("Zařízení není aktivováno. Otevřete stránku čekající na schválení a odešlete žádost.");
-      nav("/pending", { replace: true });
+      try {
+        const res = await registerInstance({
+          client_type: clientType,
+          device_fingerprint: deviceFingerprint,
+          device_info: deviceInfo,
+        });
+        if (cancelled) return;
+        instanceStore.setInstanceId(res.instance_id);
+        setActivationState("pending");
+        setStatusText("Zařízení není aktivováno");
+      } catch {
+        // ignore; status poll will keep user informed
+      }
     }
 
     ensureRegistered();
-  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online, nav]);
+    return () => {
+      cancelled = true;
+    };
+  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online]);
 
   // Poll status and claim token when ACTIVE
   useEffect(() => {
@@ -236,13 +240,11 @@ export function EmployeePage() {
         }
 
         // ACTIVE
+        if (st.display_name) setInstanceDisplayName(st.display_name);
         setEmploymentTemplate(st.employment_template ?? "DPP_DPC");
         setAfternoonCutoff(st.afternoon_cutoff ?? "17:00");
         setStatusText("Aktivováno");
         setActivationState("active");
-        const name = st.display_name && st.display_name.trim() ? st.display_name : `Zařízení ${instanceId.slice(0, 8)}`;
-        setInstanceDisplayName(name);
-        setDisplayName(name);
       } catch (e: any) {
         // If the stored id isn't a server instance_id, recover by treating it as fingerprint and re-registering.
         if (e instanceof ApiError && e.status === 404) {
@@ -308,27 +310,10 @@ export function EmployeePage() {
         const res = await getAttendance(y, m, token);
         if (cancelled) return;
 
-        if (res.instance_display_name) {
-          setInstanceDisplayName(res.instance_display_name);
-          setDisplayName(res.instance_display_name);
-        } else if (instanceId) {
-          const fallback = `Zařízení ${instanceId.slice(0, 8)}`;
-          setInstanceDisplayName(fallback);
-          setDisplayName(fallback);
-        }
-
         // Normalize to full month list
         const dim = daysInMonth(y, m);
         const byDate = new Map<string, DayRow>();
-        for (const d of res.days) {
-          byDate.set(d.date, {
-            date: d.date,
-            arrival_time: d.arrival_time,
-            departure_time: d.departure_time,
-            planned_arrival_time: d.planned_arrival_time ?? null,
-            planned_departure_time: d.planned_departure_time ?? null,
-          });
-        }
+        for (const d of res.days) byDate.set(d.date, d);
 
         const out: DayRow[] = [];
         for (let day = 1; day <= dim; day++) {
@@ -338,8 +323,6 @@ export function EmployeePage() {
               date,
               arrival_time: null,
               departure_time: null,
-              planned_arrival_time: null,
-              planned_departure_time: null,
             },
           );
         }
@@ -486,106 +469,201 @@ export function EmployeePage() {
   }
 
   return (
-    <div className="dg-page dg-employee">
-      <div style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
+    <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
         <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="DAGMAR Docházka" />
       </div>
-      <header className="dg-topbar">
-        <div className="dg-topbar-inner" style={{ maxWidth: 980 }}>
-          <div style={{ width: "100%", display: "grid", gap: 8 }}>
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
+          backgroundColor: "#0a1a34",
+          color: "white",
+          borderBottom: "1px solid rgba(255,255,255,0.18)",
+          minHeight: 140,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 980,
+            margin: "0 auto",
+            padding: "14px 16px",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
           <div
             style={{
+              width: 104,
+              height: 104,
+              borderRadius: 18,
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              padding: 10,
               display: "grid",
-              gridTemplateColumns: "1fr auto",
-              alignItems: "center",
-              gap: 8,
+              placeItems: "center",
+              boxShadow: "0 16px 34px rgba(0,0,0,0.12)",
+              flexShrink: 0,
             }}
           >
-              <div className="dg-brand" style={{ gap: 10 }}>
-              <img src={logoUrl} alt="DAGMAR" className="dg-brand-logo" decoding="async" loading="eager" />
-              <div className="dg-brand-text">
-                <div className="dg-brand-title">{brandTitle}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.86)", display: "flex", flexWrap: "wrap", gap: 8, rowGap: 8, alignItems: "center" }}>
-                  <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
-                  <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
+            <img
+              src={logoUrl}
+              alt="DAGMAR"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              decoding="async"
+              loading="eager"
+            />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {displayName || "DAGMAR Docházka"}
+            </div>
+              <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 10, rowGap: 6, alignItems: "center" }}>
+                <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
+                <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
+              </div>
+            </div>
+          </div>
+
+	            <div style={{ fontSize: 12, opacity: 0.9, textAlign: "right" }}>
+	              <div style={{ fontWeight: 600 }}>Instance</div>
+	              <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+	                {instanceId ? `${instanceId.slice(0, 8)}…` : "—"}
+	              </div>
+	            </div>
+	          </div>
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.12)",
+            borderTop: "1px solid rgba(255,255,255,0.18)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 980,
+              margin: "0 auto",
+              padding: "10px 16px",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setMonth((m) => addMonths(m, -1))}
+              style={btnStyle()}
+              aria-label="Předchozí měsíc"
+            >
+              ←
+            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{monthLabel(month)}</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <div
+                  style={{
+                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                    fontSize: 12,
+                    padding: "4px 8px",
+                    borderRadius: 10,
+                    background: "rgba(255,255,255,0.2)",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                  }}
+                >
+                  Součet: {formatHours(monthTotalMins)} h
+                </div>
+                {employmentTemplate === "HPP" ? (
+                  <>
+                    <div
+                      style={{
+                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                        fontSize: 12,
+                        padding: "4px 8px",
+                        borderRadius: 10,
+                        background: "rgba(255,255,255,0.2)",
+                        border: "1px solid rgba(255,255,255,0.3)",
+                      }}
+                    >
+                      Víkend+svátek: {formatHours(monthStats.weekendHolidayMins)} h
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                        fontSize: 12,
+                        padding: "4px 8px",
+                        borderRadius: 10,
+                        background: "rgba(255,255,255,0.2)",
+                        border: "1px solid rgba(255,255,255,0.3)",
+                      }}
+                    >
+                      Odpolední ({afternoonCutoff}): {formatHours(monthStats.afternoonMins)} h
+                    </div>
+                  </>
+                ) : null}
+                <div
+                  style={{
+                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                    fontSize: 12,
+                    padding: "4px 8px",
+                    borderRadius: 10,
+                    background: "rgba(248, 180, 0, 0.2)",
+                    border: "1px solid rgba(248, 180, 0, 0.35)",
+                    color: "white",
+                  }}
+                >
+                  Pracovní fond: {workingFundHours} h
                 </div>
               </div>
             </div>
-
-            <div style={{ fontSize: 11, opacity: 0.9, textAlign: "right", minWidth: 90 }} />
-          </div>
-
-          <div className="dg-soft" style={{ display: "grid", gap: 10, padding: "10px 12px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 8, minWidth: 0 }}>
-              <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
-                ←
-              </button>
-              <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
-                <div style={{ fontWeight: 900, textTransform: "capitalize", letterSpacing: 0.2, textAlign: "center" }}>{monthLabel(month)}</div>
-              </div>
-              <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={btnStyle()} aria-label="Další měsíc">
-                →
-              </button>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-              }}
+            <button
+              type="button"
+              onClick={() => setMonth((m) => addMonths(m, +1))}
+              style={btnStyle()}
+              aria-label="Další měsíc"
             >
-              <button
-                type="button"
-                onClick={handlePunchNow}
-                style={{
-                  background: "#dc2626",
-                  color: "white",
-                  border: "1px solid #b91c1c",
-                  padding: "0 12px",
-                  height: 36,
-                  borderRadius: 12,
-                  fontWeight: 800,
-                  fontSize: 13,
-                  boxShadow: "0 10px 22px rgba(220,38,38,0.22)",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  minWidth: 94,
-                }}
-                aria-label="Zapsat aktuální čas"
-              >
-                TEĎ
-              </button>
-              <button
-                type="button"
-                onClick={() => setRefreshTick((t) => t + 1)}
-                style={{
-                  background: "rgba(14,165,233,0.14)",
-                  border: "1px solid rgba(14,165,233,0.35)",
-                  color: "#0f172a",
-                  width: "auto",
-                  padding: "0 12px",
-                  whiteSpace: "nowrap",
-                  height: 36,
-                  borderRadius: 12,
-                  fontWeight: 800,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  boxShadow: "0 8px 18px rgba(14,165,233,0.18)",
-                }}
-                aria-label="Obnovit"
-              >
-                ↻ Obnovit
-              </button>
-            </div>
+              →
+            </button>
+            <button
+              type="button"
+              onClick={handlePunchNow}
+              style={{
+                background: "#dc2626",
+                color: "white",
+                border: "1px solid #b91c1c",
+                padding: "0 16px",
+                height: 44,
+                borderRadius: 12,
+                fontWeight: 800,
+                fontSize: 16,
+                boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
+                cursor: "pointer",
+              }}
+              aria-label="Zapsat aktuální čas"
+            >
+              TEĎ
+            </button>
+            <button
+              type="button"
+              onClick={() => setRefreshTick((t) => t + 1)}
+              style={{ ...btnStyle(), width: "auto", padding: "0 12px" }}
+              aria-label="Obnovit"
+            >
+              ↻ Obnovit
+            </button>
           </div>
-        </div>
         </div>
       </header>
 
-      <main className="dg-main" style={{ maxWidth: 980 }}>
+      <main style={{ maxWidth: 980, margin: "0 auto", padding: "16px" }}>
         {monthLocked ? (
           <div style={cardStyle()}>
             <div style={{ fontWeight: 800, marginBottom: 6, color: "#b91c1c" }}>Měsíc uzavřen</div>
@@ -646,7 +724,7 @@ export function EmployeePage() {
                   boxShadow: isToday ? "0 8px 24px rgba(37,99,235,0.12)" : "0 6px 18px rgba(15, 23, 42, 0.06)",
                   background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "white",
                   display: "grid",
-                  gridTemplateColumns: "1fr 1.25fr 1.25fr 0.9fr",
+                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
                   gap: 12,
                   alignItems: "center",
                 }}
@@ -697,7 +775,6 @@ export function EmployeePage() {
                   label="Příchod"
                   placeholder="HH:MM"
                   value={r.arrival_time ?? ""}
-                  planned={r.planned_arrival_time ?? null}
                   onChange={(v) => onChangeTime(r.date, "arrival_time", v)}
                 />
 
@@ -705,7 +782,6 @@ export function EmployeePage() {
                   label="Odchod"
                   placeholder="HH:MM"
                   value={r.departure_time ?? ""}
-                  planned={r.planned_departure_time ?? null}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
                 />
                 <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
@@ -717,108 +793,40 @@ export function EmployeePage() {
         </div>
 
         {rows.length === 0 ? (
-          online ? (
-            <div style={{ marginTop: 14 }}>
-              <BrandLoader logoSrc={logoUrl} title="Načítám docházku…" subtitle="Pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu." />
-            </div>
-          ) : null
+          <div style={{ marginTop: 14, color: "#64748b", fontSize: 13 }}>
+            {online ? "Načítám… (pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu)" : ""}
+          </div>
         ) : null}
       </main>
 
-      <footer style={{ width: "100%", maxWidth: 980, margin: "0 auto", padding: "14px 16px", color: "#475569", fontSize: 12 }}>
-        <div
-          style={{
-            display: "grid",
-            gap: 10,
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            alignItems: "center",
-            background: "white",
-            border: "1px solid rgba(15,23,42,0.08)",
-            borderRadius: 14,
-            padding: 12,
-            boxShadow: "0 6px 14px rgba(0,0,0,0.08)",
-          }}
-        >
-          <div style={{ display: "grid", gap: 6 }}>
-            <div style={{ color: "#0f172a", fontWeight: 800 }}>Souhrn ({monthLabel(month)})</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, rowGap: 8 }}>
-              <span
-                style={{
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  padding: "4px 8px",
-                  borderRadius: 10,
-                  background: "rgba(37,99,235,0.08)",
-                  color: "#1d4ed8",
-                  border: "1px solid rgba(37,99,235,0.18)",
-                  fontWeight: 800,
-                }}
-              >
-                Součet: {formatHours(monthTotalMins)} h
+      <footer style={{ maxWidth: 980, margin: "0 auto", padding: "20px 16px", color: "#64748b", fontSize: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <span>Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.</span>
+          <span>
+            Součet hodin ({monthLabel(month)}):{" "}
+            <strong>
+              {formatHours(monthTotalMins)}
+              h
+            </strong>
+          </span>
+          {employmentTemplate === "HPP" ? (
+            <>
+              <span>
+                Víkend+svátek:{" "}
+                <strong>{formatHours(monthStats.weekendHolidayMins)} h</strong>
               </span>
-              <span
-                style={{
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  padding: "4px 8px",
-                  borderRadius: 10,
-                  background: "rgba(248,180,0,0.14)",
-                  color: "#92400e",
-                  border: "1px solid rgba(248,180,0,0.32)",
-                  fontWeight: 800,
-                }}
-              >
-                Fond: {workingFundHours} h
+              <span>
+                Odpolední ({afternoonCutoff}):{" "}
+                <strong>{formatHours(monthStats.afternoonMins)} h</strong>
               </span>
-              {employmentTemplate === "HPP" ? (
-                <>
-                  <span
-                    style={{
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      padding: "4px 8px",
-                      borderRadius: 10,
-                      background: "rgba(15,23,42,0.06)",
-                      border: "1px solid rgba(15,23,42,0.12)",
-                      fontWeight: 800,
-                    }}
-                  >
-                    Víkendy: {formatHours(monthStats.weekendHolidayMins)} h
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      padding: "4px 8px",
-                      borderRadius: 10,
-                      background: "rgba(15,23,42,0.06)",
-                      border: "1px solid rgba(15,23,42,0.12)",
-                      fontWeight: 800,
-                    }}
-                  >
-                    Odpolední {afternoonCutoff}: {formatHours(monthStats.afternoonMins)} h
-                  </span>
-                </>
-              ) : null}
-            </div>
-          </div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <div style={{ color: "#0f172a", fontWeight: 800 }}>Instance</div>
-            <div
-              style={{
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                padding: "6px 10px",
-                borderRadius: 10,
-                background: "rgba(15,23,42,0.06)",
-                border: "1px solid rgba(15,23,42,0.12)",
-                fontWeight: 800,
-                display: "inline-block",
-                maxWidth: "100%",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              title={instanceId ?? undefined}
-            >
-              {instanceId ? instanceId : "—"}
-            </div>
-            <div style={{ color: "#64748b" }}>Docházka se ukládá pouze na serveru; offline změny jsou dočasné.</div>
-          </div>
+            </>
+          ) : null}
+          <span>
+            Pracovní fond:{" "}
+            <strong>
+              {workingFundHours} h
+            </strong>
+          </span>
         </div>
       </footer>
     </div>
@@ -881,8 +889,8 @@ function cardStyle(): React.CSSProperties {
   };
 }
 
-function TimeInput(props: { label: string; placeholder: string; value: string; planned?: string | null; onChange: (v: string) => void }) {
-  const { label, placeholder, value, planned, onChange } = props;
+function TimeInput(props: { label: string; placeholder: string; value: string; onChange: (v: string) => void }) {
+  const { label, placeholder, value, onChange } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -894,11 +902,6 @@ function TimeInput(props: { label: string; placeholder: string; value: string; p
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
-      {planned ? (
-        <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-          Plán: {planned}
-        </div>
-      ) : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}
@@ -915,10 +918,9 @@ function TimeInput(props: { label: string; placeholder: string; value: string; p
           border: ok ? "1px solid rgba(15, 23, 42, 0.18)" : "1px solid rgba(220, 38, 38, 0.6)",
           outline: "none",
           padding: "0 12px",
-          fontSize: 15,
+          fontSize: 16,
           fontWeight: 700,
-          letterSpacing: 0,
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+          letterSpacing: 0.2,
           background: ok ? "white" : "rgba(220, 38, 38, 0.05)",
         }}
       />

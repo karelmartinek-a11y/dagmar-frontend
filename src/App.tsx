@@ -5,9 +5,7 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminInstancesPage from "./pages/AdminInstancesPage";
 import AdminExportPage from "./pages/AdminExportPage";
 import AdminAttendanceSheetsPage from "./pages/AdminAttendanceSheetsPage";
-import AdminShiftPlanPage from "./pages/AdminShiftPlanPage";
 import { PendingPage } from "./pages/PendingPage";
-import { DeployStamp } from "./components/DeployStamp";
 
 /**
  * Routes:
@@ -17,25 +15,21 @@ import { DeployStamp } from "./components/DeployStamp";
  */
 export default function App() {
   return (
-    <>
-      <DeployStamp />
-      <Routes>
-        <Route path="/" element={<Navigate to="/app" replace />} />
+    <Routes>
+      <Route path="/" element={<Navigate to="/app" replace />} />
 
-        <Route path="/app" element={<EmployeePage />} />
-        <Route path="/pending" element={<PendingPage />} />
+      <Route path="/app" element={<EmployeePage />} />
+      <Route path="/pending" element={<PendingPage />} />
 
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="instances" replace />} />
-          <Route path="instances" element={<AdminInstancesPage />} />
-          <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
-          <Route path="plan-sluzeb" element={<AdminShiftPlanPage />} />
-          <Route path="export" element={<AdminExportPage />} />
-        </Route>
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="instances" replace />} />
+        <Route path="instances" element={<AdminInstancesPage />} />
+        <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
+        <Route path="export" element={<AdminExportPage />} />
+      </Route>
 
-        <Route path="*" element={<Navigate to="/app" replace />} />
-      </Routes>
-    </>
+      <Route path="*" element={<Navigate to="/app" replace />} />
+    </Routes>
   );
 }

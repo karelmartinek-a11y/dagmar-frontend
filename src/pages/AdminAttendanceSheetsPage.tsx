@@ -3,7 +3,6 @@ import { ApiError } from "../api/client";
 import { adminGetAttendanceMonth, adminLockAttendance, adminUpsertAttendance, adminUnlockAttendance, type AdminAttendanceDay } from "../api/adminAttendance";
 import { adminGetSettings, adminListInstances, type AdminInstance } from "../api/admin";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
-import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -110,7 +109,6 @@ export default function AdminAttendanceSheetsPage() {
   const [instances, setInstances] = useState<AdminInstance[] | null>(null);
   const [instancesLoading, setInstancesLoading] = useState(false);
   const [instancesError, setInstancesError] = useState<string | null>(null);
-  const [activeName, setActiveName] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<AdminInstance | null>(null);
@@ -212,7 +210,6 @@ export default function AdminAttendanceSheetsPage() {
         if (cancelled) return;
         setDays(res.days);
         setLocked(res.locked || false);
-        setActiveName(selected.display_name || selected.id);
         // Optional extras (backend may include these; keep backward compatible).
         const anyRes = res as any;
         const anySel = selected as any;
@@ -320,10 +317,7 @@ export default function AdminAttendanceSheetsPage() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}>
-      <div style={{ width: "100%", maxWidth: 1040, margin: "0 auto", padding: "0 12px" }}>
-        <AndroidDownloadBanner downloadUrl="/download/dochazka-dagmar.apk" appName="DAGMAR Docházka" />
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div
         style={{
           display: "flex",
@@ -331,36 +325,16 @@ export default function AdminAttendanceSheetsPage() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: 12,
-          width: "100%",
-          maxWidth: 1040,
-          margin: "0 auto",
-          padding: "0 12px",
         }}
       >
         <div>
           <div style={{ fontSize: 20, fontWeight: 700 }}>Docházkové listy</div>
-          <div style={{ color: "var(--muted)" }}>
-            Vyhledejte instanci podle názvu a upravte docházku za vybraný měsíc.
-            {activeName ? (
-              <span style={{ fontWeight: 800, marginLeft: 6, color: "#0f172a" }}>Aktuálně: {activeName}</span>
-            ) : null}
-          </div>
+          <div style={{ color: "var(--muted)" }}>Vyhledejte instanci podle názvu a upravte docházku za vybraný měsíc.</div>
         </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          flexWrap: "wrap",
-          alignItems: "flex-start",
-          width: "100%",
-          maxWidth: 1040,
-          margin: "0 auto",
-          padding: "0 12px",
-        }}
-      >
-        <section style={{ ...card, flex: "1 1 340px", minWidth: 0, width: "100%", maxWidth: "100%" }}>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <section style={{ ...card, flex: "1 1 340px", minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>Výběr instance</div>
 
           <label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>Hledat (fulltext)</label>
@@ -410,7 +384,6 @@ export default function AdminAttendanceSheetsPage() {
                     type="button"
                     onClick={() => {
                       setSelected(it);
-                      setActiveName(it.display_name || it.id);
                       const anyIt = it as any;
                       setAfternoonCutoff(anyIt?.afternoon_cutoff ?? "17:00");
                     }}
@@ -427,28 +400,12 @@ export default function AdminAttendanceSheetsPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                      <div
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 8,
-                          background: "rgba(15,23,42,0.06)",
-                          border: "1px solid rgba(15,23,42,0.12)",
-                          display: "grid",
-                          placeItems: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <img src="/brand/icon.svg" alt="DAGMAR" style={{ width: 18, height: 18, objectFit: "contain" }} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 750, color: "rgba(15,23,42,0.92)", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {it.display_name || "— bez názvu —"}
                       </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 750, color: "rgba(15,23,42,0.92)", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {it.display_name || "— bez názvu —"}
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-                          {it.id.slice(0, 8)}…
-                        </div>
+                      <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+                        {it.id.slice(0, 8)}…
                       </div>
                     </div>
                     <div
@@ -637,16 +594,11 @@ export default function AdminAttendanceSheetsPage() {
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Odchod</div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
                   </div>
-              ) : null}
-              {days?.map((d) => {
-                const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
-                const mins = calc.workedMins;
-                const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
-                const hasPlan = !!(d.planned_arrival_time || d.planned_departure_time);
-                const planLabel =
-                  d.planned_arrival_time || d.planned_departure_time
-                    ? `Plán: ${d.planned_arrival_time ?? "--"} – ${d.planned_departure_time ?? "--"}`
-                    : null;
+                ) : null}
+                {days?.map((d) => {
+                  const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
+                  const mins = calc.workedMins;
+                  const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
                   const hoursTitle =
                     template === "HPP" && mins !== null
                       ? `Odpolední: ${formatHours(calc.afternoonMins)} h • Víkend/svátek: ${formatHours(calc.weekendHolidayMins)} h${calc.breakTooltip ? ` • ${calc.breakTooltip}` : ""}`
@@ -656,11 +608,11 @@ export default function AdminAttendanceSheetsPage() {
                       key={d.date}
                       className="attendance-grid-row"
                       style={{
-                        background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "rgba(255,255,255,0.92)",
+                        background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "rgba(255,255,255,0.86)",
                         borderRadius: 16,
                         padding: 14,
-                        border: hasPlan ? "2px solid rgba(14,165,233,0.45)" : "1px solid rgba(15, 23, 42, 0.08)",
-                        boxShadow: hasPlan ? "0 8px 22px rgba(14,165,233,0.10)" : "0 6px 18px rgba(15, 23, 42, 0.06)",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr 1fr",
                         gap: 10,
@@ -673,24 +625,6 @@ export default function AdminAttendanceSheetsPage() {
                           {toDowLabel(d.date)}
                           {template === "HPP" && calc.holidayName ? ` • ${calc.holidayName}` : ""}
                         </div>
-                        {planLabel ? (
-                          <div
-                            style={{
-                              display: "inline-block",
-                              marginTop: 6,
-                              fontSize: 11,
-                              fontWeight: 800,
-                              color: "#0ea5e9",
-                              background: "rgba(14,165,233,0.12)",
-                              border: "1px solid rgba(14,165,233,0.24)",
-                              padding: "4px 8px",
-                              borderRadius: 10,
-                            }}
-                          >
-                            {planLabel}
-                          </div>
-                        ) : null}
-
                         {template === "HPP" && calc.breakLabel ? (
                           <div
                             title={calc.breakTooltip ?? undefined}
@@ -715,7 +649,6 @@ export default function AdminAttendanceSheetsPage() {
                         label="Příchod"
                         placeholder="HH:MM"
                         value={d.arrival_time ?? ""}
-                        planned={d.planned_arrival_time ?? null}
                         saving={!!savingByKey[`${d.date}:arrival_time`]}
                         error={errorByKey[`${d.date}:arrival_time`] ?? null}
                         onCommit={(v) => commitTime(d.date, "arrival_time", v)}
@@ -725,67 +658,16 @@ export default function AdminAttendanceSheetsPage() {
                         label="Odchod"
                         placeholder="HH:MM"
                         value={d.departure_time ?? ""}
-                        planned={d.planned_departure_time ?? null}
                         saving={!!savingByKey[`${d.date}:departure_time`]}
                         error={errorByKey[`${d.date}:departure_time`] ?? null}
                         onCommit={(v) => commitTime(d.date, "departure_time", v)}
                       />
-                      <div
-                        title={hoursTitle}
-                        style={{
-                          textAlign: "right",
-                          fontWeight: 800,
-                          color: mins !== null ? "#0f172a" : "var(--muted)",
-                          fontSize: 20,
-                          letterSpacing: -0.35,
-                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                          transform: "scaleX(0.82)",
-                          transformOrigin: "right center",
-                        }}
-                      >
+                      <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins !== null ? "#0f172a" : "var(--muted)" }}>
                         {mins !== null ? `${formatHours(mins)} h` : "—"}
                       </div>
                     </div>
                   );
                 })}
-              </div>
-              <div
-                style={{
-                  marginTop: 14,
-                  border: "1px solid rgba(59,130,246,0.25)",
-                  borderRadius: 14,
-                  padding: 14,
-                  background: "rgba(59,130,246,0.06)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ display: "grid", gap: 4, minWidth: 220 }}>
-                  <div style={{ fontWeight: 800 }}>DAGMAR Docházka pro Android</div>
-                  <div style={{ fontSize: 13, color: "#0f172a" }}>APK pro zaměstnance; lze instalovat mimo Google Play. Aktivuje se v sekci Zařízení.</div>
-                </div>
-                <a
-                  href="/download/dochazka-dagmar.apk"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    padding: "10px 12px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(59,130,246,0.35)",
-                    background: "white",
-                    color: "#0f172a",
-                    fontWeight: 800,
-                    textDecoration: "none",
-                    whiteSpace: "nowrap",
-                  }}
-                  download
-                >
-                  📥 Stáhnout APK
-                </a>
               </div>
             </>
           )}
@@ -800,9 +682,8 @@ function miniBtn(): React.CSSProperties {
     height: 34,
     width: 40,
     borderRadius: 10,
-    border: "1px solid rgba(14,165,233,0.35)",
-    background: "rgba(14,165,233,0.14)",
-    color: "#0f172a",
+    border: "1px solid var(--line)",
+    background: "white",
     fontWeight: 900,
     cursor: "pointer",
   };
@@ -812,12 +693,11 @@ function TimeInput(props: {
   label: string;
   placeholder: string;
   value: string;
-  planned: string | null;
   saving: boolean;
   error: string | null;
   onCommit: (v: string) => void;
 }) {
-  const { label, placeholder, value, planned, saving, error, onCommit } = props;
+  const { label, placeholder, value, saving, error, onCommit } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -835,11 +715,6 @@ function TimeInput(props: {
           {saving ? "Ukládám…" : ""}
         </div>
       </div>
-      {planned ? (
-        <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-          Plán: {planned}
-        </div>
-      ) : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}

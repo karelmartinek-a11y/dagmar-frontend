@@ -1,9 +1,0 @@
-[2026-01-27 03:24:28] START: patch=C:\Users\provo\Downloads\DAGFRO.DIFF target=C:\GitHub\dagmar-frontend
-[2026-01-27 03:24:28] Detekce kořene patch: strip_count=0 (scores={0: 0, 1: 0, 2: 0, 3: 0}).
-[2026-01-27 03:24:28] INFO: Hunky nejsou v patchi seřazené; aplikuji je podle pořadí řádků.
-[2026-01-27 03:24:28] WARNING: Soubor neexistuje; vytvářím výsledek syntézou z patch (context+add). Soubor: src/pages/EmployeePage.tsx+++ b/src/pages/EmployeePage.tsx@@ -4,6 +4,9 @@ import { ApiError } from "../api/client";
-[2026-01-27 03:24:28] WRITE: src/pages/EmployeePage.tsx+++ b/src/pages/EmployeePage.tsx@@ -4,6 +4,9 @@ import { ApiError } from "../api/client";
-[2026-01-27 03:24:28] INFO: žádné hunks pro src/components/BrandLoader.tsx (přeskakuji).
-[2026-01-27 03:24:28] INFO: žádné hunks pro src/hooks/useDeviceVariant.ts (přeskakuji).
-[2026-01-27 03:24:28] INFO: žádné hunks pro src/types/assets.d.ts (přeskakuji).
-[2026-01-27 03:24:28] DONE: {'files_total': 4, 'files_changed': 1, 'files_created': 1, 'files_deleted': 0, 'files_skipped_binary': 0, 'errors': 0, 'hunks_applied': 17}

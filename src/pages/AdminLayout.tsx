@@ -1,10 +1,6 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { getAdminMe } from "../api/admin";
-import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
-import { BrandLoader } from "../components/BrandLoader";
-import { useDeviceVariant } from "../hooks/useDeviceVariant";
-import dagmarLogo from "../assets/dagmar-logo.png";
 
 type MeState =
   | { kind: "loading" }
@@ -16,7 +12,6 @@ function cx(...parts: Array<string | false | null | undefined>) {
 }
 
 export default function AdminLayout() {
-  useDeviceVariant();
   const navigate = useNavigate();
   const [me, setMe] = React.useState<MeState>({ kind: "loading" });
 
@@ -80,22 +75,6 @@ export default function AdminLayout() {
       ),
     },
     {
-      to: "/admin/plan-sluzeb",
-      label: "Plán služeb",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M7 3v3M17 3v3M4 8h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path
-            d="M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-          <path d="M8 12h8M8 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      ),
-    },
-    {
       to: "/admin/export",
       label: "Export",
       icon: (
@@ -109,26 +88,42 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="dg-page">
-      <div className="container" style={{ padding: "10px 0 0" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto", padding: "0 12px 10px" }}>
-          <AndroidDownloadBanner downloadUrl="/download/adminhcasc.apk" appName="DAGMAR Admin" storageKey="dagmar_admin_banner" />
+    <div className="container" style={{ padding: "10px 0 30px" }}>
+      {me.kind === "loading" ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "grid",
+            placeItems: "center",
+            background: "linear-gradient(180deg, #0b1b3a 0%, #0a1226 35%, #070b14 100%)",
+            color: "#e8eefc",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            <img src="/brand/logo.svg" alt="DAGMAR" style={{ width: 180, height: 180, objectFit: "contain" }} />
+            <div style={{ fontWeight: 800, fontSize: 18 }}>Načítám…</div>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {me.kind === "loading" ? <BrandLoader fullscreen logoSrc={dagmarLogo} title="Načítám administraci…" subtitle="DAGMAR Admin" /> : null}
-
-      <header className="dg-topbar" style={{ marginBottom: 0 }}>
-        <div className="dg-topbar-inner">
-          <div className="dg-brand">
-            <img src={dagmarLogo} alt="DAGMAR" className="dg-brand-logo" decoding="async" loading="eager" />
-            <div className="dg-brand-text">
-              <div className="dg-brand-title">DAGMAR Admin</div>
-              <div className="dg-brand-subtitle">{me.kind === "auth" ? me.username : ""}</div>
+      <header className="header" style={{ position: "sticky", top: 0, zIndex: 50, marginBottom: 18 }}>
+        <div className="header-inner">
+          <div className="brand" style={{ gap: 12 }}>
+            <img src="/brand/icon.svg" alt="DAGMAR" />
+            <div>
+              <div className="title">DAGMAR Admin</div>
+              <div className="subtitle">{me.kind === "auth" ? me.username : ""}</div>
             </div>
           </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <nav className="header-actions" aria-label="Admin menu">
+            {items.map((it) => (
+              <NavLink key={it.to} to={it.to} className={({ isActive }) => cx("btn", "ghost", isActive && "primary")} end>
+                {it.icon}
+                <span>{it.label}</span>
+              </NavLink>
+            ))}
             <form
               method="post"
               action="/api/v1/admin/logout"
@@ -141,30 +136,13 @@ export default function AdminLayout() {
                 Odhlásit
               </button>
             </form>
-          </div>
+          </nav>
         </div>
       </header>
 
-      <div className="dg-admin-shell">
-        <aside className="dg-sidebar" aria-label="Admin navigace">
-          <div className="dg-sidebar-head">
-            <div style={{ fontWeight: 900 }}>Menu</div>
-            <div style={{ fontSize: 12, color: "rgba(7,20,36,0.60)", marginTop: 3 }}>Správa instancí a exportů</div>
-          </div>
-          <nav className="dg-nav">
-            {items.map((it) => (
-              <NavLink key={it.to} to={it.to} className={({ isActive }) => cx(isActive && "active")} end>
-                {it.icon}
-                <span>{it.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-        </aside>
-
-        <main className="dg-admin-main">
-          <Outlet />
-        </main>
-      </div>
+      <main className="stack">
+        <Outlet />
+      </main>
     </div>
   );
 }
