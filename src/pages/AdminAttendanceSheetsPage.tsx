@@ -136,6 +136,9 @@ export default function AdminAttendanceSheetsPage() {
   const [daysError, setDaysError] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
+  const nowMonth = yyyyMm(new Date());
+  const isCurrentMonth = month === nowMonth;
+
   const [savingByKey, setSavingByKey] = useState<Record<string, boolean>>({});
   const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
 
@@ -438,121 +441,71 @@ export default function AdminAttendanceSheetsPage() {
             <div style={{ color: "var(--muted)" }}>Vyberte instanci vlevo.</div>
           ) : (
             <>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {selected.display_name || "— bez názvu —"}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {selected.display_name || "— bez názvu —"}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--muted)" }}>{monthLabel(month)}</div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{monthLabel(month)}</div>
                 </div>
-
-                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 800,
-                      padding: "6px 10px",
-                      borderRadius: 10,
-                      background: locked ? "rgba(239,68,68,0.10)" : "rgba(16,185,129,0.10)",
-                      color: locked ? "#991b1b" : "#065f46",
-                      border: locked ? "1px solid rgba(239,68,68,0.25)" : "1px solid rgba(16,185,129,0.25)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {locked ? "Měsíc uzavřen" : "Měsíc otevřen"}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      fontSize: 12,
-                      padding: "4px 8px",
-                      borderRadius: 10,
-                      background: "rgba(2,132,199,0.08)",
-                      border: "1px solid rgba(2,132,199,0.18)",
-                      color: "#0f172a",
-                    }}
-                  >
-                    {formatHours(monthTotalMins)}
-                    h
-                  </div>
-                  {template === "HPP" ? (
-                    <>
-                      <div
-                        style={{
-                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                          fontSize: 12,
-                          padding: "4px 8px",
-                          borderRadius: 10,
-                          background: "rgba(248, 180, 0, 0.12)",
-                          border: "1px solid rgba(248, 180, 0, 0.22)",
-                          color: "#0f172a",
-                        }}
-                      >
-                        Fond: {workingFundHours}h
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                          fontSize: 12,
-                          padding: "4px 8px",
-                          borderRadius: 10,
-                          background: "rgba(255,255,255,0.86)",
-                          border: "1px solid rgba(15,23,42,0.10)",
-                          color: "#0f172a",
-                        }}
-                      >
-                        Víkend+svátek: {formatHours(monthStats.weekendHolidayMins)}h
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                          fontSize: 12,
-                          padding: "4px 8px",
-                          borderRadius: 10,
-                          background: "rgba(255,255,255,0.86)",
-                          border: "1px solid rgba(15,23,42,0.10)",
-                          color: "#0f172a",
-                        }}
-                      >
-                        Odpolední ({afternoonCutoff}): {formatHours(monthStats.afternoonMins)}h
-                      </div>
-                    </>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => setMonth((m) => prevMonth(m))}
-                    style={miniBtn()}
-                    aria-label="Předchozí měsíc"
-                  >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr auto",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <button type="button" onClick={() => setMonth((m) => prevMonth(m))} style={miniBtn()} aria-label="Předchozí měsíc">
                     ←
                   </button>
-                  <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontSize: 12 }}>{month}</div>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      onClick={() => setMonth(yyyyMm(new Date()))}
+                      style={{
+                        height: 34,
+                        borderRadius: 10,
+                        border: "1px solid var(--line)",
+                        background: "white",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        padding: "0 16px",
+                        color: isCurrentMonth ? "var(--muted)" : "inherit",
+                      }}
+                      disabled={isCurrentMonth}
+                    >
+                      Teď
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRefreshTick((t) => t + 1)}
+                      style={{
+                        height: 34,
+                        borderRadius: 10,
+                        border: "1px solid var(--line)",
+                        background: "white",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        padding: "0 16px",
+                      }}
+                      disabled={daysLoading}
+                    >
+                      Obnovit
+                    </button>
+                  </div>
                   <button type="button" onClick={() => setMonth((m) => nextMonth(m))} style={miniBtn()} aria-label="Další měsíc">
                     →
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleLock(!locked)}
-                    style={{
-                      ...miniBtn(),
-                      width: "auto",
-                      padding: "0 12px",
-                      background: locked ? "#111827" : "#0ea5e9",
-                      color: locked ? "white" : "#0b172a",
-                      border: locked ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(14,165,233,0.35)",
-                    }}
-                    disabled={daysLoading}
-                  >
-                    {locked ? "Odemknout" : "UZAVŘÍT MĚSÍC"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRefreshTick((t) => t + 1)}
-                    style={{ ...miniBtn(), width: "auto", padding: "0 12px" }}
-                    disabled={daysLoading}
-                    aria-label="Obnovit docházku"
-                  >
-                    ↻ Obnovit
                   </button>
                 </div>
               </div>
@@ -669,6 +622,54 @@ export default function AdminAttendanceSheetsPage() {
                   );
                 })}
               </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  marginTop: 20,
+                  paddingTop: 14,
+                  borderTop: "1px solid var(--line)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                    gap: 12,
+                  }}
+                >
+                  <FooterStat label="Aktuální měsíc" value={monthLabel(month)} />
+                  <FooterStat label="Součet hodin" value={`${formatHours(monthTotalMins)} h`} />
+                  <FooterStat label="Víkendů+svátků" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
+                  <FooterStat label="Odpoledních" value={`${formatHours(monthStats.afternoonMins)} h`} />
+                  <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
+                  <FooterStat label="ID instance" value={selected.id} valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }} />
+                  <FooterStat
+                    label="Stav"
+                    value={`${selected.status} · ${locked ? "měsíc uzavřen" : "měsíc otevřen"}`}
+                    valueStyle={{ fontSize: 13 }}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleLock(!locked)}
+                    style={{
+                      ...miniBtn(),
+                      width: "auto",
+                      padding: "0 12px",
+                      background: locked ? "#111827" : "#0ea5e9",
+                      color: locked ? "white" : "#0b172a",
+                      border: locked ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(14,165,233,0.35)",
+                    }}
+                    disabled={daysLoading}
+                  >
+                    {locked ? "Odemknout" : "UZAVŘÍT MĚSÍC"}
+                  </button>
+                </div>
+              </div>
             </>
           )}
         </section>
@@ -687,6 +688,18 @@ function miniBtn(): React.CSSProperties {
     fontWeight: 900,
     cursor: "pointer",
   };
+}
+
+function FooterStat(props: { label: string; value: string; valueStyle?: React.CSSProperties }) {
+  const { label, value, valueStyle } = props;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", ...valueStyle }}>{value}</div>
+    </div>
+  );
 }
 
 function TimeInput(props: {
