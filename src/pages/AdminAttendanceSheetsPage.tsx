@@ -322,21 +322,6 @@ export default function AdminAttendanceSheetsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>Docházkové listy</div>
-          <div style={{ color: "var(--muted)" }}>Vyhledejte instanci podle názvu a upravte docházku za vybraný měsíc.</div>
-        </div>
-      </div>
-
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
         <section style={{ ...card, flex: "1 1 340px", minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>Výběr instance</div>
@@ -441,72 +426,63 @@ export default function AdminAttendanceSheetsPage() {
             <div style={{ color: "var(--muted)" }}>Vyberte instanci vlevo.</div>
           ) : (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                    gap: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {selected.display_name || "— bez názvu —"}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>{monthLabel(month)}</div>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto",
                     alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
                     gap: 12,
                   }}
                 >
-                  <button type="button" onClick={() => setMonth((m) => prevMonth(m))} style={miniBtn()} aria-label="Předchozí měsíc">
-                    ←
-                  </button>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-                    <button
-                      type="button"
-                      onClick={() => setMonth(yyyyMm(new Date()))}
-                      style={{
-                        height: 34,
-                        borderRadius: 10,
-                        border: "1px solid var(--line)",
-                        background: "white",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        padding: "0 16px",
-                        color: isCurrentMonth ? "var(--muted)" : "inherit",
-                      }}
-                      disabled={isCurrentMonth}
-                    >
-                      Teď
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{monthLabel(month)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)" }}>{selected.display_name || "— bez názvu —"}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <button type="button" onClick={() => setMonth((m) => prevMonth(m))} style={miniBtn()} aria-label="Předchozí měsíc">
+                      ←
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setRefreshTick((t) => t + 1)}
-                      style={{
-                        height: 34,
-                        borderRadius: 10,
-                        border: "1px solid var(--line)",
-                        background: "white",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        padding: "0 16px",
-                      }}
-                      disabled={daysLoading}
-                    >
-                      Obnovit
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <button
+                        type="button"
+                        onClick={() => setMonth(yyyyMm(new Date()))}
+                        style={{
+                          height: 34,
+                          borderRadius: 10,
+                          border: "1px solid var(--line)",
+                          background: "white",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          padding: "0 16px",
+                          color: isCurrentMonth ? "var(--muted)" : "inherit",
+                        }}
+                        disabled={isCurrentMonth}
+                      >
+                        Teď
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRefreshTick((t) => t + 1)}
+                        style={{
+                          height: 34,
+                          borderRadius: 10,
+                          border: "1px solid var(--line)",
+                          background: "white",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          padding: "0 16px",
+                        }}
+                        disabled={daysLoading}
+                      >
+                        Obnovit
+                      </button>
+                    </div>
+                    <button type="button" onClick={() => setMonth((m) => nextMonth(m))} style={miniBtn()} aria-label="Další měsíc">
+                      →
                     </button>
                   </div>
-                  <button type="button" onClick={() => setMonth((m) => nextMonth(m))} style={miniBtn()} aria-label="Další měsíc">
-                    →
-                  </button>
                 </div>
               </div>
 
@@ -625,12 +601,12 @@ export default function AdminAttendanceSheetsPage() {
 
               <div
                 style={{
+                  marginTop: 20,
+                  paddingTop: 20,
+                  borderTop: "1px solid var(--line)",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 12,
-                  marginTop: 20,
-                  paddingTop: 14,
-                  borderTop: "1px solid var(--line)",
+                  gap: 16,
                 }}
               >
                 <div
@@ -640,17 +616,16 @@ export default function AdminAttendanceSheetsPage() {
                     gap: 12,
                   }}
                 >
-                  <FooterStat label="Aktuální měsíc" value={monthLabel(month)} />
-                  <FooterStat label="Součet hodin" value={`${formatHours(monthTotalMins)} h`} />
-                  <FooterStat label="Víkendů+svátků" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
-                  <FooterStat label="Odpoledních" value={`${formatHours(monthStats.afternoonMins)} h`} />
-                  <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
-                  <FooterStat label="ID instance" value={selected.id} valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }} />
                   <FooterStat
-                    label="Stav"
-                    value={`${selected.status} · ${locked ? "měsíc uzavřen" : "měsíc otevřen"}`}
-                    valueStyle={{ fontSize: 13 }}
+                    label="ID entity"
+                    value={selected.id}
+                    valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }}
                   />
+                  <FooterStat label="Název entity" value={selected.display_name || "— bez názvu —"} />
+                  <FooterStat label="Součet hodin" value={`${formatHours(monthTotalMins)} h`} />
+                  <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
+                  <FooterStat label="Odpolední" value={`${formatHours(monthStats.afternoonMins)} h`} />
+                  <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   <button
