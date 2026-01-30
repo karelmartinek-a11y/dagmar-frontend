@@ -403,8 +403,23 @@ export default function AdminAttendanceSheetsPage() {
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{monthLabel(month)}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)" }}>{selected.display_name || "— bez názvu —"}</div>
+                    <div
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 800,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 10,
+                        alignItems: "baseline",
+                      }}
+                    >
+                      <span>{monthLabel(month)}</span>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: "var(--muted)" }}>
+                        {selected.display_name || "— bez názvu —"}
+                      </span>
+                    </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                     <button type="button" onClick={() => setMonth((m) => prevMonth(m))} style={miniBtn()} aria-label="Předchozí měsíc">
@@ -570,7 +585,7 @@ export default function AdminAttendanceSheetsPage() {
                 })}
               </div>
 
-              <div
+              <footer
                 style={{
                   marginTop: 20,
                   paddingTop: 20,
@@ -615,7 +630,7 @@ export default function AdminAttendanceSheetsPage() {
                     {locked ? "Odemknout" : "UZAVŘÍT MĚSÍC"}
                   </button>
                 </div>
-              </div>
+              </footer>
             </>
           )}
         </section>
