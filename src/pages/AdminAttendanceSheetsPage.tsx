@@ -403,22 +403,9 @@ export default function AdminAttendanceSheetsPage() {
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 20,
-                        fontWeight: 800,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 10,
-                        alignItems: "baseline",
-                      }}
-                    >
-                      <span>{monthLabel(month)}</span>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: "var(--muted)" }}>
-                        {selected.display_name || "— bez názvu —"}
-                      </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{monthLabel(month)}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)" }}>{selected.display_name || "— bez názvu —"}</div>
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>

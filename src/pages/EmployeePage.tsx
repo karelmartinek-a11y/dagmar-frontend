@@ -128,7 +128,6 @@ export function EmployeePage() {
   const [instanceId, setInstanceId] = useState<string | null>(() => instanceStore.get().instanceId);
   const [deviceFingerprint, setDeviceFingerprint] = useState<string>(() => getOrCreateDeviceFingerprint());
 
-  const logoUrl = useMemo(() => "/brand/icon.svg", []);
   const clientType = useMemo(() => detectClientType(), []);
   const deviceInfo = useMemo(
     () => ({
@@ -441,6 +440,7 @@ export function EmployeePage() {
   }
 
   const today = isoToday();
+  const headerLabel = displayName ? `${monthLabel(month)} – ${displayName}` : monthLabel(month);
 
   function handlePunchNow() {
     if (monthLocked) {
@@ -471,191 +471,86 @@ export function EmployeePage() {
         <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="DAGMAR Docházka" />
       </div>
       <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
-          backgroundColor: "#0a1a34",
-          color: "white",
-          borderBottom: "1px solid rgba(255,255,255,0.18)",
-          minHeight: 140,
-        }}
+        style={
+          {
+            position: "sticky",
+            top: 0,
+            zIndex: 20,
+            backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
+            backgroundColor: "#0a1a34",
+            color: "white",
+            borderBottom: "1px solid rgba(255,255,255,0.18)",
+          }
+        }
       >
         <div
           style={{
             maxWidth: 980,
             margin: "0 auto",
-            padding: "14px 16px",
+            padding: "10px 16px",
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-          <div
-            style={{
-              width: 104,
-              height: 104,
-              borderRadius: 18,
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              padding: 10,
-              display: "grid",
-              placeItems: "center",
-              boxShadow: "0 16px 34px rgba(0,0,0,0.12)",
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src={logoUrl}
-              alt="DAGMAR"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-              decoding="async"
-              loading="eager"
-            />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {displayName || "DAGMAR Docházka"}
-            </div>
-              <div style={{ fontSize: 12, opacity: 0.9, display: "flex", flexWrap: "wrap", gap: 10, rowGap: 6, alignItems: "center" }}>
-                <span style={{ whiteSpace: "nowrap" }}>{statusText}</span>
-                <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
-              </div>
-            </div>
-          </div>
-
-	            <div style={{ fontSize: 12, opacity: 0.9, textAlign: "right" }}>
-	              <div style={{ fontWeight: 600 }}>Instance</div>
-	              <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-	                {instanceId ? `${instanceId.slice(0, 8)}…` : "—"}
-	              </div>
-	            </div>
-	          </div>
-
-        <div
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            borderTop: "1px solid rgba(255,255,255,0.18)",
-            backdropFilter: "blur(6px)",
+            gap: 12,
           }}
         >
-          <div
-            style={{
-              maxWidth: 980,
-              margin: "0 auto",
-              padding: "10px 16px",
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setMonth((m) => addMonths(m, -1))}
-              style={btnStyle()}
-              aria-label="Předchozí měsíc"
-            >
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 20, textTransform: "none" }}>{headerLabel}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 12, opacity: 0.9, color: "white" }}>
+              <span
+                style={{
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                }}
+              >
+                ID entity: {instanceId ?? "—"}
+              </span>
+              <span>Název entity: {displayName || "—"}</span>
+              <span>{statusText}</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
               ←
             </button>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{monthLabel(month)}</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                <div
-                  style={{
-                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                    fontSize: 12,
-                    padding: "4px 8px",
-                    borderRadius: 10,
-                    background: "rgba(255,255,255,0.2)",
-                    border: "1px solid rgba(255,255,255,0.3)",
-                  }}
-                >
-                  Součet: {formatHours(monthTotalMins)} h
-                </div>
-                {employmentTemplate === "HPP" ? (
-                  <>
-                    <div
-                      style={{
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                        fontSize: 12,
-                        padding: "4px 8px",
-                        borderRadius: 10,
-                        background: "rgba(255,255,255,0.2)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                      }}
-                    >
-                      Víkend+svátek: {formatHours(monthStats.weekendHolidayMins)} h
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                        fontSize: 12,
-                        padding: "4px 8px",
-                        borderRadius: 10,
-                        background: "rgba(255,255,255,0.2)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                      }}
-                    >
-                      Odpolední ({afternoonCutoff}): {formatHours(monthStats.afternoonMins)} h
-                    </div>
-                  </>
-                ) : null}
-                <div
-                  style={{
-                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                    fontSize: 12,
-                    padding: "4px 8px",
-                    borderRadius: 10,
-                    background: "rgba(248, 180, 0, 0.2)",
-                    border: "1px solid rgba(248, 180, 0, 0.35)",
-                    color: "white",
-                  }}
-                >
-                  Pracovní fond: {workingFundHours} h
-                </div>
-              </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => setMonth((m) => addMonths(m, +1))}
+                style={btnStyle()}
+                aria-label="Další měsíc"
+              >
+                →
+              </button>
+              <button
+                type="button"
+                onClick={handlePunchNow}
+                style={{
+                  background: "#dc2626",
+                  color: "white",
+                  border: "1px solid #b91c1c",
+                  padding: "0 16px",
+                  height: 44,
+                  borderRadius: 12,
+                  fontWeight: 800,
+                  fontSize: 16,
+                  boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
+                  cursor: "pointer",
+                }}
+                aria-label="Zapsat aktuální čas"
+              >
+                TEĎ
+              </button>
+              <button
+                type="button"
+                onClick={() => setRefreshTick((t) => t + 1)}
+                style={{ ...btnStyle(), width: "auto", padding: "0 12px" }}
+                aria-label="Obnovit"
+              >
+                ⇆ Obnovit
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setMonth((m) => addMonths(m, +1))}
-              style={btnStyle()}
-              aria-label="Další měsíc"
-            >
-              →
-            </button>
-            <button
-              type="button"
-              onClick={handlePunchNow}
-              style={{
-                background: "#dc2626",
-                color: "white",
-                border: "1px solid #b91c1c",
-                padding: "0 16px",
-                height: 44,
-                borderRadius: 12,
-                fontWeight: 800,
-                fontSize: 16,
-                boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
-                cursor: "pointer",
-              }}
-              aria-label="Zapsat aktuální čas"
-            >
-              TEĎ
-            </button>
-            <button
-              type="button"
-              onClick={() => setRefreshTick((t) => t + 1)}
-              style={{ ...btnStyle(), width: "auto", padding: "0 12px" }}
-              aria-label="Obnovit"
-            >
-              ↻ Obnovit
-            </button>
+            <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
           </div>
         </div>
       </header>
@@ -796,34 +691,23 @@ export function EmployeePage() {
         ) : null}
       </main>
 
-      <footer style={{ maxWidth: 980, margin: "0 auto", padding: "20px 16px", color: "#64748b", fontSize: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <span>Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.</span>
-          <span>
-            Součet hodin ({monthLabel(month)}):{" "}
-            <strong>
-              {formatHours(monthTotalMins)}
-              h
-            </strong>
-          </span>
-          {employmentTemplate === "HPP" ? (
-            <>
-              <span>
-                Víkend+svátek:{" "}
-                <strong>{formatHours(monthStats.weekendHolidayMins)} h</strong>
-              </span>
-              <span>
-                Odpolední ({afternoonCutoff}):{" "}
-                <strong>{formatHours(monthStats.afternoonMins)} h</strong>
-              </span>
-            </>
-          ) : null}
-          <span>
-            Pracovní fond:{" "}
-            <strong>
-              {workingFundHours} h
-            </strong>
-          </span>
+      <footer style={{ maxWidth: 980, margin: "0 auto", padding: "20px 16px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+          }}
+        >
+          <FooterStat label="ID entity" value={instanceId ?? "—"} />
+          <FooterStat label="Název entity" value={displayName || "—"} />
+          <FooterStat label={`Součet hodin (${monthLabel(month)})`} value={`${formatHours(monthTotalMins)} h`} />
+          <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
+          <FooterStat label={`Odpolední (${afternoonCutoff})`} value={`${formatHours(monthStats.afternoonMins)} h`} />
+          <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
+        </div>
+        <div style={{ marginTop: 12, color: "#64748b", fontSize: 12 }}>
+          Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.
         </div>
       </footer>
     </div>
@@ -925,5 +809,17 @@ function TimeInput(props: { label: string; placeholder: string; value: string; o
     </div>
   );
 }
+function FooterStat(props: { label: string; value: string; valueStyle?: React.CSSProperties }) {
+  const { label, value, valueStyle } = props;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", ...valueStyle }}>{value}</div>
+    </div>
+  );
+}
+
 
 export default EmployeePage;
