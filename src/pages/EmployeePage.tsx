@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
 import { ApiError } from "../api/client";
 import { claimToken, getStatus, registerInstance, type EmploymentTemplate } from "../api/instances";
-import { ConnectivityPill } from "../components/ConnectivityPill";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
@@ -102,7 +101,7 @@ const POLL_CLAIM_MS = 6_000;
 
 export function EmployeePage() {
   const [online, setOnline] = useState<boolean>(navigator.onLine);
-  const [statusText, setStatusText] = useState<string>("Kontroluji stav…");
+  const [, setStatusText] = useState<string>("Kontroluji stav…");
   const [activationState, setActivationState] = useState<"unknown" | "pending" | "revoked" | "deactivated" | "active">("unknown");
   const [employmentTemplate, setEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
   const [afternoonCutoff, setAfternoonCutoff] = useState<string>("17:00");
@@ -113,7 +112,7 @@ export function EmployeePage() {
   const monthStats = useMemo(() => computeMonthStats(rows, employmentTemplate, cutoffMinutes), [rows, employmentTemplate, cutoffMinutes]);
   const monthTotalMins = monthStats.totalMins;
 
-  const [queuedCount, setQueuedCount] = useState<number>(0);
+  const [, setQueuedCount] = useState<number>(0);
   const [sending, setSending] = useState<boolean>(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
@@ -440,7 +439,7 @@ export function EmployeePage() {
   }
 
   const today = isoToday();
-  const headerLabel = displayName ? `${monthLabel(month)} – ${displayName}` : monthLabel(month);
+  const monthHead = monthLabel(month).toUpperCase();
 
   function handlePunchNow() {
     if (monthLocked) {
@@ -495,47 +494,35 @@ export function EmployeePage() {
             gap: 12,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 20, textTransform: "none" }}>{headerLabel}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, fontSize: 12, opacity: 0.9, color: "white" }}>
-              <span
-                style={{
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                }}
-              >
-                ID entity: {instanceId ?? "—"}
-              </span>
-              <span>Název entity: {displayName || "—"}</span>
-              <span>{statusText}</span>
-            </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>{monthHead}</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
+              gap: 12,
+            }}
+          >
             <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
               ←
             </button>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => setMonth((m) => addMonths(m, +1))}
-                style={btnStyle()}
-                aria-label="Další měsíc"
-              >
-                →
-              </button>
+            <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={handlePunchNow}
                 style={{
-                  background: "#dc2626",
-                  color: "white",
-                  border: "1px solid #b91c1c",
-                  padding: "0 16px",
+                  ...btnStyle(),
+                  width: 120,
+                  minWidth: 120,
                   height: 44,
                   borderRadius: 12,
-                  fontWeight: 800,
+                  border: "1px solid rgba(255,255,255,0.35)",
+                  background: "rgba(255,255,255,0.12)",
                   fontSize: 16,
-                  boxShadow: "0 10px 30px rgba(220,38,38,0.32)",
-                  cursor: "pointer",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
                 }}
                 aria-label="Zapsat aktuální čas"
               >
@@ -544,13 +531,26 @@ export function EmployeePage() {
               <button
                 type="button"
                 onClick={() => setRefreshTick((t) => t + 1)}
-                style={{ ...btnStyle(), width: "auto", padding: "0 12px" }}
+                style={{
+                  ...btnStyle(),
+                  width: 120,
+                  minWidth: 120,
+                  height: 44,
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.35)",
+                  background: "rgba(255,255,255,0.12)",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                }}
                 aria-label="Obnovit"
               >
-                ⇆ Obnovit
+                Obnovit
               </button>
             </div>
-            <ConnectivityPill online={online} queuedCount={queuedCount} sending={sending} />
+            <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={btnStyle()} aria-label="Další měsíc">
+              →
+            </button>
           </div>
         </div>
       </header>
