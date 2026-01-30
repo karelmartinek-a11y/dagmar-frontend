@@ -1,4 +1,5 @@
 import { apiFetch, ApiError } from "./client";
+import { ensureCsrfToken } from "./csrf";
 
 export type AdminInstanceStatus = "PENDING" | "ACTIVE" | "REVOKED";
 export type AdminClientType = "ANDROID" | "WEB";
@@ -17,6 +18,8 @@ export type AdminAttendanceDay = {
   date: string; // YYYY-MM-DD
   arrival_time: string | null; // HH:MM
   departure_time: string | null; // HH:MM
+  planned_arrival_time?: string | null;
+  planned_departure_time?: string | null;
 };
 
 export type AdminAttendanceMonthResponse = {
@@ -31,29 +34,6 @@ export type AdminAttendanceUpsertBody = {
   arrival_time: string | null;
   departure_time: string | null;
 };
-
-type CsrfTokenResponse = {
-  csrf_token: string;
-};
-
-function getCsrfToken(): string | null {
-  return sessionStorage.getItem("dagmar_csrf") || null;
-}
-
-function setCsrfToken(token: string) {
-  sessionStorage.setItem("dagmar_csrf", token);
-}
-
-async function refreshCsrfToken(): Promise<string> {
-  const res = await apiFetch<CsrfTokenResponse>("/api/v1/admin/csrf", { method: "GET" });
-  if (!res?.csrf_token) throw new ApiError(500, "CSRF token missing");
-  setCsrfToken(res.csrf_token);
-  return res.csrf_token;
-}
-
-async function ensureCsrfToken(): Promise<string> {
-  return getCsrfToken() || (await refreshCsrfToken());
-}
 
 export async function adminListInstances(): Promise<AdminInstance[]> {
   return apiFetch<AdminInstance[]>("/api/v1/admin/instances", { method: "GET" });

@@ -546,6 +546,189 @@ button, input { font-family: inherit; }
   gap: 10px;
 }
 
+.plan-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.plan-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.plan-month-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.plan-chip-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.plan-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.plan-chip.selected {
+  border-color: rgba(11, 92, 255, 0.35);
+  background: rgba(11, 92, 255, 0.08);
+  color: #0b5cff;
+  box-shadow: var(--shadow-2);
+}
+
+.plan-chip-name {
+  font-size: 14px;
+}
+
+.plan-chip-meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.plan-chip-empty {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.plan-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-2);
+  padding: 16px;
+}
+
+.plan-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.plan-card-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.plan-card-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.plan-card-id {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: rgba(15, 23, 42, 0.03);
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.plan-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.plan-cell {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: rgba(246, 249, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan-cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.plan-day-number {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.plan-day-weekday {
+  font-size: 11px;
+}
+
+.plan-time-row {
+  display: flex;
+  gap: 6px;
+}
+
+.plan-time-input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.plan-saving {
+  min-height: 16px;
+  font-size: 11px;
+  color: #0f5fff;
+}
+
+.plan-grid-empty {
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--muted);
+}
+
+.plan-loading,
+.plan-error {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  color: #b91c1c;
+}
+
+.plan-error {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.18);
+  color: #92400e;
+}
+
+.plan-instruction {
+  font-size: 13px;
+  color: var(--muted);
+}
+
 /* Modal */
 .modal-backdrop {
   position: fixed;

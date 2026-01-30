@@ -1,4 +1,5 @@
 import { apiFetch, ApiError } from "./client";
+import { ensureCsrfToken, setCsrfToken, withCsrf } from "./csrf";
 import type { EmploymentTemplate } from "./instances";
 
 export type AdminMe = {
@@ -36,47 +37,6 @@ export type AdminLoginResponse = {
 export type CsrfTokenResponse = {
   csrf_token: string;
 };
-
-function getCsrfToken(): string | null {
-  try {
-    const stored = sessionStorage.getItem("dagmar_csrf");
-    if (stored) return stored;
-  } catch {
-    // ignore
-  }
-
-  if (typeof document !== "undefined") {
-    try {
-      const match = document.cookie
-        .split(";")
-        .map((c) => c.trim())
-        .find((c) => c.startsWith("dagmar_csrf_token="));
-      if (match) {
-        const token = decodeURIComponent(match.split("=").slice(1).join("=") || "");
-        if (token) {
-          sessionStorage.setItem("dagmar_csrf", token);
-          return token;
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  return null;
-}
-
-function setCsrfToken(token: string) {
-  sessionStorage.setItem("dagmar_csrf", token);
-}
-
-function withCsrf(headers?: Record<string, string>): Record<string, string> {
-  const csrf = getCsrfToken();
-  return {
-    ...(headers || {}),
-    ...(csrf ? { "X-CSRF-Token": csrf } : {}),
-  };
-}
 
 export async function adminLogin(body: AdminLoginRequest): Promise<AdminLoginResponse> {
   const res = await apiFetch<AdminLoginResponse>("/api/v1/admin/login", {
@@ -196,8 +156,7 @@ export function adminExportUrl(params: { month: string; instance_id?: string; bu
 }
 
 export async function ensureAdminCsrfReady(): Promise<void> {
-  // Tokens are issued on login; no-op if missing.
-  void getCsrfToken();
+  void ensureCsrfToken();
 }
 
 // ---- Compatibility aliases for existing pages ----

@@ -594,6 +594,11 @@ export default function AdminAttendanceSheetsPage() {
                       <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins !== null ? "#0f172a" : "var(--muted)" }}>
                         {mins !== null ? `${formatHours(mins)} h` : "—"}
                       </div>
+                      {(d.planned_arrival_time || d.planned_departure_time) ? (
+                        <div style={{ gridColumn: "1 / -1", marginTop: 6, fontSize: 12, color: "rgba(15,23,42,0.55)" }}>
+                          Plán: {d.planned_arrival_time ?? "—"} – {d.planned_departure_time ?? "—"}
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })}
