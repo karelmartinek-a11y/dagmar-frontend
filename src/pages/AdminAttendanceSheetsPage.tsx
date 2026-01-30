@@ -3,6 +3,7 @@ import { ApiError } from "../api/client";
 import { adminGetAttendanceMonth, adminLockAttendance, adminUpsertAttendance, adminUnlockAttendance, type AdminAttendanceDay } from "../api/adminAttendance";
 import { adminGetSettings, adminListInstances, type AdminInstance } from "../api/admin";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
+import { normalizeTime, isValidTimeOrEmpty } from "../utils/timeInput";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -67,41 +68,6 @@ function errorMessage(err: unknown, fallback: string): string {
 
 function formatHours(mins: number): string {
   return (mins / 60).toFixed(1);
-}
-function normalizeTime(value: string): string {
-  const v = value.trim();
-  if (!v) return "";
-
-  // Support "HHMM" numeric input, e.g. "1000" => "10:00".
-  if (/^\d{4}$/.test(v)) {
-    const hh = parseInt(v.slice(0, 2), 10);
-    const mm = parseInt(v.slice(2), 10);
-    if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) return `${pad2(hh)}:${pad2(mm)}`;
-    return v;
-  }
-
-  // Support "H:MM" and "HH:MM" (normalize to 2-digit hour).
-  const colon = v.match(/^(\d{1,2}):(\d{2})$/);
-  if (colon) {
-    const hh = parseInt(colon[1], 10);
-    const mm = parseInt(colon[2], 10);
-    if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) return `${pad2(hh)}:${pad2(mm)}`;
-    return v;
-  }
-
-  // Support hour-only input 1..23, e.g. "1" => "01:00", "23" => "23:00".
-  if (/^\d{1,2}$/.test(v)) {
-    const hh = parseInt(v, 10);
-    if (hh >= 1 && hh <= 23) return `${pad2(hh)}:00`;
-  }
-
-  return v;
-}
-
-function isValidTimeOrEmpty(value: string): boolean {
-  const v = normalizeTime(value);
-  if (v === "") return true;
-  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v);
 }
 
 function statusTone(status: string): { bg: string; fg: string; border: string } {

@@ -5,6 +5,7 @@ import {
   adminUpsertShiftPlan,
   type ShiftPlanMonth,
 } from "../api/adminShiftPlan";
+import { isValidTimeOrEmpty, normalizeTime } from "../utils/timeInput";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -41,6 +42,35 @@ export default function AdminShiftPlanPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savingCells, setSavingCells] = useState<Record<string, boolean>>({});
   const [refreshTick, setRefreshTick] = useState(0);
+  const applyFieldValue = (
+    instanceId: string,
+    date: string,
+    field: "arrival_time" | "departure_time",
+    value: string | null
+  ) => {
+    setPlan((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        rows: prev.rows.map((row) => {
+          if (row.instance_id !== instanceId) return row;
+          return {
+            ...row,
+            days: row.days.map((day) => {
+              if (day.date !== date) return day;
+              return { ...day, [field]: value };
+            }),
+          };
+        }),
+      };
+    });
+  };
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.currentTarget.blur();
+    }
+  };
 
   const year = Number(month.slice(0, 4)) || new Date().getFullYear();
   const monthNum = Number(month.slice(5, 7)) || new Date().getMonth() + 1;
@@ -117,21 +147,35 @@ export default function AdminShiftPlanPage() {
     });
   };
 
-  const handleInputBlur = async (instanceId: string, date: string) => {
+  const handleInputBlur = async (
+    instanceId: string,
+    date: string,
+    field: "arrival_time" | "departure_time"
+  ) => {
     if (!plan) return;
     setSaveError(null);
     const row = plan.rows.find((r) => r.instance_id === instanceId);
     if (!row) return;
     const day = row.days.find((d) => d.date === date);
     if (!day) return;
-    const key = `${instanceId}:${date}`;
-    setSavingCells((prev) => ({ ...prev, [key]: true }));
+    const rawValue = day[field] ?? "";
+    const normalized = normalizeTime(rawValue);
+    if (!isValidTimeOrEmpty(normalized)) {
+      setSaveError("Čas musí být ve formátu HH:MM.");
+      return;
+    }
+    const finalValue = normalized === "" ? null : normalized;
+    applyFieldValue(instanceId, date, field, finalValue);
+    const arrivalValue = field === "arrival_time" ? finalValue : day.arrival_time;
+    const departureValue = field === "departure_time" ? finalValue : day.departure_time;
+    const cellKey = `${instanceId}:${date}:${field}`;
+    setSavingCells((prev) => ({ ...prev, [cellKey]: true }));
     try {
       await adminUpsertShiftPlan({
         instance_id: instanceId,
         date,
-        arrival_time: day.arrival_time,
-        departure_time: day.departure_time,
+        arrival_time: arrivalValue,
+        departure_time: departureValue,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Nelze uložit změnu.";
@@ -139,12 +183,11 @@ export default function AdminShiftPlanPage() {
     } finally {
       setSavingCells((prev) => {
         const next = { ...prev };
-        delete next[key];
+        delete next[cellKey];
         return next;
       });
     }
   };
-
   const rows = plan?.rows ?? [];
 
   return (
@@ -234,9 +277,9 @@ export default function AdminShiftPlanPage() {
                       {days.map((day) => {
                         const planDay = dayMap[day.date];
                         const value = planDay?.departure_time ?? "";
-                        const key = `${rowId}:${day.date}:dep`;
+                        const cellKey = `${rowId}:${day.date}:departure_time`;
                         return (
-                          <td className="plan-table-cell" key={key}>
+                          <td className="plan-table-cell" key={cellKey}>
                             <input
                               type="time"
                               className="plan-table-input"
@@ -244,9 +287,10 @@ export default function AdminShiftPlanPage() {
                               onChange={(event) =>
                                 handleInputChange(rowId, day.date, "departure_time", event.target.value)
                               }
-                              onBlur={() => handleInputBlur(rowId, day.date)}
+                              onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
+                              onKeyDown={handleInputKeyDown}
                             />
-                            <div className="plan-saving">{savingCells[`${rowId}:${day.date}`] ? "Ukládám…" : "\u00A0"}</div>
+                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
                           </td>
                         );
                       })}
@@ -256,19 +300,18 @@ export default function AdminShiftPlanPage() {
                       {days.map((day) => {
                         const planDay = dayMap[day.date];
                         const value = planDay?.arrival_time ?? "";
-                        const key = `${rowId}:${day.date}:arr`;
+                        const cellKey = `${rowId}:${day.date}:arrival_time`;
                         return (
-                          <td className="plan-table-cell" key={key}>
+                          <td className="plan-table-cell" key={cellKey}>
                             <input
                               type="time"
                               className="plan-table-input"
                               value={value}
-                              onChange={(event) =>
-                                handleInputChange(rowId, day.date, "arrival_time", event.target.value)
-                              }
-                              onBlur={() => handleInputBlur(rowId, day.date)}
+                              onChange={(event) => handleInputChange(rowId, day.date, "arrival_time", event.target.value)}
+                              onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
+                              onKeyDown={handleInputKeyDown}
                             />
-                            <div className="plan-saving">{savingCells[`${rowId}:${day.date}`] ? "Ukládám…" : "\u00A0"}</div>
+                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
                           </td>
                         );
                       })}
