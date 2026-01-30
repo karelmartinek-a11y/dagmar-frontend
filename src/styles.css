@@ -569,15 +569,15 @@ button, input { font-family: inherit; }
 
 .plan-chip-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
 }
 
 .plan-chip {
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 16px;
   cursor: pointer;
   font-weight: 700;
   color: var(--text);
@@ -596,11 +596,19 @@ button, input { font-family: inherit; }
 }
 
 .plan-chip-name {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 800;
 }
 
 .plan-chip-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.plan-chip-badge {
   font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
@@ -613,95 +621,81 @@ button, input { font-family: inherit; }
   padding: 12px;
 }
 
-.plan-card {
+.plan-table-wrapper {
+  overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: var(--shadow-2);
-  padding: 16px;
 }
 
-.plan-card-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.plan-card-title {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.plan-card-meta {
+.plan-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13px;
-  color: var(--muted);
 }
 
-.plan-card-id {
+.plan-table-th,
+.plan-table-cell {
+  border: 1px solid var(--line);
+  padding: 4px 6px;
+  text-align: center;
+  min-width: 60px;
+}
+
+.plan-table-th {
+  background: rgba(11, 92, 255, 0.08);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.plan-table-day {
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.plan-table-weekday {
   font-size: 11px;
   color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  background: rgba(15, 23, 42, 0.03);
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.plan-grid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
+.plan-name-cell {
+  text-align: left;
+  padding: 8px 10px;
+  vertical-align: top;
+  background: rgba(246, 249, 255, 0.95);
 }
 
-.plan-cell {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  background: rgba(246, 249, 255, 0.9);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.plan-name {
+  font-weight: 800;
+  font-size: 15px;
 }
 
-.plan-cell-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.plan-template {
   font-size: 12px;
   color: var(--muted);
 }
 
-.plan-day-number {
-  font-weight: 800;
-  color: #0f172a;
+.plan-type-cell {
+  background: rgba(246, 249, 255, 0.9);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
 }
 
-.plan-day-weekday {
-  font-size: 11px;
-}
-
-.plan-time-row {
-  display: flex;
-  gap: 6px;
-}
-
-.plan-time-input {
-  flex: 1;
+.plan-table-input {
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 6px 8px;
-  font-size: 14px;
+  border-radius: 6px;
+  padding: 3px 4px;
+  width: 100%;
+  font-size: 12px;
 }
 
 .plan-saving {
-  min-height: 16px;
   font-size: 11px;
   color: #0f5fff;
+  min-height: 16px;
 }
 
-.plan-grid-empty {
+.plan-empty-state {
   padding: 14px;
   border: 1px dashed var(--line);
   border-radius: var(--radius);
