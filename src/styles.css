@@ -623,28 +623,37 @@ button, input { font-family: inherit; }
 
 .plan-table-wrapper {
   overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 1px solid rgba(15, 23, 42, 0.1);
 }
 
 .plan-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  min-width: 980px;
 }
 
 .plan-table-th,
 .plan-table-cell {
-  border: 1px solid var(--line);
-  padding: 4px 6px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 6px 8px;
   text-align: center;
   min-width: 60px;
+  background: white;
 }
 
 .plan-table-th {
-  background: rgba(11, 92, 255, 0.08);
+  background: rgba(246, 249, 255, 0.95);
   font-weight: 700;
   font-size: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.plan-table-th--weekend,
+.plan-table-cell--weekend {
+  background: rgba(248, 180, 0, 0.18);
 }
 
 .plan-table-day {
@@ -655,23 +664,47 @@ button, input { font-family: inherit; }
 .plan-table-weekday {
   font-size: 11px;
   color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.plan-table-hint {
+  font-size: 10px;
+  color: #c2410c;
+  margin-top: 2px;
+  font-weight: 700;
 }
 
 .plan-name-cell {
   text-align: left;
-  padding: 8px 10px;
+  padding: 10px 12px;
   vertical-align: top;
   background: rgba(246, 249, 255, 0.95);
 }
 
 .plan-name {
   font-weight: 800;
-  font-size: 15px;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 .plan-template {
   font-size: 12px;
   color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.plan-row-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b172a;
+}
+
+.plan-row-meta span {
+  background: rgba(37, 99, 235, 0.08);
+  padding: 2px 6px;
+  border-radius: 6px;
 }
 
 .plan-type-cell {
@@ -682,17 +715,23 @@ button, input { font-family: inherit; }
 }
 
 .plan-table-input {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 3px 4px;
+  border: none;
+  background: transparent;
   width: 100%;
   font-size: 12px;
+  padding: 0;
+  text-align: center;
+}
+
+.plan-table-input:focus {
+  outline: none;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.6);
 }
 
 .plan-saving {
   font-size: 11px;
   color: #0f5fff;
-  min-height: 16px;
+  min-height: 14px;
 }
 
 .plan-empty-state {

@@ -486,69 +486,51 @@ export function EmployeePage() {
           style={{
             maxWidth: 980,
             margin: "0 auto",
-            padding: "10px 16px",
+            padding: "14px 16px",
             display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
+            flexDirection: "column",
             gap: 12,
           }}
         >
-          <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>{monthHead}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>{displayName || "—"}</div>
           </div>
           <div
             style={{
-              display: "flex",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr auto",
               alignItems: "center",
-              width: "100%",
               gap: 12,
             }}
           >
-            <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={btnStyle()} aria-label="Předchozí měsíc">
+            <button
+              type="button"
+              onClick={() => setMonth((m) => addMonths(m, -1))}
+              style={headerNavButtonStyle()}
+              aria-label="Předchozí měsíc"
+            >
               ←
             </button>
-            <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={handlePunchNow}
-                style={{
-                  ...btnStyle(),
-                  width: 120,
-                  minWidth: 120,
-                  height: 44,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.35)",
-                  background: "rgba(255,255,255,0.12)",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                }}
-                aria-label="Zapsat aktuální čas"
-              >
+            <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+              <button type="button" onClick={handlePunchNow} style={headerActionButtonStyle()} aria-label="Zapsat aktuální čas">
                 TEĎ
               </button>
               <button
                 type="button"
                 onClick={() => setRefreshTick((t) => t + 1)}
-                style={{
-                  ...btnStyle(),
-                  width: 120,
-                  minWidth: 120,
-                  height: 44,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.35)",
-                  background: "rgba(255,255,255,0.12)",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                }}
+                style={headerActionButtonStyle()}
                 aria-label="Obnovit"
               >
                 Obnovit
               </button>
             </div>
-            <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={btnStyle()} aria-label="Další měsíc">
+            <button
+              type="button"
+              onClick={() => setMonth((m) => addMonths(m, +1))}
+              style={headerNavButtonStyle()}
+              aria-label="Další měsíc"
+            >
               →
             </button>
           </div>
@@ -745,18 +727,33 @@ function RestrictedPage(props: { instanceId: string }) {
   );
 }
 
-function btnStyle(): React.CSSProperties {
+function headerNavButtonStyle(): React.CSSProperties {
   return {
     appearance: "none",
     border: "1px solid rgba(255,255,255,0.35)",
     background: "rgba(255,255,255,0.12)",
     color: "white",
-    width: 40,
-    height: 34,
-    borderRadius: 10,
+    width: 46,
+    height: 46,
+    minWidth: 46,
+    borderRadius: 14,
     fontSize: 18,
     fontWeight: 800,
     cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "transform 120ms ease, box-shadow 120ms ease",
+  };
+}
+
+function headerActionButtonStyle(): React.CSSProperties {
+  return {
+    ...headerNavButtonStyle(),
+    minWidth: 120,
+    width: 120,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   };
 }
 

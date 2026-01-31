@@ -396,36 +396,42 @@ export default function AdminAttendanceSheetsPage() {
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 12,
+                    flexDirection: "column",
+                    gap: 8,
                   }}
                 >
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <div style={{ fontSize: 20, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{monthLabel(month)}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)" }}>{selected.display_name || "— bez názvu —"}</div>
-                    </div>
+                  <div
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 800,
+                      overflow: "hidden",
+                      textTransform: "uppercase",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {`${monthLabel(month).toUpperCase()} · ${selected.display_name || "—"}`}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    <button type="button" onClick={() => setMonth((m) => prevMonth(m))} style={miniBtn()} aria-label="Předchozí měsíc">
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "auto 1fr auto",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setMonth((m) => prevMonth(m))}
+                      style={attendanceNavButtonStyle()}
+                      aria-label="Předchozí měsíc"
+                    >
                       ←
                     </button>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
                       <button
                         type="button"
                         onClick={() => setMonth(yyyyMm(new Date()))}
-                        style={{
-                          height: 34,
-                          borderRadius: 10,
-                          border: "1px solid var(--line)",
-                          background: "white",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          padding: "0 16px",
-                          color: isCurrentMonth ? "var(--muted)" : "inherit",
-                        }}
+                        style={attendanceActionButtonStyle(isCurrentMonth)}
                         disabled={isCurrentMonth}
                       >
                         Teď
@@ -433,21 +439,18 @@ export default function AdminAttendanceSheetsPage() {
                       <button
                         type="button"
                         onClick={() => setRefreshTick((t) => t + 1)}
-                        style={{
-                          height: 34,
-                          borderRadius: 10,
-                          border: "1px solid var(--line)",
-                          background: "white",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          padding: "0 16px",
-                        }}
+                        style={attendanceActionButtonStyle(false)}
                         disabled={daysLoading}
                       >
                         Obnovit
                       </button>
                     </div>
-                    <button type="button" onClick={() => setMonth((m) => nextMonth(m))} style={miniBtn()} aria-label="Další měsíc">
+                    <button
+                      type="button"
+                      onClick={() => setMonth((m) => nextMonth(m))}
+                      style={attendanceNavButtonStyle()}
+                      aria-label="Další měsíc"
+                    >
                       →
                     </button>
                   </div>
@@ -624,6 +627,39 @@ export default function AdminAttendanceSheetsPage() {
       </div>
     </div>
   );
+}
+
+function attendanceNavButtonStyle(): React.CSSProperties {
+  return {
+    appearance: "none",
+    border: "1px solid var(--line)",
+    background: "white",
+    color: "#0f172a",
+    width: 46,
+    height: 46,
+    minWidth: 46,
+    borderRadius: 12,
+    fontSize: 18,
+    fontWeight: 700,
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 4px 10px rgba(15, 23, 42, 0.08)",
+    transition: "transform 120ms ease, box-shadow 120ms ease",
+  };
+}
+
+function attendanceActionButtonStyle(disabled: boolean): React.CSSProperties {
+  return {
+    ...attendanceNavButtonStyle(),
+    minWidth: 110,
+    width: 110,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    opacity: disabled ? 0.5 : 1,
+    cursor: disabled ? "not-allowed" : "pointer",
+  };
 }
 
 function miniBtn(): React.CSSProperties {

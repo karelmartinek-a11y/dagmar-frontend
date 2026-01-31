@@ -4,8 +4,10 @@ import {
   adminSetShiftPlanSelection,
   adminUpsertShiftPlan,
   type ShiftPlanMonth,
+  type ShiftPlanRow,
 } from "../api/adminShiftPlan";
 import { isValidTimeOrEmpty, normalizeTime } from "../utils/timeInput";
+import { getCzechHolidayName, isWeekendDate, workingDaysInMonthCs } from "../utils/attendanceCalc";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -29,6 +31,29 @@ function monthDays(year: number, month: number) {
     current.setDate(current.getDate() + 1);
   }
   return days;
+}
+
+function minutesFromHHMM(value: string | null) {
+  if (!value) return null;
+  const [hh, mm] = value.split(":").map((v) => Number(v));
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
+  return hh * 60 + mm;
+}
+
+function plannedMinutes(row: ShiftPlanRow) {
+  return row.days.reduce((acc, day) => {
+    const arrival = minutesFromHHMM(day.arrival_time);
+    const departure = minutesFromHHMM(day.departure_time);
+    if (arrival !== null && departure !== null && departure > arrival) {
+      return acc + (departure - arrival);
+    }
+    return acc;
+  }, 0);
+}
+
+function formatHours(mins: number) {
+  return (mins / 60).toFixed(1);
 }
 
 export default function AdminShiftPlanPage() {
@@ -75,7 +100,21 @@ export default function AdminShiftPlanPage() {
   const year = Number(month.slice(0, 4)) || new Date().getFullYear();
   const monthNum = Number(month.slice(5, 7)) || new Date().getMonth() + 1;
   const monthLabelText = monthLabel(year, monthNum);
-  const days = useMemo(() => monthDays(year, monthNum), [year, monthNum]);
+  const days = useMemo(
+    () =>
+      monthDays(year, monthNum).map((day) => {
+        const isWeekend = isWeekendDate(day.date);
+        const holidayName = getCzechHolidayName(day.date);
+        return {
+          ...day,
+          isWeekend,
+          isHoliday: Boolean(holidayName),
+          isWeekendOrHoliday: isWeekend || Boolean(holidayName),
+        };
+      }),
+    [year, monthNum],
+  );
+  const workingFundHours = useMemo(() => workingDaysInMonthCs(year, monthNum) * 8, [year, monthNum]);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,7 +233,7 @@ export default function AdminShiftPlanPage() {
     <div className="plan-page">
       <div className="plan-top-row">
         <div>
-          <div className="page-title">Plán služeb</div>
+        <div className="page-title">Plán služeb</div>
           <div className="plan-instruction">
             Tabulka vychází z <strong>PlanSmen.pdf</strong>: každý řádek představuje jedno jméno a skládá se ze dvou řádků – nahoře odchody, dole příchody.
           </div>
@@ -252,9 +291,17 @@ export default function AdminShiftPlanPage() {
                   Typ
                 </th>
                 {days.map((day) => (
-                  <th className="plan-table-th" key={`header-${day.date}`}>
+                  <th
+                    className={`plan-table-th${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                    key={`header-${day.date}`}
+                  >
                     <div className="plan-table-day">{day.number}</div>
-                    <div className="plan-table-weekday">{day.weekday}</div>
+                    <div className="plan-table-weekday">{day.weekday.toUpperCase()}</div>
+                    {day.isWeekendOrHoliday ? (
+                      <div className="plan-table-hint">
+                        {day.isHoliday ? "Svatek" : "Víkend"}
+                      </div>
+                    ) : null}
                   </th>
                 ))}
               </tr>
@@ -268,10 +315,14 @@ export default function AdminShiftPlanPage() {
                 }, {} as Record<string, typeof row.days[0]>);
                 return (
                   <Fragment key={rowId}>
-                    <tr className="plan-table-row">
+                    <tr className="plan-table-row plan-table-row-header">
                       <td className="plan-name-cell" rowSpan={2}>
                         <div className="plan-name">{row.display_name ?? rowId}</div>
                         <div className="plan-template">{row.employment_template}</div>
+                        <div className="plan-row-meta">
+                          <span>Plán: {formatHours(plannedMinutes(row))} h</span>
+                          <span>Fond: {workingFundHours} h</span>
+                        </div>
                       </td>
                       <td className="plan-type-cell">Odchody</td>
                       {days.map((day) => {
@@ -279,7 +330,10 @@ export default function AdminShiftPlanPage() {
                         const value = planDay?.departure_time ?? "";
                         const cellKey = `${rowId}:${day.date}:departure_time`;
                         return (
-                          <td className="plan-table-cell" key={cellKey}>
+                          <td
+                            className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}`}
+                            key={cellKey}
+                          >
                             <input
                               type="time"
                               className="plan-table-input"
@@ -302,7 +356,10 @@ export default function AdminShiftPlanPage() {
                         const value = planDay?.arrival_time ?? "";
                         const cellKey = `${rowId}:${day.date}:arrival_time`;
                         return (
-                          <td className="plan-table-cell" key={cellKey}>
+                          <td
+                            className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}`}
+                            key={cellKey}
+                          >
                             <input
                               type="time"
                               className="plan-table-input"
