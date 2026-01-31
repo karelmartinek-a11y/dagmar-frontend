@@ -1,4 +1,4 @@
-import { ChangeEvent, Fragment, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   adminGetShiftPlanMonth,
   adminSetShiftPlanSelection,
@@ -66,6 +66,8 @@ export default function AdminShiftPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savingCells, setSavingCells] = useState<Record<string, boolean>>({});
+  const [successCells, setSuccessCells] = useState<Record<string, boolean>>({});
+  const successTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [refreshTick, setRefreshTick] = useState(0);
   const applyFieldValue = (
     instanceId: string,
@@ -138,6 +140,12 @@ export default function AdminShiftPlanPage() {
     };
   }, [year, monthNum, refreshTick]);
 
+  useEffect(() => {
+    return () => {
+      Object.values(successTimeouts.current).forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
+
   const selectedIds = plan?.selected_instance_ids ?? [];
   const activeInstances = plan?.active_instances ?? [];
 
@@ -200,7 +208,7 @@ export default function AdminShiftPlanPage() {
     const rawValue = day[field] ?? "";
     const normalized = normalizeTime(rawValue);
     if (!isValidTimeOrEmpty(normalized)) {
-      setSaveError("Čas musí být ve formátu HH:MM.");
+      setSaveError("Čas musí být ve formátu HH:MM nebo zadaný jako číslo (např. 1, 100, 0100).");
       return;
     }
     const finalValue = normalized === "" ? null : normalized;
@@ -216,6 +224,19 @@ export default function AdminShiftPlanPage() {
         arrival_time: arrivalValue,
         departure_time: departureValue,
       });
+      setSaveError(null);
+      setSuccessCells((prev) => ({ ...prev, [cellKey]: true }));
+      if (successTimeouts.current[cellKey]) {
+        clearTimeout(successTimeouts.current[cellKey]);
+      }
+      successTimeouts.current[cellKey] = setTimeout(() => {
+        setSuccessCells((prev) => {
+          const next = { ...prev };
+          delete next[cellKey];
+          return next;
+        });
+        delete successTimeouts.current[cellKey];
+      }, 900);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Nelze uložit změnu.";
       setSaveError(message);
@@ -324,32 +345,6 @@ export default function AdminShiftPlanPage() {
                           <span>Fond: {workingFundHours} h</span>
                         </div>
                       </td>
-                      <td className="plan-type-cell">Odchody</td>
-                      {days.map((day) => {
-                        const planDay = dayMap[day.date];
-                        const value = planDay?.departure_time ?? "";
-                        const cellKey = `${rowId}:${day.date}:departure_time`;
-                        return (
-                          <td
-                            className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}`}
-                            key={cellKey}
-                          >
-                            <input
-                              type="time"
-                              className="plan-table-input"
-                              value={value}
-                              onChange={(event) =>
-                                handleInputChange(rowId, day.date, "departure_time", event.target.value)
-                              }
-                              onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
-                              onKeyDown={handleInputKeyDown}
-                            />
-                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                    <tr className="plan-table-row">
                       <td className="plan-type-cell">Příchody</td>
                       {days.map((day) => {
                         const planDay = dayMap[day.date];
@@ -357,16 +352,56 @@ export default function AdminShiftPlanPage() {
                         const cellKey = `${rowId}:${day.date}:arrival_time`;
                         return (
                           <td
-                            className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}`}
+                            className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
+                              successCells[cellKey] ? " plan-table-cell--success" : ""
+                            }`}
                             key={cellKey}
                           >
                             <input
-                              type="time"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9:]*"
                               className="plan-table-input"
                               value={value}
-                              onChange={(event) => handleInputChange(rowId, day.date, "arrival_time", event.target.value)}
+                              onChange={(event) =>
+                                handleInputChange(rowId, day.date, "arrival_time", event.target.value)
+                              }
                               onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
                               onKeyDown={handleInputKeyDown}
+                              placeholder="HH:MM"
+                              maxLength={5}
+                            />
+                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                    <tr className="plan-table-row">
+                      <td className="plan-type-cell">Odchody</td>
+                      {days.map((day) => {
+                        const planDay = dayMap[day.date];
+                        const value = planDay?.departure_time ?? "";
+                        const cellKey = `${rowId}:${day.date}:departure_time`;
+                        return (
+                          <td
+                            className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
+                              successCells[cellKey] ? " plan-table-cell--success" : ""
+                            }`}
+                            key={cellKey}
+                          >
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9:]*"
+                              className="plan-table-input"
+                              value={value}
+                              onChange={(event) =>
+                                handleInputChange(rowId, day.date, "departure_time", event.target.value)
+                              }
+                              onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
+                              onKeyDown={handleInputKeyDown}
+                              placeholder="HH:MM"
+                              maxLength={5}
                             />
                             <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
                           </td>

@@ -550,6 +550,9 @@ button, input { font-family: inherit; }
   display: flex;
   flex-direction: column;
   gap: 18px;
+  background: #f6f9ff;
+  padding: 20px;
+  min-height: calc(100vh - 220px);
 }
 
 .plan-top-row {
@@ -656,6 +659,11 @@ button, input { font-family: inherit; }
   background: rgba(248, 180, 0, 0.18);
 }
 
+.plan-table-cell--success {
+  background: #dcfce7 !important;
+  transition: background 0.35s ease;
+}
+
 .plan-table-day {
   font-weight: 800;
   font-size: 12px;
@@ -705,6 +713,10 @@ button, input { font-family: inherit; }
   background: rgba(37, 99, 235, 0.08);
   padding: 2px 6px;
   border-radius: 6px;
+}
+
+.plan-table-row.plan-table-row-header td {
+  border-bottom: 3px solid #0b5bd3;
 }
 
 .plan-type-cell {
