@@ -376,7 +376,7 @@ export default function AdminShiftPlanPage() {
                         );
                       })}
                     </tr>
-                    <tr className="plan-table-row">
+                    <tr className="plan-table-row plan-table-row-footer">
                       <td className="plan-type-cell">Odchody</td>
                       {days.map((day) => {
                         const planDay = dayMap[day.date];
