@@ -647,6 +647,7 @@ button, input { font-family: inherit; }
   text-align: center;
   min-width: 60px;
   background: white;
+  box-sizing: border-box;
 }
 
 .plan-table-th {
@@ -691,6 +692,10 @@ button, input { font-family: inherit; }
   padding: 10px 12px;
   vertical-align: top;
   background: rgba(246, 249, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
 }
 
 .plan-name {
@@ -722,14 +727,28 @@ button, input { font-family: inherit; }
   border-bottom: 3px solid #0b5bd3;
 }
 
+.plan-table-row.plan-table-row-footer td:first-child {
+  border-bottom-left-radius: 0;
+}
+
+.plan-table-row.plan-table-row-footer td:last-child {
+  border-bottom-right-radius: 0;
+}
+
+.plan-table-row.plan-table-row-footer ~ tr td {
+  border-top: none;
+}
+
 .plan-table-input {
-  height: 28px;
-  line-height: 28px;
-  font-size: 14px;
-  padding: 2px 6px;
-  border-radius: 6px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 13px;
+  padding: 1px 4px;
+  border-radius: 4px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .plan-type-cell {
@@ -739,18 +758,10 @@ button, input { font-family: inherit; }
   color: var(--muted);
 }
 
-.plan-table-input {
-  border: none;
-  background: transparent;
-  width: 100%;
-  font-size: 12px;
-  padding: 0;
-  text-align: center;
-}
-
 .plan-table-input:focus {
   outline: none;
-  border-bottom: 1px solid rgba(37, 99, 235, 0.6);
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
 }
 
 .plan-saving {
