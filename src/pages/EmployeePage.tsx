@@ -11,6 +11,8 @@ type DayRow = {
   date: string; // YYYY-MM-DD
   arrival_time: string | null;
   departure_time: string | null;
+  planned_arrival_time: string | null;
+  planned_departure_time: string | null;
 };
 
 type QueueItem = {
@@ -318,6 +320,8 @@ export function EmployeePage() {
               date,
               arrival_time: null,
               departure_time: null,
+              planned_arrival_time: null,
+              planned_departure_time: null,
             },
           );
         }
@@ -581,6 +585,7 @@ export function EmployeePage() {
           ) : null}
           {rows.map((r) => {
             const isToday = r.date === today;
+            const hasPlan = Boolean(r.planned_arrival_time || r.planned_departure_time);
             const calc = computeDayCalc(r, employmentTemplate, cutoffMinutes);
             const mins = calc.workedMins;
             const isSpecial = employmentTemplate === "HPP" && calc.isWeekendOrHoliday;
@@ -594,8 +599,16 @@ export function EmployeePage() {
                 className="attendance-grid-row"
                 style={{
                   ...cardStyle(),
-                  border: isToday ? "1px solid rgba(37, 99, 235, 0.45)" : "1px solid rgba(15, 23, 42, 0.08)",
-                  boxShadow: isToday ? "0 8px 24px rgba(37,99,235,0.12)" : "0 6px 18px rgba(15, 23, 42, 0.06)",
+                  border: isToday
+                    ? "2px solid rgba(37, 99, 235, 0.55)"
+                    : hasPlan
+                      ? "2px solid rgba(14, 116, 144, 0.45)"
+                      : "1px solid rgba(15, 23, 42, 0.08)",
+                  boxShadow: isToday
+                    ? "0 8px 24px rgba(37,99,235,0.12)"
+                    : hasPlan
+                      ? "0 8px 20px rgba(14, 116, 144, 0.10)"
+                      : "0 6px 18px rgba(15, 23, 42, 0.06)",
                   background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "white",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr 1fr",
@@ -649,6 +662,7 @@ export function EmployeePage() {
                   label="Příchod"
                   placeholder="HH:MM"
                   value={r.arrival_time ?? ""}
+                  plannedValue={r.planned_arrival_time}
                   onChange={(v) => onChangeTime(r.date, "arrival_time", v)}
                 />
 
@@ -656,6 +670,7 @@ export function EmployeePage() {
                   label="Odchod"
                   placeholder="HH:MM"
                   value={r.departure_time ?? ""}
+                  plannedValue={r.planned_departure_time}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
                 />
                 <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
@@ -767,8 +782,14 @@ function cardStyle(): React.CSSProperties {
   };
 }
 
-function TimeInput(props: { label: string; placeholder: string; value: string; onChange: (v: string) => void }) {
-  const { label, placeholder, value, onChange } = props;
+function TimeInput(props: {
+  label: string;
+  placeholder: string;
+  value: string;
+  plannedValue?: string | null;
+  onChange: (v: string) => void;
+}) {
+  const { label, placeholder, value, plannedValue, onChange } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -780,6 +801,9 @@ function TimeInput(props: { label: string; placeholder: string; value: string; o
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
+      {plannedValue ? (
+        <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>Plán: {plannedValue}</div>
+      ) : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}

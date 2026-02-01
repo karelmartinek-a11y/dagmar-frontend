@@ -726,7 +726,7 @@ button, input { font-family: inherit; }
 
 .plan-table-th--weekend,
 .plan-table-cell--weekend {
-  background: rgba(248, 180, 0, 0.18);
+  background: rgba(252, 211, 77, 0.45);
 }
 
 .plan-table-th--day {
@@ -744,6 +744,10 @@ button, input { font-family: inherit; }
 .plan-table-cell--success {
   background: #dcfce7 !important;
   transition: background 0.35s ease;
+}
+
+.plan-table-cell:focus-within {
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.7);
 }
 
 .plan-name-cell {
@@ -786,6 +790,10 @@ button, input { font-family: inherit; }
   height: 34px;
   position: relative;
   padding: 0;
+}
+
+.plan-table-row-departure td {
+  border-bottom: 2px solid rgba(15, 23, 42, 0.35);
 }
 
 .plan-table-input {
