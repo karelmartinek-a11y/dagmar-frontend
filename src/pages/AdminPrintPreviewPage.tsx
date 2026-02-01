@@ -262,7 +262,6 @@ export default function AdminPrintPreviewPage() {
       {docs.map((doc) => {
         if (doc.type === "attendance") {
           const stats = computeMonthStats(doc.days, doc.instance.employment_template, doc.cutoffMinutes);
-          const workingFund = workingDaysInMonthCs(parsedMonth.year, parsedMonth.month) * 60 * 8;
           return (
             <div key={doc.instance.id + "-att"} className="sheet">
               <h1>{label} · DOCHAZKOVY LIST</h1>
@@ -326,19 +325,6 @@ export default function AdminPrintPreviewPage() {
                   </tr>
                 </tfoot>
               </table>
-              <div className="footer">
-                <div className="pill">Celkem: {formatHoursComma(stats.totalMins)} h</div>
-                <div className="pill" style={{ background: "#0b4f2f" }}>
-                  Pracovni fond: {formatHoursComma(workingFund)} h
-                </div>
-                <div className="pill" style={{ background: "#6b21a8" }}>
-                  Víkendy+svatky: {formatHoursComma(stats.weekendHolidayMins)} h
-                </div>
-                <div className="pill" style={{ background: "#9a3412" }}>
-                  Odpoledne: {formatHoursComma(stats.afternoonMins)} h
-                </div>
-              </div>
-              <div className="small" style={{ marginTop: 6 }}>Pauzy: automaticky odcitano po 30 minutach podle firemniho rezimu.</div>
             </div>
           );
         }
