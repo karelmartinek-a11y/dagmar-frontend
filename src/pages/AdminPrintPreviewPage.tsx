@@ -1,8 +1,10 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { adminListInstances, type AdminInstance } from "../api/admin";
 import { adminGetAttendanceMonth, type AdminAttendanceDay } from "../api/adminAttendance";
 import { adminGetShiftPlanMonth, type ShiftPlanRow } from "../api/adminShiftPlan";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   computeDayCalc,
   computeMonthStats,
@@ -61,6 +63,44 @@ function formatHours(mins: number) {
   return (mins / 60).toFixed(1);
 }
 
+function parseBreakWindows(breakTooltip: string | null): Array<{ start: string; end: string }> {
+  if (!breakTooltip) return [];
+  const regex = /([0-2]?\d:[0-5]\d)\u2013([0-2]?\d:[0-5]\d)/g; // times separated by en dash
+  const out: Array<{ start: string; end: string }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(breakTooltip)) !== null) {
+    out.push({ start: m[1], end: m[2] });
+  }
+  return out.slice(0, 2); // max 2 pauzy => 3 intervaly
+}
+
+type IntervalPairs = { in1: string; out1: string; in2: string; out2: string; in3: string; out3: string };
+
+function buildIntervals(
+  arrival: string | null,
+  departure: string | null,
+  breakTooltip: string | null,
+): IntervalPairs {
+  const windows = parseBreakWindows(breakTooltip);
+  const empty: IntervalPairs = { in1: "", out1: "", in2: "", out2: "", in3: "", out3: "" };
+  if (!arrival && !departure) return empty;
+
+  const a = arrival ?? "";
+  const d = departure ?? "";
+
+  if (windows.length === 0) {
+    return { in1: a, out1: d, in2: "", out2: "", in3: "", out3: "" };
+  }
+
+  if (windows.length === 1) {
+    const w = windows[0];
+    return { in1: a, out1: w.start, in2: w.end, out2: d, in3: "", out3: "" };
+  }
+
+  const [w1, w2] = windows;
+  return { in1: a, out1: w1.start, in2: w1.end, out2: w2.start, in3: w2.end, out3: d };
+}
+
 type AttendanceDoc = {
   type: "attendance";
   instance: AdminInstance;
@@ -92,6 +132,7 @@ export default function AdminPrintPreviewPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [docs, setDocs] = useState<DocRecord[]>([]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const label = monthLabel(parsedMonth.year, parsedMonth.month);
 
@@ -152,9 +193,33 @@ export default function AdminPrintPreviewPage() {
 
   useEffect(() => {
     if (loading || error || docs.length === 0) return;
-    const t = window.setTimeout(() => window.print(), 300);
-    return () => window.clearTimeout(t);
-  }, [loading, error, docs]);
+    const maybeContainer = containerRef.current;
+    if (!maybeContainer) return;
+    const container = maybeContainer as HTMLDivElement;
+
+    async function generatePdf() {
+      const sheets = Array.from(container.querySelectorAll(".sheet")) as HTMLElement[];
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      for (let i = 0; i < sheets.length; i++) {
+        const el = sheets[i];
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL("image/png");
+        const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+        const imgWidth = canvas.width * ratio;
+        const imgHeight = canvas.height * ratio;
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      }
+
+      pdf.save(`tisky-${docType}-${month || "mesic"}.pdf`);
+      window.setTimeout(() => window.close(), 400);
+    }
+
+    generatePdf().catch((err) => console.error(err));
+  }, [loading, error, docs, docType, month]);
 
   const dayCache = useMemo(() => dayList(parsedMonth.year, parsedMonth.month), [parsedMonth]);
 
@@ -163,7 +228,7 @@ export default function AdminPrintPreviewPage() {
   }
 
   return (
-    <div style={{ padding: 0, margin: 0 }}>
+    <div style={{ padding: 0, margin: 0 }} ref={containerRef}>
       <style>{`
         body { background: #f2f4f8; }
         .sheet { width: 210mm; min-height: 297mm; padding: 15mm 12mm; margin: 6mm auto; background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
@@ -197,12 +262,15 @@ export default function AdminPrintPreviewPage() {
                   <tr>
                     <th style={{ width: 80 }}>Datum</th>
                     <th style={{ width: 50 }}>Den</th>
-                    <th style={{ width: 80 }}>Prichod</th>
-                    <th style={{ width: 80 }}>Odchod</th>
-                    <th style={{ width: 90 }}>Plan</th>
+                    <th style={{ width: 70 }}>Prichod 1</th>
+                    <th style={{ width: 70 }}>Odchod 1</th>
+                    <th style={{ width: 70 }}>Prichod 2</th>
+                    <th style={{ width: 70 }}>Odchod 2</th>
+                    <th style={{ width: 70 }}>Prichod 3</th>
+                    <th style={{ width: 70 }}>Odchod 3</th>
                     <th style={{ width: 80 }}>Odprac.</th>
-                    <th style={{ width: 80 }}>Pauza</th>
                     <th style={{ width: 90 }}>Odpoledne</th>
+                    <th style={{ width: 110 }}>Vikend+Svátek</th>
                     <th>Poznamka</th>
                   </tr>
                 </thead>
@@ -219,23 +287,26 @@ export default function AdminPrintPreviewPage() {
                       doc.cutoffMinutes,
                     );
                     const rowClass = calc.isWeekendOrHoliday ? (calc.holidayName ? "row-holiday" : "row-weekend") : "";
-                    const planned = day ? `${day.planned_arrival_time ?? ""}` + (day.planned_departure_time ? ` - ${day.planned_departure_time}` : "") : "";
                     const noteParts = [] as string[];
                     if (calc.holidayName) noteParts.push(calc.holidayName);
                     if (calc.breakTooltip) noteParts.push(calc.breakTooltip);
+                    const intervals = buildIntervals(day?.arrival_time ?? null, day?.departure_time ?? null, calc.breakTooltip);
                     const worked = calc.workedMins === null ? "" : formatHours(calc.workedMins);
-                    const breakStr = calc.breakMins ? `-${(calc.breakMins / 60).toFixed(1)} h` : "";
                     const afternoonStr = calc.afternoonMins ? formatHours(calc.afternoonMins) : "";
+                    const weekendStr = calc.isWeekendOrHoliday ? (calc.workedMins ? formatHours(calc.workedMins) : "") : "";
                     return (
                       <tr key={d.date} className={rowClass}>
                         <td>{d.date}</td>
                         <td>{d.dow.toUpperCase()}</td>
-                        <td>{day?.arrival_time ?? ""}</td>
-                        <td>{day?.departure_time ?? ""}</td>
-                        <td>{planned}</td>
+                        <td>{intervals.in1}</td>
+                        <td>{intervals.out1}</td>
+                        <td>{intervals.in2}</td>
+                        <td>{intervals.out2}</td>
+                        <td>{intervals.in3}</td>
+                        <td>{intervals.out3}</td>
                         <td>{worked}</td>
-                        <td>{breakStr}</td>
                         <td>{afternoonStr}</td>
+                        <td>{weekendStr}</td>
                         <td>{noteParts.join(" | ")}</td>
                       </tr>
                     );
