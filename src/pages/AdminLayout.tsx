@@ -50,7 +50,7 @@ export default function AdminLayout() {
   const items: Array<{ to: string; label: string; icon: React.ReactNode }> = [
     {
       to: "/admin/instances",
-      label: "Zařízení",
+      label: "Zarizeni",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M8 7h13M8 12h13M8 17h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -60,7 +60,7 @@ export default function AdminLayout() {
     },
     {
       to: "/admin/dochazka",
-      label: "Docházkové listy",
+      label: "Dochazkove listy",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M7 3v3M17 3v3M4 8h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -76,11 +76,22 @@ export default function AdminLayout() {
     },
     {
       to: "/admin/plan-sluzeb",
-      label: "Plán služeb",
+      label: "Plan sluzeb",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
           <path d="M4 10h16M10 6v4M14 6v4M14 14v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      to: "/admin/tisky",
+      label: "Tisky",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 9V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <rect x="5" y="9" width="14" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M8 13h8M8 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       ),
     },

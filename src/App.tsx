@@ -7,6 +7,8 @@ import AdminInstancesPage from "./pages/AdminInstancesPage";
 import AdminExportPage from "./pages/AdminExportPage";
 import AdminAttendanceSheetsPage from "./pages/AdminAttendanceSheetsPage";
 import AdminShiftPlanPage from "./pages/AdminShiftPlanPage";
+import AdminPrintsPage from "./pages/AdminPrintsPage";
+import AdminPrintPreviewPage from "./pages/AdminPrintPreviewPage";
 import { PendingPage } from "./pages/PendingPage";
 
 type VersionPayload = {
@@ -85,6 +87,8 @@ export default function App() {
           <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
           <Route path="plan-sluzeb" element={<AdminShiftPlanPage />} />
           <Route path="export" element={<AdminExportPage />} />
+          <Route path="tisky" element={<AdminPrintsPage />} />
+          <Route path="tisky/preview" element={<AdminPrintPreviewPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/app" replace />} />
