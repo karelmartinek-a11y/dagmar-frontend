@@ -317,6 +317,14 @@ export default function AdminPrintPreviewPage() {
                     );
                   })}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={8}></td>
+                    <td>{formatHoursComma(stats.totalMins)} h</td>
+                    <td>{formatHoursComma(stats.afternoonMins)} h</td>
+                    <td>{formatHoursComma(stats.weekendHolidayMins)} h</td>
+                  </tr>
+                </tfoot>
               </table>
               <div className="footer">
                 <div className="pill">Celkem: {formatHoursComma(stats.totalMins)} h</div>
