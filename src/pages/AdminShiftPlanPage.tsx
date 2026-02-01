@@ -22,7 +22,8 @@ function monthDays(year: number, month: number) {
   const days: { date: string; number: string; weekday: string }[] = [];
   const current = new Date(year, month - 1, 1);
   while (current.getMonth() === month - 1) {
-    const iso = current.toISOString().slice(0, 10);
+    // Lokální datum (ne UTC) aby nedocházelo k posunu o den při převodu na ISO
+    const iso = `${current.getFullYear()}-${pad2(current.getMonth() + 1)}-${pad2(current.getDate())}`;
     days.push({
       date: iso,
       number: pad2(current.getDate()),
