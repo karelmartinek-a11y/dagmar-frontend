@@ -322,7 +322,7 @@ export default function AdminShiftPlanPage() {
         <div>
         <div className="page-title">Plán služeb</div>
           <div className="plan-instruction">
-            Tabulka vychází z <strong>PlanSmen.pdf</strong>: každý řádek představuje jedno jméno a skládá se ze dvou řádků – nahoře odchody, dole příchody.
+            Tabulka vychází z <strong>PlanSmen.xlsx</strong>: každý řádek představuje jedno jméno a skládá se ze dvou řádků – nahoře příchody, dole odchody.
           </div>
         </div>
         <div className="plan-month-picker">
@@ -375,31 +375,49 @@ export default function AdminShiftPlanPage() {
             <table className="plan-table">
               <colgroup>
                 <col style={{ width: 320 }} />
-                <col style={{ width: 120 }} />
+                <col style={{ width: 130 }} />
+                <col style={{ width: 110 }} />
                 {days.map((day) => (
                   <col key={`col-${day.date}`} style={{ width: 70 }} />
                 ))}
               </colgroup>
               <thead>
-                <tr>
-                  <th className="plan-table-th plan-table-th--name" rowSpan={2}>
+                <tr className="plan-table-head plan-table-head--numbers">
+                  <th className="plan-table-th plan-table-th--name" rowSpan={3}>
                     Jméno
                   </th>
-                  <th className="plan-table-th plan-table-th--type" rowSpan={2}>
+                  <th className="plan-table-th plan-table-th--sum" rowSpan={3}>
+                    Součty
+                  </th>
+                  <th className="plan-table-th plan-table-th--type" rowSpan={3}>
                     Typ
                   </th>
                   {days.map((day) => (
                     <th
-                      className={`plan-table-th${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
-                      key={`header-${day.date}`}
+                      className={`plan-table-th plan-table-th--day${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-day-${day.date}`}
                     >
-                      <div className="plan-table-day">{day.number}</div>
-                      <div className="plan-table-weekday">{day.weekday.toUpperCase()}</div>
-                      {day.isWeekendOrHoliday ? (
-                        <div className="plan-table-hint">
-                          {day.isHoliday ? "Svatek" : "Víkend"}
-                        </div>
-                      ) : null}
+                      {day.number}
+                    </th>
+                  ))}
+                </tr>
+                <tr className="plan-table-head plan-table-head--weekday">
+                  {days.map((day) => (
+                    <th
+                      className={`plan-table-th plan-table-th--weekday${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-weekday-${day.date}`}
+                    >
+                      {day.weekday.toUpperCase()}
+                    </th>
+                  ))}
+                </tr>
+                <tr className="plan-table-head plan-table-head--holiday">
+                  {days.map((day) => (
+                    <th
+                      className={`plan-table-th plan-table-th--holiday${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-holiday-${day.date}`}
+                    >
+                      {day.isWeekendOrHoliday ? (day.isHoliday ? "svátek" : "víkend") : ""}
                     </th>
                   ))}
                 </tr>
@@ -413,16 +431,12 @@ export default function AdminShiftPlanPage() {
                 }, {} as Record<string, typeof row.days[0]>);
                 return (
                   <Fragment key={rowId}>
-                    <tr className="plan-table-row plan-table-row-header">
-                      <td className="plan-name-cell" rowSpan={2}>
+                    <tr className="plan-table-row plan-table-row-arrival">
+                      <td className="plan-name-cell">
                         <div className="plan-name">{row.display_name ?? rowId}</div>
-                        <div className="plan-template">{row.employment_template}</div>
-                        <div className="plan-row-meta">
-                          <span>Fond: {workingFundHours} h</span>
-                          <span>Plán: {formatHours(plannedMinutes(row))} h</span>
-                        </div>
                       </td>
-                      <td className="plan-type-cell">Příchody</td>
+                      <td className="plan-sum-cell">Fond: {workingFundHours} h</td>
+                      <td className="plan-type-cell">PŘÍCHODY</td>
                       {days.map((day) => {
                         const planDay = dayMap[day.date];
                         const value = planDay?.arrival_time ?? "";
@@ -448,13 +462,15 @@ export default function AdminShiftPlanPage() {
                               placeholder="HH:MM"
                               maxLength={5}
                             />
-                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
+                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
                           </td>
                         );
                       })}
                     </tr>
-                    <tr className="plan-table-row plan-table-row-footer">
-                      <td className="plan-type-cell">Odchody</td>
+                    <tr className="plan-table-row plan-table-row-departure">
+                      <td className="plan-name-subcell">{row.employment_template ?? ""}</td>
+                      <td className="plan-sum-cell">Plán: {formatHours(plannedMinutes(row))} h</td>
+                      <td className="plan-type-cell">ODCHODY</td>
                       {days.map((day) => {
                         const planDay = dayMap[day.date];
                         const value = planDay?.departure_time ?? "";
@@ -480,7 +496,7 @@ export default function AdminShiftPlanPage() {
                               placeholder="HH:MM"
                               maxLength={5}
                             />
-                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : " "}</div>
+                            <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
                           </td>
                         );
                       })}

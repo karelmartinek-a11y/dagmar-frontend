@@ -638,8 +638,8 @@ button, input { font-family: inherit; }
 .plan-table-bottom-scroll {
   border-bottom-left-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
-  border-top: 1px solid rgba(15, 23, 42, 0.12);
-  border-bottom: none;
+  border-top: none;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .plan-table-top-scroll > div,
@@ -653,7 +653,7 @@ button, input { font-family: inherit; }
   border-right: 1px solid rgba(15, 23, 42, 0.12);
   border-bottom: 1px solid rgba(15, 23, 42, 0.12);
   max-height: calc(100vh - 260px);
-  border-radius: 0 0 var(--radius) var(--radius);
+  border-radius: 0;
   background: #ffffff;
   box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
 }
@@ -674,18 +674,15 @@ button, input { font-family: inherit; }
   min-width: 60px;
   background: #ffffff;
   box-sizing: border-box;
+  vertical-align: middle;
 }
 
 .plan-table-th {
   background: rgba(246, 249, 255, 0.95);
   font-weight: 700;
   font-size: 11px;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  min-height: 60px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
 }
 
 .plan-table-th--name {
@@ -695,12 +692,36 @@ button, input { font-family: inherit; }
   letter-spacing: normal;
 }
 
-.plan-table-th--type {
+.plan-table-th--sum {
   text-align: left;
   padding-left: 12px;
-  font-size: 10px;
+  font-size: 11px;
+  letter-spacing: 0.2px;
+}
+
+.plan-table-th--type {
+  text-align: center;
+  font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.3px;
+}
+
+.plan-table-head--numbers th {
+  height: 28px;
+  font-size: 12px;
+}
+
+.plan-table-head--weekday th {
+  height: 24px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.plan-table-head--holiday th {
+  height: 22px;
+  font-size: 10px;
+  text-transform: lowercase;
+  color: #c2410c;
 }
 
 .plan-table-th--weekend,
@@ -708,80 +729,61 @@ button, input { font-family: inherit; }
   background: rgba(248, 180, 0, 0.18);
 }
 
+.plan-table-th--day {
+  font-weight: 800;
+}
+
+.plan-table-th--weekday {
+  font-weight: 700;
+}
+
+.plan-table-th--holiday {
+  font-weight: 700;
+}
+
 .plan-table-cell--success {
   background: #dcfce7 !important;
   transition: background 0.35s ease;
 }
 
-.plan-table-day {
-  font-weight: 800;
-  font-size: 12px;
-}
-
-.plan-table-weekday {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-}
-
-.plan-table-hint {
-  font-size: 10px;
-  color: #c2410c;
-  margin-top: 2px;
-  font-weight: 700;
-}
-
 .plan-name-cell {
   text-align: left;
-  padding: 8px 12px;
+  padding: 6px 10px;
   vertical-align: middle;
-  background: rgba(246, 249, 255, 0.92);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  height: 100%;
+  background: rgba(246, 249, 255, 0.95);
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 800;
+  font-size: 14px;
 }
 
-.plan-name {
-  font-weight: 800;
-  font-size: 15px;
-  line-height: 1.1;
+.plan-name-subcell {
+  text-align: left;
+  padding: 6px 10px;
+  vertical-align: middle;
+  background: rgba(246, 249, 255, 0.92);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.plan-template {
   font-size: 11px;
+  font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.2px;
 }
 
-.plan-row-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.plan-sum-cell {
+  text-align: left;
+  padding: 6px 10px;
   font-size: 11px;
   font-weight: 700;
   color: #0b172a;
-}
-
-.plan-row-meta span {
-  background: rgba(37, 99, 235, 0.08);
-  padding: 2px 8px;
-  border-radius: 8px;
-}
-
-.plan-table-row.plan-table-row-header td,
-.plan-table-row.plan-table-row-footer td {
-  border-bottom: none;
+  background: rgba(246, 249, 255, 0.9);
+  white-space: nowrap;
 }
 
 .plan-table-cell {
-  height: 36px;
+  height: 34px;
   position: relative;
 }
 
@@ -800,15 +802,13 @@ button, input { font-family: inherit; }
 
 .plan-type-cell {
   background: rgba(246, 249, 255, 0.95);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0.1px;
   text-transform: uppercase;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .plan-table-input:focus {
