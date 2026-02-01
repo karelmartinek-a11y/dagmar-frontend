@@ -52,7 +52,10 @@ jobs:
             npm run build
             FRONT_TAG=$(git rev-parse --short HEAD)
             printf '{"frontend_commit":"%s"}\n' "$FRONT_TAG" > /srv/hcasc/_repos/dagmar-frontend/dist/frontend-version.json
-            cd /opt/dagmar/sandbox && ./run-tests.sh
+            cd /opt/dagmar/sandbox
+            docker compose down --remove-orphans || true
+            docker compose rm -f || true
+            ./run-tests.sh
             rsync -a --delete /srv/hcasc/_repos/dagmar-frontend/dist/ /var/www/dagmar/frontend/
             chown -R dagmar:dagmar /var/www/dagmar/frontend
             printf '%s DAGMAR web: auto-deploy main\n' "$(date '+%F %T')" >> /var/log/dagmar/deploy.log
