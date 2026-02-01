@@ -50,6 +50,8 @@ jobs:
             git reset --hard origin/main
             npm ci
             npm run build
+            FRONT_TAG=$(git rev-parse --short HEAD)
+            printf '{"frontend_commit":"%s"}\n' "$FRONT_TAG" > /srv/hcasc/_repos/dagmar-frontend/dist/frontend-version.json
             cd /opt/dagmar/sandbox && ./run-tests.sh
             rsync -a --delete /srv/hcasc/_repos/dagmar-frontend/dist/ /var/www/dagmar/frontend/
             chown -R dagmar:dagmar /var/www/dagmar/frontend

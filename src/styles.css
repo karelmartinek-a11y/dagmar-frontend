@@ -867,6 +867,29 @@ button, input { font-family: inherit; }
   color: var(--muted);
 }
 
+.deployment-badge {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  background: rgba(6, 10, 28, 0.92);
+  color: #ecf2ff;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 14px 28px rgba(2, 6, 24, 0.7);
+  pointer-events: none;
+  z-index: 9999;
+  min-width: 210px;
+}
+
+.deployment-badge div {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
 /* Modal */
 .modal-backdrop {
   position: fixed;
