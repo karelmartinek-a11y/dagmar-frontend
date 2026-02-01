@@ -44,3 +44,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <SplashGate />
   </React.StrictMode>
 );
+
+export default SplashGate;

@@ -141,8 +141,9 @@ export default function AdminShiftPlanPage() {
   }, [year, monthNum, refreshTick]);
 
   useEffect(() => {
+    const timeouts = successTimeouts.current;
     return () => {
-      Object.values(successTimeouts.current).forEach((timer) => clearTimeout(timer));
+      Object.values(timeouts).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
