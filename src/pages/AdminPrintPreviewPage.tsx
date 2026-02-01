@@ -63,6 +63,16 @@ function formatHours(mins: number) {
   return (mins / 60).toFixed(1);
 }
 
+function formatHoursComma(mins: number) {
+  return formatHours(mins).replace(".", ",");
+}
+
+function formatDateLong(dateIso: string) {
+  const [y, m, d] = dateIso.split("-").map((x) => parseInt(x, 10));
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString("cs-CZ", { day: "numeric", month: "long", year: "numeric" });
+}
+
 function parseBreakWindows(breakTooltip: string | null): Array<{ start: string; end: string }> {
   if (!breakTooltip) return [];
   const regex = /([0-2]?\d:[0-5]\d)\u2013([0-2]?\d:[0-5]\d)/g; // times separated by en dash
@@ -260,18 +270,17 @@ export default function AdminPrintPreviewPage() {
               <table aria-label="Dochazka">
                 <thead>
                   <tr>
-                    <th style={{ width: 80 }}>Datum</th>
+                    <th style={{ width: 140 }}>Datum</th>
                     <th style={{ width: 50 }}>Den</th>
-                    <th style={{ width: 70 }}>Prichod 1</th>
-                    <th style={{ width: 70 }}>Odchod 1</th>
-                    <th style={{ width: 70 }}>Prichod 2</th>
-                    <th style={{ width: 70 }}>Odchod 2</th>
-                    <th style={{ width: 70 }}>Prichod 3</th>
-                    <th style={{ width: 70 }}>Odchod 3</th>
+                    <th style={{ width: 65 }}>Prichod 1</th>
+                    <th style={{ width: 65 }}>Odchod 1</th>
+                    <th style={{ width: 65 }}>Prichod 2</th>
+                    <th style={{ width: 65 }}>Odchod 2</th>
+                    <th style={{ width: 65 }}>Prichod 3</th>
+                    <th style={{ width: 65 }}>Odchod 3</th>
                     <th style={{ width: 80 }}>Odprac.</th>
                     <th style={{ width: 90 }}>Odpoledne</th>
                     <th style={{ width: 110 }}>Vikend+Svátek</th>
-                    <th>Poznamka</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,16 +296,13 @@ export default function AdminPrintPreviewPage() {
                       doc.cutoffMinutes,
                     );
                     const rowClass = calc.isWeekendOrHoliday ? (calc.holidayName ? "row-holiday" : "row-weekend") : "";
-                    const noteParts = [] as string[];
-                    if (calc.holidayName) noteParts.push(calc.holidayName);
-                    if (calc.breakTooltip) noteParts.push(calc.breakTooltip);
                     const intervals = buildIntervals(day?.arrival_time ?? null, day?.departure_time ?? null, calc.breakTooltip);
-                    const worked = calc.workedMins === null ? "" : formatHours(calc.workedMins);
-                    const afternoonStr = calc.afternoonMins ? formatHours(calc.afternoonMins) : "";
-                    const weekendStr = calc.isWeekendOrHoliday ? (calc.workedMins ? formatHours(calc.workedMins) : "") : "";
+                    const worked = calc.workedMins === null ? "" : formatHoursComma(calc.workedMins);
+                    const afternoonStr = calc.afternoonMins ? formatHoursComma(calc.afternoonMins) : "";
+                    const weekendStr = calc.isWeekendOrHoliday ? (calc.workedMins ? formatHoursComma(calc.workedMins) : "") : "";
                     return (
                       <tr key={d.date} className={rowClass}>
-                        <td>{d.date}</td>
+                        <td>{formatDateLong(d.date)}</td>
                         <td>{d.dow.toUpperCase()}</td>
                         <td>{intervals.in1}</td>
                         <td>{intervals.out1}</td>
@@ -307,22 +313,21 @@ export default function AdminPrintPreviewPage() {
                         <td>{worked}</td>
                         <td>{afternoonStr}</td>
                         <td>{weekendStr}</td>
-                        <td>{noteParts.join(" | ")}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
               <div className="footer">
-                <div className="pill">Celkem: {formatHours(stats.totalMins)} h</div>
+                <div className="pill">Celkem: {formatHoursComma(stats.totalMins)} h</div>
                 <div className="pill" style={{ background: "#0b4f2f" }}>
-                  Pracovni fond: {formatHours(workingFund)} h
+                  Pracovni fond: {formatHoursComma(workingFund)} h
                 </div>
                 <div className="pill" style={{ background: "#6b21a8" }}>
-                  Víkendy+svatky: {formatHours(stats.weekendHolidayMins)} h
+                  Víkendy+svatky: {formatHoursComma(stats.weekendHolidayMins)} h
                 </div>
                 <div className="pill" style={{ background: "#9a3412" }}>
-                  Odpoledne: {formatHours(stats.afternoonMins)} h
+                  Odpoledne: {formatHoursComma(stats.afternoonMins)} h
                 </div>
               </div>
               <div className="small" style={{ marginTop: 6 }}>Pauzy: automaticky odcitano po 30 minutach podle firemniho rezimu.</div>
