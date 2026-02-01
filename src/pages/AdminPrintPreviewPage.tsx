@@ -86,9 +86,9 @@ export default function AdminPrintPreviewPage() {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const parsed = parseMonth(month);
-  const parsedMonth = parsed ?? { year: 1970, month: 1 };
-  const hasValidMonth = Boolean(parsed);
+  const parsed = useMemo(() => parseMonth(month), [month]);
+  const parsedMonth = useMemo(() => parsed ?? { year: 1970, month: 1 }, [parsed]);
+  const hasValidMonth = parsed !== null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [docs, setDocs] = useState<DocRecord[]>([]);
