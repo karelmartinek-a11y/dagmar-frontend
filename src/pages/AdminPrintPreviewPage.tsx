@@ -270,16 +270,16 @@ export default function AdminPrintPreviewPage() {
                 <thead>
                   <tr>
                     <th style={{ width: "60%" }}>Datum</th>
-                    <th style={{ width: 90 }}>Den</th>
-                    <th style={{ width: 82 }}>Prichod 1</th>
-                    <th style={{ width: 82 }}>Odchod 1</th>
-                    <th style={{ width: 82 }}>Prichod 2</th>
-                    <th style={{ width: 82 }}>Odchod 2</th>
-                    <th style={{ width: 82 }}>Prichod 3</th>
-                    <th style={{ width: 82 }}>Odchod 3</th>
-                    <th style={{ width: 80 }}>Odprac.</th>
-                    <th style={{ width: 90 }}>Odpoledne</th>
-                    <th style={{ width: 110 }}>Vikend+Svátek</th>
+                    <th style={{ width: 110 }}>Den v týdnu</th>
+                    <th style={{ width: 104 }}>Příchod 1</th>
+                    <th style={{ width: 104 }}>Odchod 1</th>
+                    <th style={{ width: 104 }}>Příchod 2</th>
+                    <th style={{ width: 104 }}>Odchod 2</th>
+                    <th style={{ width: 104 }}>Příchod 3</th>
+                    <th style={{ width: 104 }}>Odchod 3</th>
+                    <th style={{ width: 88 }}>Odprac.</th>
+                    <th style={{ width: 96 }}>Odpoledne</th>
+                    <th style={{ width: 120 }}>Víkend + svátek</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -302,7 +302,7 @@ export default function AdminPrintPreviewPage() {
                     return (
                       <tr key={d.date} className={rowClass}>
                         <td>{formatDateLong(d.date)}</td>
-                        <td>{d.dow.toUpperCase()}</td>
+                        <td style={{ whiteSpace: "nowrap" }}>{d.dow.charAt(0).toUpperCase() + d.dow.slice(1)}</td>
                         <td>{intervals.in1}</td>
                         <td>{intervals.out1}</td>
                         <td>{intervals.in2}</td>
@@ -332,41 +332,42 @@ export default function AdminPrintPreviewPage() {
         const totalPlanMins = plannedMinutes(doc.row);
         return (
           <div key={doc.instance.id + "-plan"} className="sheet">
-            <h1>{label} · PLAN SMEN</h1>
+            <h1>{label} · PLÁN SMĚN</h1>
             <h2>{doc.instance.display_name ?? doc.instance.id}</h2>
             <table aria-label="Plan smen">
               <thead>
                 <tr>
-                  <th style={{ width: 80 }}>Datum</th>
-                  <th style={{ width: 50 }}>Den</th>
-                  <th style={{ width: 100 }}>Plan prichod</th>
-                  <th style={{ width: 100 }}>Plan odchod</th>
-                  <th>Poznamka</th>
+                  <th style={{ width: "60%" }}>Datum</th>
+                  <th style={{ width: 120 }}>Den v týdnu</th>
+                  <th style={{ width: 140 }}>Příchod</th>
+                  <th style={{ width: 140 }}>Odchod</th>
                 </tr>
               </thead>
               <tbody>
                 {doc.row.days.map((day) => {
                   const holidayName = getCzechHolidayName(day.date);
                   const weekend = isWeekendDate(day.date);
-                  const dow = new Date(day.date).toLocaleDateString("cs-CZ", { weekday: "short" });
+                  const dow = new Date(day.date).toLocaleDateString("cs-CZ", { weekday: "long" });
                   const rowClass = holidayName ? "row-holiday" : weekend ? "row-weekend" : "";
-                  const note = holidayName ? holidayName : "";
                   return (
                     <tr key={day.date} className={rowClass}>
-                      <td>{day.date}</td>
-                      <td>{dow.toUpperCase()}</td>
+                      <td>{formatDateLong(day.date)}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{dow.charAt(0).toUpperCase() + dow.slice(1)}</td>
                       <td>{day.arrival_time ?? ""}</td>
                       <td>{day.departure_time ?? ""}</td>
-                      <td>{note}</td>
                     </tr>
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td>Součet plán</td>
+                  <td>{formatHoursComma(totalPlanMins)} h</td>
+                  <td>Fond: {formatHoursComma(workingDaysInMonthCs(parsedMonth.year, parsedMonth.month) * 60 * 8)} h</td>
+                </tr>
+              </tfoot>
             </table>
-            <div className="footer">
-              <div className="pill">Planovano: {formatHours(totalPlanMins)} h</div>
-              <div className="pill" style={{ background: "#0b4f2f" }}>Pracovni fond: {formatHours(workingDaysInMonthCs(parsedMonth.year, parsedMonth.month) * 60 * 8)} h</div>
-            </div>
           </div>
         );
       })}
