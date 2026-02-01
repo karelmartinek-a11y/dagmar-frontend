@@ -624,13 +624,38 @@ button, input { font-family: inherit; }
   padding: 12px;
 }
 
+.plan-table-top-scroll,
+.plan-table-bottom-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 12px;
+  background: #f6f9ff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: var(--radius);
+  border-bottom: none;
+}
+
+.plan-table-bottom-scroll {
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+  border-top: 1px solid rgba(15, 23, 42, 0.12);
+  border-bottom: none;
+}
+
+.plan-table-top-scroll > div,
+.plan-table-bottom-scroll > div {
+  height: 1px;
+}
+
 .plan-table-wrapper {
   overflow: auto;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-left: 1px solid rgba(15, 23, 42, 0.12);
+  border-right: 1px solid rgba(15, 23, 42, 0.12);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
   max-height: calc(100vh - 260px);
-  border-radius: var(--radius);
-  background: #f6f9ff;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: #ffffff;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
 }
 
 .plan-table {
@@ -638,25 +663,44 @@ button, input { font-family: inherit; }
   border-collapse: collapse;
   font-size: 13px;
   min-width: 980px;
+  table-layout: fixed;
 }
 
 .plan-table-th,
 .plan-table-cell {
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 6px 8px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 4px 6px;
   text-align: center;
   min-width: 60px;
-  background: white;
+  background: #ffffff;
   box-sizing: border-box;
 }
 
 .plan-table-th {
   background: rgba(246, 249, 255, 0.95);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  min-height: 60px;
   position: sticky;
   top: 0;
   z-index: 2;
+}
+
+.plan-table-th--name {
+  text-align: left;
+  padding-left: 14px;
+  font-size: 12px;
+  letter-spacing: normal;
+}
+
+.plan-table-th--type {
+  text-align: left;
+  padding-left: 12px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
 }
 
 .plan-table-th--weekend,
@@ -689,29 +733,36 @@ button, input { font-family: inherit; }
 
 .plan-name-cell {
   text-align: left;
-  padding: 10px 12px;
-  vertical-align: top;
-  background: rgba(246, 249, 255, 0.95);
+  padding: 8px 12px;
+  vertical-align: middle;
+  background: rgba(246, 249, 255, 0.92);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
+  gap: 5px;
   height: 100%;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .plan-name {
   font-weight: 800;
-  font-size: 16px;
-  line-height: 1.2;
+  font-size: 15px;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .plan-template {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
 }
 
 .plan-row-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   font-size: 11px;
   font-weight: 700;
@@ -720,42 +771,44 @@ button, input { font-family: inherit; }
 
 .plan-row-meta span {
   background: rgba(37, 99, 235, 0.08);
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 2px 8px;
+  border-radius: 8px;
 }
+
+.plan-table-row.plan-table-row-header td,
 .plan-table-row.plan-table-row-footer td {
-  border-bottom: 3px solid #0b5bd3;
+  border-bottom: none;
 }
 
-.plan-table-row.plan-table-row-footer td:first-child {
-  border-bottom-left-radius: 0;
-}
-
-.plan-table-row.plan-table-row-footer td:last-child {
-  border-bottom-right-radius: 0;
-}
-
-.plan-table-row.plan-table-row-footer ~ tr td {
-  border-top: none;
+.plan-table-cell {
+  height: 36px;
+  position: relative;
 }
 
 .plan-table-input {
-  height: 16px;
-  line-height: 16px;
-  font-size: 13px;
-  padding: 1px 4px;
+  height: 26px;
+  line-height: 26px;
+  font-size: 12px;
+  padding: 0 6px;
   border-radius: 4px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.18);
   text-align: center;
   width: 100%;
   box-sizing: border-box;
+  letter-spacing: 0.2px;
 }
 
 .plan-type-cell {
-  background: rgba(246, 249, 255, 0.9);
+  background: rgba(246, 249, 255, 0.95);
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .plan-table-input:focus {
@@ -765,9 +818,15 @@ button, input { font-family: inherit; }
 }
 
 .plan-saving {
-  font-size: 11px;
+  font-size: 10px;
   color: #0f5fff;
-  min-height: 14px;
+  position: absolute;
+  right: 6px;
+  bottom: 3px;
+  line-height: 1;
+}
+.plan-saving:empty {
+  display: none;
 }
 
 .plan-empty-state {

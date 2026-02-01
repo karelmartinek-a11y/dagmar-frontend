@@ -1,4 +1,4 @@
-import { ChangeEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   adminGetShiftPlanMonth,
   adminSetShiftPlanSelection,
@@ -249,6 +249,72 @@ export default function AdminShiftPlanPage() {
     }
   };
   const rows = plan?.rows ?? [];
+  const tableWrapperRef = useRef<HTMLDivElement | null>(null);
+  const topScrollRef = useRef<HTMLDivElement | null>(null);
+  const bottomScrollRef = useRef<HTMLDivElement | null>(null);
+  const [tableScrollWidth, setTableScrollWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const wrapper = tableWrapperRef.current;
+    if (!wrapper) {
+      return;
+    }
+    const updateWidth = () => setTableScrollWidth(wrapper.scrollWidth);
+    updateWidth();
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            updateWidth();
+          })
+        : null;
+    if (observer) {
+      observer.observe(wrapper);
+    }
+    const handleResize = () => updateWidth();
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", handleResize);
+    }
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+      if (typeof window !== "undefined") {
+        window.removeEventListener("resize", handleResize);
+      }
+    };
+  }, [rows.length, days.length]);
+
+  useEffect(() => {
+    const wrapper = tableWrapperRef.current;
+    const top = topScrollRef.current;
+    const bottom = bottomScrollRef.current;
+    if (!wrapper) {
+      return;
+    }
+    const syncScroller = (source: HTMLDivElement) => {
+      const scrollLeft = source.scrollLeft;
+      if (wrapper) {
+        wrapper.scrollLeft = scrollLeft;
+      }
+      if (top && source !== top) {
+        top.scrollLeft = scrollLeft;
+      }
+      if (bottom && source !== bottom) {
+        bottom.scrollLeft = scrollLeft;
+      }
+    };
+    const onWrapperScroll = () => syncScroller(wrapper);
+    const onTopScroll = () => top && syncScroller(top);
+    const onBottomScroll = () => bottom && syncScroller(bottom);
+    wrapper.addEventListener("scroll", onWrapperScroll);
+    top?.addEventListener("scroll", onTopScroll);
+    bottom?.addEventListener("scroll", onBottomScroll);
+    return () => {
+      wrapper.removeEventListener("scroll", onWrapperScroll);
+      top?.removeEventListener("scroll", onTopScroll);
+      bottom?.removeEventListener("scroll", onBottomScroll);
+    };
+  }, [rows.length]);
 
   return (
     <div className="plan-page">
@@ -301,33 +367,44 @@ export default function AdminShiftPlanPage() {
           Vyberte zařízení nahoře a vytvořte plán – každý záznam má dvě řady (odchody a příchody) pro jeden měsíc.
         </div>
       ) : (
-        <div className="plan-table-wrapper">
-          <table className="plan-table">
-            <thead>
-              <tr>
-                <th className="plan-table-th" rowSpan={2}>
-                  Entita / řádek
-                </th>
-                <th className="plan-table-th" rowSpan={2}>
-                  Typ
-                </th>
+        <>
+          <div className="plan-table-top-scroll" ref={topScrollRef}>
+            <div style={{ width: tableScrollWidth }} />
+          </div>
+          <div className="plan-table-wrapper" ref={tableWrapperRef}>
+            <table className="plan-table">
+              <colgroup>
+                <col style={{ width: 320 }} />
+                <col style={{ width: 120 }} />
                 {days.map((day) => (
-                  <th
-                    className={`plan-table-th${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
-                    key={`header-${day.date}`}
-                  >
-                    <div className="plan-table-day">{day.number}</div>
-                    <div className="plan-table-weekday">{day.weekday.toUpperCase()}</div>
-                    {day.isWeekendOrHoliday ? (
-                      <div className="plan-table-hint">
-                        {day.isHoliday ? "Svatek" : "Víkend"}
-                      </div>
-                    ) : null}
-                  </th>
+                  <col key={`col-${day.date}`} style={{ width: 70 }} />
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th className="plan-table-th plan-table-th--name" rowSpan={2}>
+                    Jméno
+                  </th>
+                  <th className="plan-table-th plan-table-th--type" rowSpan={2}>
+                    Typ
+                  </th>
+                  {days.map((day) => (
+                    <th
+                      className={`plan-table-th${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-${day.date}`}
+                    >
+                      <div className="plan-table-day">{day.number}</div>
+                      <div className="plan-table-weekday">{day.weekday.toUpperCase()}</div>
+                      {day.isWeekendOrHoliday ? (
+                        <div className="plan-table-hint">
+                          {day.isHoliday ? "Svatek" : "Víkend"}
+                        </div>
+                      ) : null}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
               {rows.map((row) => {
                 const rowId = row.instance_id;
                 const dayMap = row.days.reduce((acc, d) => {
@@ -341,8 +418,8 @@ export default function AdminShiftPlanPage() {
                         <div className="plan-name">{row.display_name ?? rowId}</div>
                         <div className="plan-template">{row.employment_template}</div>
                         <div className="plan-row-meta">
-                          <span>Plán: {formatHours(plannedMinutes(row))} h</span>
                           <span>Fond: {workingFundHours} h</span>
+                          <span>Plán: {formatHours(plannedMinutes(row))} h</span>
                         </div>
                       </td>
                       <td className="plan-type-cell">Příchody</td>
@@ -414,6 +491,10 @@ export default function AdminShiftPlanPage() {
             </tbody>
           </table>
         </div>
+        <div className="plan-table-bottom-scroll" ref={bottomScrollRef}>
+          <div style={{ width: tableScrollWidth }} />
+        </div>
+      </>
       )}
     </div>
   );
