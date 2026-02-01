@@ -53,7 +53,7 @@ function dayList(year: number, month: number) {
   const dt = new Date(year, month - 1, 1);
   while (dt.getMonth() === month - 1) {
     const iso = `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}`;
-    days.push({ date: iso, dow: dt.toLocaleDateString("cs-CZ", { weekday: "short" }) });
+    days.push({ date: iso, dow: dt.toLocaleDateString("cs-CZ", { weekday: "long" }) });
     dt.setDate(dt.getDate() + 1);
   }
   return days;
@@ -270,14 +270,14 @@ export default function AdminPrintPreviewPage() {
               <table aria-label="Dochazka">
                 <thead>
                   <tr>
-                    <th style={{ width: 140 }}>Datum</th>
-                    <th style={{ width: 50 }}>Den</th>
-                    <th style={{ width: 65 }}>Prichod 1</th>
-                    <th style={{ width: 65 }}>Odchod 1</th>
-                    <th style={{ width: 65 }}>Prichod 2</th>
-                    <th style={{ width: 65 }}>Odchod 2</th>
-                    <th style={{ width: 65 }}>Prichod 3</th>
-                    <th style={{ width: 65 }}>Odchod 3</th>
+                    <th style={{ width: "60%" }}>Datum</th>
+                    <th style={{ width: 90 }}>Den</th>
+                    <th style={{ width: 82 }}>Prichod 1</th>
+                    <th style={{ width: 82 }}>Odchod 1</th>
+                    <th style={{ width: 82 }}>Prichod 2</th>
+                    <th style={{ width: 82 }}>Odchod 2</th>
+                    <th style={{ width: 82 }}>Prichod 3</th>
+                    <th style={{ width: 82 }}>Odchod 3</th>
                     <th style={{ width: 80 }}>Odprac.</th>
                     <th style={{ width: 90 }}>Odpoledne</th>
                     <th style={{ width: 110 }}>Vikend+Svátek</th>
