@@ -260,6 +260,8 @@ export default function AdminPrintPreviewPage() {
         .small { color: #6b7280; font-size: 11px; }
         .signature { margin-top: 14px; font-size: 10px; color: #6b7280; text-align: center; }
         @media print { body { background: white; } .sheet { box-shadow: none; margin: 0 auto; } }
+        .t-center { text-align: center; }
+        .t-right { text-align: right; }
       `}</style>
 
       {loading ? <div className="card">Nacitam data...</div> : null}
@@ -278,7 +280,6 @@ export default function AdminPrintPreviewPage() {
                 <thead>
                   <tr>
                     <th style={{ width: "60%" }}>Datum</th>
-                    <th style={{ width: 110 }}>Den v týdnu</th>
                     <th style={{ width: 104 }}>STAMP1</th>
                     <th style={{ width: 104 }}>STAMP2</th>
                     <th style={{ width: 104 }}>STAMP3</th>
@@ -286,8 +287,8 @@ export default function AdminPrintPreviewPage() {
                     <th style={{ width: 104 }}>STAMP5</th>
                     <th style={{ width: 104 }}>STAMPT6</th>
                     <th style={{ width: 88 }}>CELKEM</th>
-                    <th style={{ width: 96 }}>ODP</th>
-                    <th style={{ width: 120 }}>SONESV</th>
+                    <th style={{ width: 88 }}>ODP</th>
+                    <th style={{ width: 88 }}>SONESV</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -310,26 +311,25 @@ export default function AdminPrintPreviewPage() {
                     return (
                       <tr key={d.date} className={rowClass}>
                         <td>{formatDateLong(d.date)}</td>
-                        <td style={{ whiteSpace: "nowrap" }}>{d.dow.charAt(0).toUpperCase() + d.dow.slice(1)}</td>
-                        <td>{intervals.in1}</td>
-                        <td>{intervals.out1}</td>
-                        <td>{intervals.in2}</td>
-                        <td>{intervals.out2}</td>
-                        <td>{intervals.in3}</td>
-                        <td>{intervals.out3}</td>
-                        <td>{worked}</td>
-                        <td>{afternoonStr}</td>
-                        <td>{weekendStr}</td>
+                        <td className="t-center">{intervals.in1}</td>
+                        <td className="t-center">{intervals.out1}</td>
+                        <td className="t-center">{intervals.in2}</td>
+                        <td className="t-center">{intervals.out2}</td>
+                        <td className="t-center">{intervals.in3}</td>
+                        <td className="t-center">{intervals.out3}</td>
+                        <td className="t-right">{worked}</td>
+                        <td className="t-right">{afternoonStr}</td>
+                        <td className="t-right">{weekendStr}</td>
                       </tr>
                     );
                   })}
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={8}></td>
-                    <td>{formatHoursComma(stats.totalMins)} h</td>
-                    <td>{formatHoursComma(stats.afternoonMins)} h</td>
-                    <td>{formatHoursComma(stats.weekendHolidayMins)} h</td>
+                    <td colSpan={6}></td>
+                    <td className="t-right">{formatHoursComma(stats.totalMins)} h</td>
+                    <td className="t-right">{formatHoursComma(stats.afternoonMins)} h</td>
+                    <td className="t-right">{formatHoursComma(stats.weekendHolidayMins)} h</td>
                   </tr>
                 </tfoot>
               </table>
