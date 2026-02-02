@@ -252,10 +252,10 @@ export default function AdminPrintPreviewPage() {
         h1 { margin: 0 0 4px 0; font-size: 18px; color: #000000; }
         h2 { margin: 0 0 12px 0; font-size: 14px; color: #000000; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; color: #000000; }
-        th, td { border: 1px solid #000000; padding: 4px 6px; text-align: left; }
+        th, td { border: 0.5px solid #000000; padding: 4px 6px; text-align: left; }
         th { background: #000000; color: #ffffff; font-weight: 700; }
         .row-weekend { background: #ffffff; }
-        .row-holiday { background: #ffffff; border-left: 2px solid #000000; }
+        .row-holiday { background: #ffffff; border-left: 1px solid #000000; }
         .footer { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; font-size: 12px; color: #000000; }
         .pill { background: #000000; color: #ffffff; padding: 6px 10px; border-radius: 0; display: inline-block; font-weight: 700; }
         .small { color: #000000; font-size: 11px; }
