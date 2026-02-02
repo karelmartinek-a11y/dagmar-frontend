@@ -23,30 +23,6 @@ function parseYYYYMM(s: string): { year: number; month: number } | null {
   return { year, month };
 }
 
-function prevMonth(yyyyMmStr: string): string {
-  const parsed = parseYYYYMM(yyyyMmStr);
-  if (!parsed) return yyyyMmStr;
-  let { year, month } = parsed;
-  month -= 1;
-  if (month < 1) {
-    month = 12;
-    year -= 1;
-  }
-  return `${year}-${pad2(month)}`;
-}
-
-function nextMonth(yyyyMmStr: string): string {
-  const parsed = parseYYYYMM(yyyyMmStr);
-  if (!parsed) return yyyyMmStr;
-  let { year, month } = parsed;
-  month += 1;
-  if (month > 12) {
-    month = 1;
-    year += 1;
-  }
-  return `${year}-${pad2(month)}`;
-}
-
 function monthLabel(yyyyMmStr: string) {
   const parsed = parseYYYYMM(yyyyMmStr);
   if (!parsed) return yyyyMmStr;
@@ -58,6 +34,19 @@ function toDowLabel(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map((x) => parseInt(x, 10));
   const dt = new Date(y, m - 1, d);
   return dt.toLocaleDateString("cs-CZ", { weekday: "short" });
+}
+
+function isoToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function addMonths(yyyyMmStr: string, delta: number) {
+  const parsed = parseYYYYMM(yyyyMmStr);
+  if (!parsed) return yyyyMmStr;
+  const dt = new Date(parsed.year, parsed.month - 1, 1);
+  dt.setMonth(dt.getMonth() + delta);
+  return yyyyMm(dt);
 }
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -104,8 +93,8 @@ export default function AdminAttendanceSheetsPage() {
 
   const nowMonth = yyyyMm(new Date());
   const isCurrentMonth = month === nowMonth;
+  const today = isoToday();
 
-  const [savingByKey, setSavingByKey] = useState<Record<string, boolean>>({});
   const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -232,7 +221,6 @@ export default function AdminAttendanceSheetsPage() {
     );
 
     const key = `${date}:${field}`;
-    setSavingByKey((prev) => ({ ...prev, [key]: true }));
     setErrorByKey((prev) => {
       const next = { ...prev };
       delete next[key];
@@ -245,7 +233,7 @@ export default function AdminAttendanceSheetsPage() {
       const msg = err instanceof ApiError ? err.message : errorMessage(err, "Uložení se nezdařilo.");
       setErrorByKey((prev) => ({ ...prev, [key]: msg }));
     } finally {
-      setSavingByKey((prev) => ({ ...prev, [key]: false }));
+      /* no-op */
     }
   }
 
@@ -392,46 +380,44 @@ export default function AdminAttendanceSheetsPage() {
             <div style={{ color: "var(--muted)" }}>Vyberte instanci vlevo.</div>
           ) : (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div
+              <div style={{ minHeight: "100vh", background: "#f6f8fb", borderRadius: 16, overflow: "hidden", border: "1px solid var(--line)" }}>
+                <header
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 10,
+                    backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
+                    color: "white",
+                    borderBottom: "1px solid rgba(255,255,255,0.18)",
+                    padding: "14px 16px",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 800,
-                      overflow: "hidden",
-                      textTransform: "uppercase",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {`${monthLabel(month).toUpperCase()} · ${selected.display_name || "—"}`}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {monthLabel(month).toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {selected.display_name || selected.id}
+                    </div>
                   </div>
                   <div
                     style={{
+                      marginTop: 10,
                       display: "grid",
                       gridTemplateColumns: "auto 1fr auto",
                       alignItems: "center",
                       gap: 12,
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setMonth((m) => prevMonth(m))}
-                      style={attendanceNavButtonStyle()}
-                      aria-label="Předchozí měsíc"
-                    >
+                    <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={headerNavButtonStyle()} aria-label="Předchozí měsíc">
                       ←
                     </button>
                     <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
                       <button
                         type="button"
                         onClick={() => setMonth(yyyyMm(new Date()))}
-                        style={attendanceActionButtonStyle(isCurrentMonth)}
+                        style={headerActionButtonStyle()}
+                        aria-label="Aktuální měsíc"
                         disabled={isCurrentMonth}
                       >
                         Teď
@@ -439,188 +425,203 @@ export default function AdminAttendanceSheetsPage() {
                       <button
                         type="button"
                         onClick={() => setRefreshTick((t) => t + 1)}
-                        style={attendanceActionButtonStyle(false)}
-                        disabled={daysLoading}
+                        style={headerActionButtonStyle()}
+                        aria-label="Obnovit"
                       >
                         Obnovit
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setMonth((m) => nextMonth(m))}
-                      style={attendanceNavButtonStyle()}
-                      aria-label="Další měsíc"
-                    >
+                    <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={headerNavButtonStyle()} aria-label="Další měsíc">
                       →
                     </button>
                   </div>
-                </div>
-              </div>
+                </header>
 
-              {daysError ? (
-                <div
-                  style={{
-                    marginTop: 12,
-                    border: "1px solid rgba(239,68,68,0.35)",
-                    background: "rgba(239,68,68,0.08)",
-                    borderRadius: 12,
-                    padding: 12,
-                    color: "#b91c1c",
-                    fontSize: 13,
-                  }}
-                >
-                  {daysError}
-                </div>
-              ) : null}
-
-              <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                {daysLoading ? <div style={{ color: "var(--muted)", fontSize: 13 }}>Načítám…</div> : null}
-                {days && days.length > 0 ? (
+                {daysError ? (
                   <div
-                    className="attendance-grid-row attendance-grid-header"
                     style={{
-                      borderRadius: 16,
+                      margin: "12px 16px 0 16px",
+                      border: "1px solid rgba(239,68,68,0.35)",
+                      background: "rgba(239,68,68,0.08)",
+                      borderRadius: 12,
                       padding: 12,
-                      background: "rgba(2,132,199,0.06)",
-                      border: "1px solid rgba(15, 23, 42, 0.08)",
-                      boxShadow: "none",
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                      gap: 10,
+                      color: "#b91c1c",
+                      fontSize: 13,
                     }}
                   >
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Den</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Příchod</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Odchod</div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
+                    {daysError}
                   </div>
                 ) : null}
-                {days?.map((d) => {
-                  const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
-                  const mins = calc.workedMins;
-                  const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
-                  const hoursTitle =
-                    template === "HPP" && mins !== null
-                      ? `Odpolední: ${formatHours(calc.afternoonMins)} h • Víkend/svátek: ${formatHours(calc.weekendHolidayMins)} h${calc.breakTooltip ? ` • ${calc.breakTooltip}` : ""}`
-                      : undefined;
-                  return (
+
+                <div style={{ padding: "12px 16px 0 16px", display: "grid", gap: 10 }}>
+                  {daysLoading ? <div style={{ color: "var(--muted)", fontSize: 13 }}>Načítám…</div> : null}
+                  {days && days.length > 0 ? (
                     <div
-                      key={d.date}
-                      className="attendance-grid-row"
+                      className="attendance-grid-row attendance-grid-header"
                       style={{
-                        background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "rgba(255,255,255,0.86)",
-                        borderRadius: 16,
-                        padding: 14,
+                        ...cardStyle(),
+                        padding: 12,
+                        background: "rgba(2,132,199,0.06)",
                         border: "1px solid rgba(15, 23, 42, 0.08)",
-                        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
+                        boxShadow: "none",
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                        gap: 10,
+                        gap: 12,
                         alignItems: "center",
                       }}
                     >
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{d.date.slice(8, 10)}.</div>
-                        <div style={{ fontSize: 12, color: "#475569" }}>
-                          {toDowLabel(d.date)}
-                          {template === "HPP" && calc.holidayName ? ` • ${calc.holidayName}` : ""}
-                        </div>
-                        {template === "HPP" && calc.breakLabel ? (
-                          <div
-                            title={calc.breakTooltip ?? undefined}
-                            style={{
-                              display: "inline-block",
-                              marginTop: 6,
-                              fontSize: 11,
-                              fontWeight: 800,
-                              color: "#0f172a",
-                              background: "rgba(15,23,42,0.08)",
-                              border: "1px solid rgba(15,23,42,0.12)",
-                              padding: "4px 8px",
-                              borderRadius: 999,
-                            }}
-                          >
-                            {calc.breakLabel}
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <TimeInput
-                        label="Příchod"
-                        placeholder="HH:MM"
-                        value={d.arrival_time ?? ""}
-                        saving={!!savingByKey[`${d.date}:arrival_time`]}
-                        error={errorByKey[`${d.date}:arrival_time`] ?? null}
-                        onCommit={(v) => commitTime(d.date, "arrival_time", v)}
-                      />
-
-                      <TimeInput
-                        label="Odchod"
-                        placeholder="HH:MM"
-                        value={d.departure_time ?? ""}
-                        saving={!!savingByKey[`${d.date}:departure_time`]}
-                        error={errorByKey[`${d.date}:departure_time`] ?? null}
-                        onCommit={(v) => commitTime(d.date, "departure_time", v)}
-                      />
-                      <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins !== null ? "#0f172a" : "var(--muted)" }}>
-                        {mins !== null ? `${formatHours(mins)} h` : "—"}
-                      </div>
-                      {(d.planned_arrival_time || d.planned_departure_time) ? (
-                        <div style={{ gridColumn: "1 / -1", marginTop: 6, fontSize: 12, color: "rgba(15,23,42,0.55)" }}>
-                          Plán: {d.planned_arrival_time ?? "—"} – {d.planned_departure_time ?? "—"}
-                        </div>
-                      ) : null}
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Den</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Příchod</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Odchod</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
                     </div>
-                  );
-                })}
-              </div>
+                  ) : null}
+                  {days?.map((d) => {
+                    const hasPlan = Boolean(d.planned_arrival_time || d.planned_departure_time);
+                    const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
+                    const mins = calc.workedMins;
+                    const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
+                    const isToday = d.date === today;
+                    const hoursTitle =
+                      template === "HPP" && mins !== null
+                        ? `Odpolední: ${formatHours(calc.afternoonMins)} h • Víkend/svátek: ${formatHours(calc.weekendHolidayMins)} h${calc.breakTooltip ? ` • ${calc.breakTooltip}` : ""}`
+                        : undefined;
+                    return (
+                      <div
+                        key={d.date}
+                        className="attendance-grid-row"
+                        style={{
+                          ...cardStyle(),
+                          border: isToday
+                            ? "2px solid rgba(37, 99, 235, 0.55)"
+                            : hasPlan
+                              ? "2px solid rgba(14, 116, 144, 0.45)"
+                              : "1px solid rgba(15, 23, 42, 0.08)",
+                          boxShadow: isToday
+                            ? "0 8px 24px rgba(37,99,235,0.12)"
+                            : hasPlan
+                              ? "0 8px 20px rgba(14, 116, 144, 0.10)"
+                              : "0 6px 18px rgba(15, 23, 42, 0.06)",
+                          background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "white",
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                          gap: 12,
+                          alignItems: "center",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{d.date.slice(8, 10)}.</div>
+                          <div style={{ fontSize: 12, color: "#475569" }}>
+                            {toDowLabel(d.date)}
+                            {template === "HPP" && calc.holidayName ? ` • ${calc.holidayName}` : ""}
+                          </div>
+                          {template === "HPP" && calc.breakLabel ? (
+                            <div
+                              title={calc.breakTooltip ?? undefined}
+                              style={{
+                                display: "inline-block",
+                                marginTop: 6,
+                                fontSize: 11,
+                                fontWeight: 800,
+                                color: "#0f172a",
+                                background: "rgba(15,23,42,0.08)",
+                                border: "1px solid rgba(15,23,42,0.12)",
+                                padding: "4px 8px",
+                                borderRadius: 999,
+                              }}
+                            >
+                              {calc.breakLabel}
+                            </div>
+                          ) : null}
+                          {isToday ? (
+                            <div
+                              style={{
+                                display: "inline-block",
+                                marginTop: 6,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#1d4ed8",
+                                background: "rgba(29, 78, 216, 0.10)",
+                                padding: "4px 8px",
+                                borderRadius: 999,
+                              }}
+                            >
+                              Dnes
+                            </div>
+                          ) : null}
+                        </div>
 
-              <footer
-                style={{
-                  marginTop: 20,
-                  paddingTop: 20,
-                  borderTop: "1px solid var(--line)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                }}
-              >
-                <div
+                        <TimeInput
+                          label="Příchod"
+                          placeholder="HH:MM"
+                          value={d.arrival_time ?? ""}
+                          plannedValue={d.planned_arrival_time}
+                          error={errorByKey[`${d.date}:arrival_time`] ?? null}
+                          onCommit={(v) => commitTime(d.date, "arrival_time", v)}
+                        />
+
+                        <TimeInput
+                          label="Odchod"
+                          placeholder="HH:MM"
+                          value={d.departure_time ?? ""}
+                          plannedValue={d.planned_departure_time}
+                          error={errorByKey[`${d.date}:departure_time`] ?? null}
+                          onCommit={(v) => commitTime(d.date, "departure_time", v)}
+                        />
+                        <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
+                          {mins !== null ? `${formatHours(mins)} h` : "—"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <footer
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                    gap: 12,
+                    marginTop: 20,
+                    padding: "0 16px 20px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 16,
                   }}
                 >
-                  <FooterStat
-                    label="ID entity"
-                    value={selected.id}
-                    valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }}
-                  />
-                  <FooterStat label="Název entity" value={selected.display_name || "— bez názvu —"} />
-                  <FooterStat label="Součet hodin" value={`${formatHours(monthTotalMins)} h`} />
-                  <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
-                  <FooterStat label="Odpolední" value={`${formatHours(monthStats.afternoonMins)} h`} />
-                  <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    type="button"
-                    onClick={() => toggleLock(!locked)}
+                  <div
                     style={{
-                      ...miniBtn(),
-                      width: "auto",
-                      padding: "0 12px",
-                      background: locked ? "#111827" : "#0ea5e9",
-                      color: locked ? "white" : "#0b172a",
-                      border: locked ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(14,165,233,0.35)",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 12,
                     }}
-                    disabled={daysLoading}
                   >
-                    {locked ? "Odemknout" : "UZAVŘÍT MĚSÍC"}
-                  </button>
-                </div>
-              </footer>
+                    <FooterStat
+                      label="ID entity"
+                      value={selected.id}
+                      valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }}
+                    />
+                    <FooterStat label="Název entity" value={selected.display_name || "— bez názvu —"} />
+                    <FooterStat label="Součet hodin" value={`${formatHours(monthTotalMins)} h`} />
+                    <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
+                    <FooterStat label="Odpolední" value={`${formatHours(monthStats.afternoonMins)} h`} />
+                    <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      onClick={() => toggleLock(!locked)}
+                      style={{
+                        ...miniBtn(),
+                        width: "auto",
+                        padding: "0 12px",
+                        background: locked ? "#111827" : "#0ea5e9",
+                        color: locked ? "white" : "#0b172a",
+                        border: locked ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(14,165,233,0.35)",
+                      }}
+                      disabled={daysLoading}
+                    >
+                      {locked ? "Odemknout" : "UZAVŘÍT MĚSÍC"}
+                    </button>
+                  </div>
+                </footer>
+              </div>
             </>
           )}
         </section>
@@ -629,36 +630,43 @@ export default function AdminAttendanceSheetsPage() {
   );
 }
 
-function attendanceNavButtonStyle(): React.CSSProperties {
+function headerNavButtonStyle(): React.CSSProperties {
   return {
     appearance: "none",
-    border: "1px solid var(--line)",
-    background: "white",
-    color: "#0f172a",
+    border: "1px solid rgba(255,255,255,0.35)",
+    background: "rgba(255,255,255,0.12)",
+    color: "white",
     width: 46,
     height: 46,
     minWidth: 46,
-    borderRadius: 12,
+    borderRadius: 14,
     fontSize: 18,
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: "pointer",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 4px 10px rgba(15, 23, 42, 0.08)",
     transition: "transform 120ms ease, box-shadow 120ms ease",
   };
 }
 
-function attendanceActionButtonStyle(disabled: boolean): React.CSSProperties {
+function headerActionButtonStyle(): React.CSSProperties {
   return {
-    ...attendanceNavButtonStyle(),
-    minWidth: 110,
-    width: 110,
+    ...headerNavButtonStyle(),
+    minWidth: 120,
+    width: 120,
     letterSpacing: 0.5,
     textTransform: "uppercase",
-    opacity: disabled ? 0.5 : 1,
-    cursor: disabled ? "not-allowed" : "pointer",
+  };
+}
+
+function cardStyle(): React.CSSProperties {
+  return {
+    background: "white",
+    borderRadius: 16,
+    padding: 14,
+    border: "1px solid rgba(15, 23, 42, 0.08)",
+    boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
   };
 }
 
@@ -690,11 +698,11 @@ function TimeInput(props: {
   label: string;
   placeholder: string;
   value: string;
-  saving: boolean;
+  plannedValue?: string | null;
   error: string | null;
   onCommit: (v: string) => void;
 }) {
-  const { label, placeholder, value, saving, error, onCommit } = props;
+  const { label, placeholder, value, plannedValue, error, onCommit } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -702,16 +710,11 @@ function TimeInput(props: {
   }, [value]);
 
   const ok = isValidTimeOrEmpty(local);
-  const normalized = normalizeTime(local);
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-        <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
-        <div style={{ fontSize: 11, color: saving ? "#0369a1" : "rgba(15,23,42,0.55)", fontWeight: 700, whiteSpace: "nowrap" }}>
-          {saving ? "Ukládám…" : ""}
-        </div>
-      </div>
+      <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
+      {plannedValue ? <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>Plán: {plannedValue}</div> : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}
@@ -719,8 +722,9 @@ function TimeInput(props: {
         onChange={(e) => setLocal(e.target.value)}
         onBlur={() => {
           if (!isValidTimeOrEmpty(local)) return;
-          setLocal(normalized);
-          onCommit(normalized);
+          const norm = normalizeTime(local);
+          setLocal(norm);
+          onCommit(norm);
         }}
         style={{
           width: "100%",
