@@ -126,6 +126,11 @@ type PlanDoc = {
 
 type DocRecord = AttendanceDoc | PlanDoc;
 
+function templateLabel(tpl: AdminInstance["employment_template"]): string {
+  if (tpl === "HPP") return "HPP";
+  return "DPP/DPČ";
+}
+
 export default function AdminPrintPreviewPage() {
   const [params] = useSearchParams();
   const docType = params.get("type") === "plan" ? "plan" : "attendance";
@@ -253,6 +258,7 @@ export default function AdminPrintPreviewPage() {
         .footer { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; font-size: 12px; }
         .pill { background: #0f172a; color: #fff; padding: 6px 10px; border-radius: 8px; display: inline-block; font-weight: 600; }
         .small { color: #6b7280; font-size: 11px; }
+        .signature { margin-top: 14px; font-size: 10px; color: #6b7280; text-align: center; }
         @media print { body { background: white; } .sheet { box-shadow: none; margin: 0 auto; } }
       `}</style>
 
@@ -265,21 +271,23 @@ export default function AdminPrintPreviewPage() {
           return (
             <div key={doc.instance.id + "-att"} className="sheet">
               <h1>{label} · DOCHAZKOVY LIST</h1>
-              <h2>{doc.instance.display_name ?? doc.instance.id}</h2>
+              <h2>
+                {doc.instance.display_name ?? doc.instance.id} · {templateLabel(doc.instance.employment_template)}
+              </h2>
               <table aria-label="Dochazka">
                 <thead>
                   <tr>
                     <th style={{ width: "60%" }}>Datum</th>
                     <th style={{ width: 110 }}>Den v týdnu</th>
-                    <th style={{ width: 104 }}>Příchod 1</th>
-                    <th style={{ width: 104 }}>Odchod 1</th>
-                    <th style={{ width: 104 }}>Příchod 2</th>
-                    <th style={{ width: 104 }}>Odchod 2</th>
-                    <th style={{ width: 104 }}>Příchod 3</th>
-                    <th style={{ width: 104 }}>Odchod 3</th>
-                    <th style={{ width: 88 }}>Odprac.</th>
-                    <th style={{ width: 96 }}>Odpoledne</th>
-                    <th style={{ width: 120 }}>Víkend + svátek</th>
+                    <th style={{ width: 104 }}>STAMP1</th>
+                    <th style={{ width: 104 }}>STAMP2</th>
+                    <th style={{ width: 104 }}>STAMP3</th>
+                    <th style={{ width: 104 }}>STAMP4</th>
+                    <th style={{ width: 104 }}>STAMP5</th>
+                    <th style={{ width: 104 }}>STAMPT6</th>
+                    <th style={{ width: 88 }}>CELKEM</th>
+                    <th style={{ width: 96 }}>ODP</th>
+                    <th style={{ width: 120 }}>SONESV</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,6 +333,7 @@ export default function AdminPrintPreviewPage() {
                   </tr>
                 </tfoot>
               </table>
+              <div className="signature">Tento docházkový list pro Vás zpracovala Dagmar.</div>
             </div>
           );
         }
