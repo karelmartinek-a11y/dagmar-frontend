@@ -324,15 +324,12 @@ export default function AdminPrintPreviewPage() {
                     );
                   })}
                 </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={6}></td>
-                    <td className="t-right">{formatHoursComma(stats.totalMins)} h</td>
-                    <td className="t-right">{formatHoursComma(stats.afternoonMins)} h</td>
-                    <td className="t-right">{formatHoursComma(stats.weekendHolidayMins)} h</td>
-                  </tr>
-                </tfoot>
               </table>
+              <div style={{ display: "grid", gridTemplateColumns: "36% repeat(6, 104px) repeat(3, 88px)", marginTop: 8, fontSize: 12, fontWeight: 800 }}>
+                <div style={{ gridColumn: "8 / 9", textAlign: "right" }}>{formatHoursComma(stats.totalMins)} h</div>
+                <div style={{ gridColumn: "9 / 10", textAlign: "right" }}>{formatHoursComma(stats.afternoonMins)} h</div>
+                <div style={{ gridColumn: "10 / 11", textAlign: "right" }}>{formatHoursComma(stats.weekendHolidayMins)} h</div>
+              </div>
               <div className="signature">Tento docházkový list pro Vás zpracovala Dagmar.</div>
             </div>
           );
