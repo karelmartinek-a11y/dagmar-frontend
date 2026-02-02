@@ -279,7 +279,7 @@ export default function AdminPrintPreviewPage() {
               <table aria-label="Dochazka">
                 <thead>
                   <tr>
-                    <th style={{ width: "60%" }}>Datum</th>
+                    <th style={{ width: "36%" }}>Datum</th>
                     <th style={{ width: 104 }}>STAMP1</th>
                     <th style={{ width: 104 }}>STAMP2</th>
                     <th style={{ width: 104 }}>STAMP3</th>
@@ -346,7 +346,7 @@ export default function AdminPrintPreviewPage() {
             <table aria-label="Plan smen">
               <thead>
                 <tr>
-                  <th style={{ width: "60%" }}>Datum</th>
+                  <th style={{ width: "36%" }}>Datum</th>
                   <th style={{ width: 120 }}>Den v týdnu</th>
                   <th style={{ width: 140 }}>Příchod</th>
                   <th style={{ width: 140 }}>Odchod</th>
