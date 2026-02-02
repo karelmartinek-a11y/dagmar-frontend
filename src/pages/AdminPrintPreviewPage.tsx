@@ -277,19 +277,7 @@ export default function AdminPrintPreviewPage() {
               <h2>
                 {doc.instance.display_name ?? doc.instance.id} · {templateLabel(doc.instance.employment_template)}
               </h2>
-              <table aria-label="Dochazka" style={{ tableLayout: "fixed" }}>
-                <colgroup>
-                  <col style={{ width: "36%" }} />
-                  <col style={{ width: 104 }} />
-                  <col style={{ width: 104 }} />
-                  <col style={{ width: 104 }} />
-                  <col style={{ width: 104 }} />
-                  <col style={{ width: 104 }} />
-                  <col style={{ width: 104 }} />
-                  <col style={{ width: 88 }} />
-                  <col style={{ width: 88 }} />
-                  <col style={{ width: 88 }} />
-                </colgroup>
+              <table aria-label="Dochazka">
                 <thead>
                   <tr>
                     <th style={{ width: "36%" }}>Datum</th>
