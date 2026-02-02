@@ -327,7 +327,7 @@ export default function AdminPrintPreviewPage() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={7}></td>
+                    <td colSpan={6}></td>
                     <td className="t-right">{formatHoursComma(stats.totalMins)} h</td>
                     <td className="t-right">{formatHoursComma(stats.afternoonMins)} h</td>
                     <td className="t-right">{formatHoursComma(stats.weekendHolidayMins)} h</td>
