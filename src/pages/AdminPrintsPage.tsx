@@ -1,6 +1,8 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { adminListInstances, type AdminInstance } from "../api/admin";
+
+type DocType = "attendance" | "plan";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -14,7 +16,7 @@ export default function AdminPrintsPage() {
   const [instances, setInstances] = useState<AdminInstance[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [docType, setDocType] = useState<"attendance" | "plan">("attendance");
+  const [docType, setDocType] = useState<DocType>("attendance");
   const [month, setMonth] = useState(() => yyyyMm(new Date()));
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -30,7 +32,7 @@ export default function AdminPrintsPage() {
         setInstances(res.instances);
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Nepodarilo se nacist seznam instanci.");
+        setError(err instanceof Error ? err.message : "Nepodařilo se načíst seznam zařízení.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -56,7 +58,7 @@ export default function AdminPrintsPage() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  function selectAll() {
+  function selectAllVisible() {
     setSelectedIds(filtered.map((i) => i.id));
   }
 
@@ -73,56 +75,102 @@ export default function AdminPrintsPage() {
   }
 
   return (
-    <div className="card">
-      <div className="card-header">Tisky</div>
-      <div className="card-body stack" style={{ gap: 16 }}>
-        <p className="muted">
-          Vygeneruje PDF dochazkoveho listu nebo planu smen pro vybrane osoby. Po potvrzeni se otevre nova karta s nahledem a spusti tisk do PDF (A4, stredni okraje).
-        </p>
+    <div className="card pad print-shell">
+      <header className="print-hero">
+        <div className="stack" style={{ gap: 6 }}>
+          <span className="eyebrow">Admin · Tisky</span>
+          <h1 className="print-title">Hromadné PDF výstupy</h1>
+          <p className="muted">
+            Vyberte typ dokumentu, měsíc a osoby. Náhled se otevře v novém okně, stránka zůstane připravená pro další akci.
+          </p>
+        </div>
+        <div className="print-counter">
+          <div className="counter-number">{selectedIds.length}</div>
+          <div className="counter-label">vybraných osob</div>
+        </div>
+      </header>
 
-        <form className="stack" style={{ gap: 14 }} onSubmit={onSubmit}>
-          <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
-            <label className="stack" style={{ gap: 6 }}>
-              <span className="label">Typ dokumentu</span>
-              <select value={docType} onChange={(e) => setDocType(e.target.value as "attendance" | "plan")}> 
-                <option value="attendance">Dochazkovy list</option>
-                <option value="plan">Plan smen</option>
-              </select>
-            </label>
-
-            <label className="stack" style={{ gap: 6 }}>
-              <span className="label">Mesic</span>
-              <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} required />
-            </label>
+      <form className="print-grid" onSubmit={onSubmit}>
+        <section className="print-panel">
+          <div className="panel-head">
+            <div className="eyebrow">Krok 1</div>
+            <div className="panel-title">Parametry tisku</div>
           </div>
+          <div className="panel-body print-params">
+            <div className="stack" style={{ gap: 10 }}>
+              <span className="label">Typ dokumentu</span>
+              <div className="pill-group">
+                <label className={`pill ${docType === "attendance" ? "pill--active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="docType"
+                    value="attendance"
+                    checked={docType === "attendance"}
+                    onChange={() => setDocType("attendance")}
+                  />
+                  Docházkový list
+                </label>
+                <label className={`pill ${docType === "plan" ? "pill--active" : ""}`}>
+                  <input type="radio" name="docType" value="plan" checked={docType === "plan"} onChange={() => setDocType("plan")} />
+                  Docházkový plán
+                </label>
+              </div>
+              <p className="muted small">Volba určuje šablonu dokumentu v náhledu.</p>
+            </div>
 
-          <div className="stack" style={{ gap: 8 }}>
-            <div className="flex" style={{ gap: 8, alignItems: "center" }}>
-              <strong>Vyberte osoby</strong>
-              <input
-                type="search"
-                placeholder="Hledat podle jmena nebo ID"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                style={{ flex: 1, minWidth: 200 }}
-              />
-              <button type="button" className="btn ghost" onClick={selectAll} disabled={filtered.length === 0}>
-                Oznacit vse
+            <div className="stack" style={{ gap: 10 }}>
+              <label className="stack" style={{ gap: 6 }}>
+                <span className="label">Měsíc</span>
+                <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} required />
+              </label>
+              <p className="muted small">Tisky se generují pro celé zvolené kalendářní období.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="print-panel">
+          <div className="panel-head">
+            <div>
+              <div className="eyebrow">Krok 2</div>
+              <div className="panel-title">Výběr osob</div>
+              <p className="muted small">Filtrovat podle jména nebo ID, poté označit pro zahrnutí do PDF.</p>
+            </div>
+            <div className="row" style={{ gap: 8 }}>
+              <button type="button" className="btn ghost" onClick={selectAllVisible} disabled={filtered.length === 0}>
+                Označit vše
               </button>
-              <button type="button" className="btn ghost" onClick={clearAll}>
-                Vycistit
+              <button type="button" className="btn ghost" onClick={clearAll} disabled={selectedIds.length === 0}>
+                Vyčistit
               </button>
             </div>
-            <div className="list" style={{ maxHeight: 320, overflow: "auto", border: "1px solid #e4e9f2", borderRadius: 8, padding: 8 }}>
-              {loading && <div className="muted">Nacitam...</div>}
+          </div>
+
+          <div className="panel-body stack" style={{ gap: 12 }}>
+            <div className="row" style={{ alignItems: "center", gap: 10 }}>
+              <input
+                type="search"
+                className="input"
+                placeholder="Hledat podle jména nebo ID"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ flex: 1, minWidth: 260 }}
+              />
+              <div className="chip">
+                {filtered.length} nalezeno · {selectedIds.length} vybráno
+              </div>
+            </div>
+
+            <div className="print-list">
+              {loading && <div className="muted">Načítám…</div>}
               {error && <div className="error">{error}</div>}
               {!loading && filtered.length === 0 ? <div className="muted">Nic nenalezeno.</div> : null}
+
               {filtered.map((it) => (
-                <label key={it.id} className="flex" style={{ alignItems: "center", gap: 10, padding: "4px 2px" }}>
+                <label key={it.id} className={`print-row ${selectedIds.includes(it.id) ? "print-row--selected" : ""}`}>
                   <input type="checkbox" checked={selectedIds.includes(it.id)} onChange={() => toggle(it.id)} />
                   <div className="stack" style={{ gap: 2 }}>
-                    <span>{it.display_name ?? it.id}</span>
-                    <span className="muted" style={{ fontSize: 12 }}>
+                    <span className="print-name">{it.display_name ?? it.id}</span>
+                    <span className="muted small">
                       {it.id} · {it.employment_template}
                     </span>
                   </div>
@@ -130,17 +178,29 @@ export default function AdminPrintsPage() {
               ))}
             </div>
           </div>
+        </section>
 
-          <div className="flex" style={{ gap: 10, justifyContent: "flex-end" }}>
-            <NavLink to="/admin/instances" className="btn ghost">
-              Zpet
-            </NavLink>
-            <button type="submit" className="btn solid" disabled={selectedIds.length === 0 || !month}>
-              Vygenerovat PDF
-            </button>
+        <section className="print-panel">
+          <div className="panel-head">
+            <div className="eyebrow">Krok 3</div>
+            <div className="panel-title">Potvrzení a tisk</div>
+            <p className="muted small">PDF náhled se otevře v novém panelu. Původní stránka zůstane pro další tisk.</p>
           </div>
-        </form>
-      </div>
+          <div className="panel-body row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+            <div className="muted small">
+              Vybraných osob: <strong>{selectedIds.length}</strong>
+            </div>
+            <div className="row" style={{ gap: 8 }}>
+              <NavLink to="/admin/instances" className="btn ghost">
+                Zpět
+              </NavLink>
+              <button type="submit" className="btn solid" disabled={selectedIds.length === 0 || !month}>
+                Vygenerovat PDF
+              </button>
+            </div>
+          </div>
+        </section>
+      </form>
     </div>
   );
 }

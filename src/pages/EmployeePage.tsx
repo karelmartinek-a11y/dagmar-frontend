@@ -43,7 +43,7 @@ function daysInMonth(yyyy: number, mm1: number) {
 function toDowLabel(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map((x) => parseInt(x, 10));
   const dt = new Date(y, m - 1, d);
-  return dt.toLocaleDateString("cs-CZ", { weekday: "short" });
+  return dt.toLocaleDateString("cs-CZ", { weekday: "long" });
 }
 
 function normalizeTime(value: string): string {
@@ -110,8 +110,20 @@ export function EmployeePage() {
   const cutoffMinutes = useMemo(() => parseCutoffToMinutes(afternoonCutoff), [afternoonCutoff]);
   const [month, setMonth] = useState<string>(() => yyyyMm(new Date()));
   const [rows, setRows] = useState<DayRow[]>([]);
+  const [viewMode, setViewMode] = useState<"attendance" | "plan">("attendance");
   const [monthLocked, setMonthLocked] = useState(false);
-  const monthStats = useMemo(() => computeMonthStats(rows, employmentTemplate, cutoffMinutes), [rows, employmentTemplate, cutoffMinutes]);
+  const displayedRows = useMemo(() => {
+    if (viewMode === "attendance") return rows;
+    return rows.map((r) => ({
+      ...r,
+      arrival_time: r.planned_arrival_time,
+      departure_time: r.planned_departure_time,
+    }));
+  }, [rows, viewMode]);
+  const monthStats = useMemo(
+    () => computeMonthStats(displayedRows, employmentTemplate, cutoffMinutes),
+    [displayedRows, employmentTemplate, cutoffMinutes]
+  );
   const monthTotalMins = monthStats.totalMins;
 
   const [, setQueuedCount] = useState<number>(0);
@@ -445,29 +457,6 @@ export function EmployeePage() {
   const today = isoToday();
   const monthHead = monthLabel(month).toUpperCase();
 
-  function handlePunchNow() {
-    if (monthLocked) {
-      window.alert("Měsíc je uzavřen. Nelze zapisovat nové časy.");
-      return;
-    }
-    const todayRow = rows.find((r) => r.date === today);
-    if (!todayRow) {
-      window.alert("Dnešní den není v aktuálním přehledu.");
-      return;
-    }
-    const now = new Date();
-    const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-    if (!todayRow.arrival_time) {
-      onChangeTime(today, "arrival_time", hhmm);
-      return;
-    }
-    if (!todayRow.departure_time) {
-      onChangeTime(today, "departure_time", hhmm);
-      return;
-    }
-    window.alert("Dnešní den už má vyplněný příchod i odchod, není kam zapsat čas.");
-  }
-
   return (
     <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
@@ -496,9 +485,14 @@ export function EmployeePage() {
             gap: 12,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>{monthHead}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>{displayName || "—"}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>{monthHead}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>{displayName || "—"}</div>
+            </div>
+            <div style={{ fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", fontSize: 14 }}>
+              {viewMode === "plan" ? "Plán směn" : "Docházkový list"}
+            </div>
           </div>
           <div
             style={{
@@ -516,10 +510,16 @@ export function EmployeePage() {
             >
               ←
             </button>
-            <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
-              <button type="button" onClick={handlePunchNow} style={headerActionButtonStyle()} aria-label="Zapsat aktuální čas">
-                TEĎ
-              </button>
+            <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+              {viewMode === "attendance" ? (
+                <button type="button" onClick={() => setViewMode("plan")} style={headerActionButtonStyle()} aria-label="Přepnout na plán směn">
+                  Plán směn
+                </button>
+              ) : (
+                <button type="button" onClick={() => setViewMode("attendance")} style={headerActionButtonStyle()} aria-label="Přepnout na docházkový list">
+                  Docházkový list
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setRefreshTick((t) => t + 1)}
@@ -562,7 +562,7 @@ export function EmployeePage() {
         ) : null}
 
         <div style={{ display: "grid", gap: 10 }}>
-          {rows.length > 0 ? (
+          {displayedRows.length > 0 ? (
             <div
               className="attendance-grid-row attendance-grid-header"
               style={{
@@ -583,7 +583,7 @@ export function EmployeePage() {
               <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
             </div>
           ) : null}
-          {rows.map((r) => {
+          {displayedRows.map((r) => {
             const isToday = r.date === today;
             const hasPlan = Boolean(r.planned_arrival_time || r.planned_departure_time);
             const calc = computeDayCalc(r, employmentTemplate, cutoffMinutes);
@@ -662,7 +662,8 @@ export function EmployeePage() {
                   label="Příchod"
                   placeholder="HH:MM"
                   value={r.arrival_time ?? ""}
-                  plannedValue={r.planned_arrival_time}
+                  plannedValue={viewMode === "attendance" ? r.planned_arrival_time : undefined}
+                  readOnly={viewMode === "plan"}
                   onChange={(v) => onChangeTime(r.date, "arrival_time", v)}
                 />
 
@@ -670,7 +671,8 @@ export function EmployeePage() {
                   label="Odchod"
                   placeholder="HH:MM"
                   value={r.departure_time ?? ""}
-                  plannedValue={r.planned_departure_time}
+                  plannedValue={viewMode === "attendance" ? r.planned_departure_time : undefined}
+                  readOnly={viewMode === "plan"}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
                 />
                 <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
@@ -787,9 +789,10 @@ function TimeInput(props: {
   placeholder: string;
   value: string;
   plannedValue?: string | null;
+  readOnly?: boolean;
   onChange: (v: string) => void;
 }) {
-  const { label, placeholder, value, plannedValue, onChange } = props;
+  const { label, placeholder, value, plannedValue, readOnly, onChange } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -808,8 +811,14 @@ function TimeInput(props: {
         inputMode="numeric"
         placeholder={placeholder}
         value={local}
-        onChange={(e) => setLocal(e.target.value)}
+        readOnly={readOnly}
+        disabled={readOnly}
+        onChange={(e) => {
+          if (readOnly) return;
+          setLocal(e.target.value);
+        }}
         onBlur={() => {
+          if (readOnly) return;
           if (isValidTimeOrEmpty(local)) onChange(local);
         }}
         style={{
@@ -823,10 +832,12 @@ function TimeInput(props: {
           fontSize: 16,
           fontWeight: 700,
           letterSpacing: 0.2,
-          background: ok ? "white" : "rgba(220, 38, 38, 0.05)",
+          background: readOnly ? "rgba(226, 232, 240, 0.6)" : ok ? "white" : "rgba(220, 38, 38, 0.05)",
+          color: readOnly ? "#475569" : undefined,
+          cursor: readOnly ? "not-allowed" : "text",
         }}
       />
-      {!ok ? <div style={{ fontSize: 11, color: "#dc2626" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "#dc2626" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
     </div>
   );
 }

@@ -890,6 +890,134 @@ button, input { font-family: inherit; }
   letter-spacing: 0.3px;
 }
 
+.print-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.print-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  padding: 4px;
+}
+
+.print-title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.print-counter {
+  min-width: 140px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  text-align: right;
+  background: linear-gradient(135deg, rgba(11, 92, 255, 0.07), rgba(34, 178, 255, 0.04));
+  box-shadow: var(--shadow-2);
+}
+
+.counter-number {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.counter-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.print-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.print-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  padding: 14px 16px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  font-weight: 750;
+  font-size: 18px;
+}
+
+.panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.print-params {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.print-list {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  background: var(--surface-2);
+}
+
+.print-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.print-row:hover {
+  background: rgba(11, 92, 255, 0.06);
+}
+
+.print-row--selected {
+  border-color: rgba(11, 92, 255, 0.28);
+  background: rgba(11, 92, 255, 0.05);
+}
+
+.print-name {
+  font-weight: 650;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(11, 92, 255, 0.06);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.small {
+  font-size: 13px;
+}
+
 /* Modal */
 .modal-backdrop {
   position: fixed;
@@ -936,6 +1064,14 @@ button, input { font-family: inherit; }
   .sidebar {
     position: relative;
     top: 0;
+  }
+  .print-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .print-counter {
+    align-self: stretch;
+    text-align: left;
   }
 }
 
