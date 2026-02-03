@@ -457,6 +457,29 @@ export function EmployeePage() {
   const today = isoToday();
   const monthHead = monthLabel(month).toUpperCase();
 
+  function handlePunchNow() {
+    if (monthLocked) {
+      window.alert("Měsíc je uzavřen. Nelze zapisovat nové časy.");
+      return;
+    }
+    const todayRow = rows.find((r) => r.date === today);
+    if (!todayRow) {
+      window.alert("Dnešní den není v aktuálním přehledu.");
+      return;
+    }
+    const now = new Date();
+    const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    if (!todayRow.arrival_time) {
+      onChangeTime(today, "arrival_time", hhmm);
+      return;
+    }
+    if (!todayRow.departure_time) {
+      onChangeTime(today, "departure_time", hhmm);
+      return;
+    }
+    window.alert("Dnešní den už má vyplněný příchod i odchod, není kam zapsat čas.");
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
@@ -487,10 +510,11 @@ export function EmployeePage() {
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>{monthHead}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>{displayName || "—"}</div>
+              <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>
+                {monthHead} - {displayName || "—"}
+              </div>
             </div>
-            <div style={{ fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", fontSize: 14 }}>
+            <div style={{ fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", fontSize: 28 }}>
               {viewMode === "plan" ? "Plán směn" : "Docházkový list"}
             </div>
           </div>
@@ -512,9 +536,24 @@ export function EmployeePage() {
             </button>
             <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
               {viewMode === "attendance" ? (
-                <button type="button" onClick={() => setViewMode("plan")} style={headerActionButtonStyle()} aria-label="Přepnout na plán směn">
-                  Plán směn
-                </button>
+                <>
+                  <button type="button" onClick={() => setViewMode("plan")} style={headerActionButtonStyle()} aria-label="Přepnout na plán směn">
+                    Plán směn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePunchNow}
+                    style={{
+                      ...headerActionButtonStyle(),
+                      background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                      border: "1px solid rgba(220,38,38,0.65)",
+                      boxShadow: "0 8px 18px rgba(220,38,38,0.28)",
+                    }}
+                    aria-label="Zapsat aktuální čas"
+                  >
+                    TEĎ
+                  </button>
+                </>
               ) : (
                 <button type="button" onClick={() => setViewMode("attendance")} style={headerActionButtonStyle()} aria-label="Přepnout na docházkový list">
                   Docházkový list
@@ -767,8 +806,9 @@ function headerNavButtonStyle(): React.CSSProperties {
 function headerActionButtonStyle(): React.CSSProperties {
   return {
     ...headerNavButtonStyle(),
-    minWidth: 120,
-    width: 120,
+    minWidth: 160,
+    width: "auto",
+    padding: "0 16px",
     letterSpacing: 0.5,
     textTransform: "uppercase",
   };
