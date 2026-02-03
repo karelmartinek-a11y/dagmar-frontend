@@ -15,6 +15,7 @@ export type AdminInstance = {
   client_type: ClientType;
   status: InstanceStatus;
   display_name: string | null;
+  profile_instance_id?: string | null;
   created_at: string;
   last_seen_at: string | null;
   afternoon_cutoff?: string | null;
@@ -116,6 +117,17 @@ export async function adminDeactivateInstance(id: string): Promise<{ ok: true }>
   return apiFetch<{ ok: true }>(`/api/v1/admin/instances/${encodeURIComponent(id)}/deactivate`, {
     method: "POST",
     headers: withCsrf(),
+  });
+}
+
+export async function adminMergeInstances(
+  target_id: string,
+  source_ids: string[]
+): Promise<{ ok: true; merged_count: number }> {
+  return apiFetch<{ ok: true; merged_count: number }>("/api/v1/admin/instances/merge", {
+    method: "POST",
+    headers: withCsrf(),
+    body: { target_id, source_ids },
   });
 }
 

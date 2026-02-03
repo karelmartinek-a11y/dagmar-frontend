@@ -7,6 +7,7 @@ import {
   adminDeletePendingInstances,
   adminGetSettings,
   adminListInstances,
+  adminMergeInstances,
   adminRenameInstance,
   adminRevokeInstance,
   adminSetSettings,
@@ -101,6 +102,11 @@ export default function AdminInstancesPage() {
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeTargetId, setMergeTargetId] = useState<string | null>(null);
+  const [mergeError, setMergeError] = useState<string | null>(null);
+  const [mergeSaving, setMergeSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   async function refresh() {
     setLoading(true);
@@ -109,6 +115,7 @@ export default function AdminInstancesPage() {
       const [instancesRes, settingsRes] = await Promise.all([adminListInstances(), adminGetSettings()]);
       setRows(instancesRes.instances);
       setSettingsCutoff(settingsRes.afternoon_cutoff);
+      setSelectedIds(new Set());
     } catch (err: unknown) {
       setPageError(errorMessage(err, "Nepodařilo se načíst seznam instancí."));
     } finally {
@@ -178,6 +185,60 @@ export default function AdminInstancesPage() {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
   }, [queryFiltered, statusFilter]);
+
+  const profileNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of rows ?? []) {
+      if (r.display_name) map.set(r.id, r.display_name);
+    }
+    return map;
+  }, [rows]);
+
+  const selectedRows = useMemo(() => {
+    const all = rows ?? [];
+    return all.filter((r) => selectedIds.has(r.id));
+  }, [rows, selectedIds]);
+
+  function isMergeSelectable(r: AdminInstanceRow): boolean {
+    return r.status === "ACTIVE" && !r.profile_instance_id;
+  }
+
+  function toggleSelection(id: string, checked: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function openMerge() {
+    if (selectedRows.length < 2) return;
+    setMergeTargetId(selectedRows[0]?.id ?? null);
+    setMergeError(null);
+    setMergeOpen(true);
+  }
+
+  async function doMerge() {
+    if (!mergeTargetId) return;
+    const sourceIds = selectedRows.map((r) => r.id).filter((id) => id !== mergeTargetId);
+    if (sourceIds.length === 0) {
+      setMergeError("Vyberte cilovou instanci i alespon jeden zdroj.");
+      return;
+    }
+    setMergeSaving(true);
+    setMergeError(null);
+    try {
+      await adminMergeInstances(mergeTargetId, sourceIds);
+      setMergeOpen(false);
+      setMergeTargetId(null);
+      await refresh();
+    } catch (err: unknown) {
+      setMergeError(errorMessage(err, "Slouceni instanci se nezdarilo."));
+    } finally {
+      setMergeSaving(false);
+    }
+  }
 
   function openActivate(r: AdminInstanceRow) {
     setSelected(r);
@@ -354,6 +415,15 @@ export default function AdminInstancesPage() {
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
+            <button
+              type="button"
+              onClick={openMerge}
+              className="btn"
+              disabled={selectedRows.length < 2 || saving || loading}
+              title="Sloucit vybrane aktivni entity"
+            >
+              Sloucit entity
+            </button>
             <button type="button" onClick={() => navigate("/admin/dochazka")} className="btn">
               Docházkové listy
             </button>
@@ -498,8 +568,12 @@ export default function AdminInstancesPage() {
         <table className="table" style={{ width: "100%", tableLayout: "fixed" }}>
           <thead>
             <tr>
+              <th style={{ width: "44px" }}>
+                <span className="sr-only">Vyber</span>
+              </th>
               <th style={{ width: "90px" }}>Stav</th>
               <th style={{ width: "180px" }}>Jméno</th>
+              <th style={{ width: "170px" }}>Slouceno do</th>
               <th style={{ width: "140px" }}>Typ smlouvy</th>
               <th style={{ width: "90px" }}>Typ</th>
               <th style={{ width: "150px" }}>Vytvořeno</th>
@@ -511,7 +585,7 @@ export default function AdminInstancesPage() {
           <tbody>
             {(rows === null || loading) && (
               <tr>
-                <td colSpan={8} style={{ color: "var(--muted)" }}>
+                <td colSpan={10} style={{ color: "var(--muted)" }}>
                   Načítám…
                 </td>
               </tr>
@@ -519,7 +593,7 @@ export default function AdminInstancesPage() {
 
             {rows !== null && !loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ color: "var(--muted)" }}>
+                <td colSpan={10} style={{ color: "var(--muted)" }}>
                   Žádné instance.
                 </td>
               </tr>
@@ -529,9 +603,25 @@ export default function AdminInstancesPage() {
               filtered.map((r) => (
                 <tr key={r.id} style={r.status === "PENDING" ? { background: "rgba(245,158,11,0.06)" } : undefined}>
                   <td>
+                    <input
+                      type="checkbox"
+                      aria-label="Vyber instanci"
+                      disabled={!isMergeSelectable(r)}
+                      checked={selectedIds.has(r.id)}
+                      onChange={(e) => toggleSelection(r.id, e.target.checked)}
+                    />
+                  </td>
+                  <td>
                     <Badge status={r.status} />
                   </td>
                   <td style={{ fontWeight: 700 }}>{r.display_name ?? <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                  <td>
+                    {r.profile_instance_id ? (
+                      <span>{profileNameById.get(r.profile_instance_id) ?? r.profile_instance_id}</span>
+                    ) : (
+                      <span style={{ color: "var(--muted)" }}>-</span>
+                    )}
+                  </td>
                   <td>
                     <select
                       value={r.employment_template || "DPP_DPC"}
@@ -647,6 +737,47 @@ export default function AdminInstancesPage() {
           </div>
 
           {modalError ? <div style={{ fontSize: 13, color: "#b91c1c" }}>{modalError}</div> : null}
+        </div>
+      </Modal>
+
+      <Modal
+        open={mergeOpen}
+        title="Sloucit entity"
+        description="Vyberte cilovou instanci. Ostatni se priradi k jejimu profilu dochazky."
+        onClose={() => {
+          if (mergeSaving) return;
+          setMergeOpen(false);
+          setMergeError(null);
+        }}
+        onConfirm={doMerge}
+        confirmText="Sloucit"
+        cancelText="Zrusit"
+        loading={mergeSaving}
+        disableConfirm={!mergeTargetId || selectedRows.length < 2}
+      >
+        <div style={{ display: "grid", gap: 10 }}>
+          <div style={{ fontSize: 13, color: "var(--muted)" }}>
+            Slouceni presune dochazku a plan smen do cilove entity. Zdrojove entity zustanou aktivni, ale budou sdilet
+            jeden profil.
+          </div>
+
+          <div style={{ display: "grid", gap: 6 }}>
+            {selectedRows.map((r) => (
+              <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="radio"
+                  name="merge-target"
+                  value={r.id}
+                  checked={mergeTargetId === r.id}
+                  onChange={() => setMergeTargetId(r.id)}
+                />
+                <span style={{ fontWeight: 700 }}>{r.display_name ?? clientTypeLabel(r.client_type)}</span>
+                <span style={{ color: "var(--muted)", fontSize: 12 }}>{r.id}</span>
+              </label>
+            ))}
+          </div>
+
+          {mergeError ? <div style={{ fontSize: 13, color: "#b91c1c" }}>{mergeError}</div> : null}
         </div>
       </Modal>
 
