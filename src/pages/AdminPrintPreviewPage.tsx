@@ -227,19 +227,19 @@ export default function AdminPrintPreviewPage() {
 
     async function generatePdf() {
       const sheets = Array.from(container.querySelectorAll(".sheet")) as HTMLElement[];
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
       for (let i = 0; i < sheets.length; i++) {
         const el = sheets[i];
-        const canvas = await html2canvas(el, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL("image/png");
+        const canvas = await html2canvas(el, { scale: 1.4, useCORS: true, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/jpeg", 0.72);
         const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
         const imgWidth = canvas.width * ratio;
         const imgHeight = canvas.height * ratio;
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight, undefined, "FAST");
       }
 
       pdf.save(`tisky-${docType}-${month || "mesic"}.pdf`);
@@ -399,3 +399,4 @@ export default function AdminPrintPreviewPage() {
     </div>
   );
 }
+
