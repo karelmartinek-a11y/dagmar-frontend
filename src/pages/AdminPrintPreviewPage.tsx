@@ -23,6 +23,10 @@ function monthLabel(year: number, month: number) {
   return dt.toLocaleDateString("cs-CZ", { month: "long", year: "numeric" });
 }
 
+function monthLabelUpper(year: number, month: number) {
+  return monthLabel(year, month).toLocaleUpperCase("cs-CZ");
+}
+
 function parseMonth(value: string): { year: number; month: number } | null {
   const m = /^([0-9]{4})-([0-9]{2})$/.exec(value);
   if (!m) return null;
@@ -71,6 +75,13 @@ function formatDateLong(dateIso: string) {
   const [y, m, d] = dateIso.split("-").map((x) => parseInt(x, 10));
   const dt = new Date(y, m - 1, d);
   return dt.toLocaleDateString("cs-CZ", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function formatPrintedTimestamp() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("cs-CZ", { day: "numeric", month: "long", year: "numeric" });
+  const timeStr = `${pad2(now.getHours())}.${pad2(now.getMinutes())}`;
+  return `${dateStr} v ${timeStr}`;
 }
 
 function parseBreakWindows(breakTooltip: string | null): Array<{ start: string; end: string }> {
@@ -150,6 +161,8 @@ export default function AdminPrintPreviewPage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const label = monthLabel(parsedMonth.year, parsedMonth.month);
+  const labelUpper = monthLabelUpper(parsedMonth.year, parsedMonth.month);
+  const printedStamp = formatPrintedTimestamp();
 
   useEffect(() => {
     if (!hasValidMonth || idList.length === 0) return;
@@ -253,8 +266,8 @@ export default function AdminPrintPreviewPage() {
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { border: 1px solid #d7deeb; padding: 4px 6px; text-align: left; }
         th { background: #0f172a; color: #eef2ff; font-weight: 600; }
-        .row-weekend { background: #f5f7ff; }
-        .row-holiday { background: #fff4f2; }
+        .row-weekend { background: #ededed; }
+        .row-holiday { background: #e8e8e8; }
         .footer { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; font-size: 12px; }
         .pill { background: #0f172a; color: #fff; padding: 6px 10px; border-radius: 8px; display: inline-block; font-weight: 600; }
         .small { color: #6b7280; font-size: 11px; }
@@ -341,13 +354,13 @@ export default function AdminPrintPreviewPage() {
         const totalPlanMins = plannedMinutes(doc.row);
         return (
           <div key={doc.instance.id + "-plan"} className="sheet">
-            <h1>{label} · PLÁN SMĚN</h1>
+            <h1>{labelUpper} · PLÁN SMĚN</h1>
             <h2>{doc.instance.display_name ?? doc.instance.id}</h2>
             <table aria-label="Plan smen">
               <thead>
                 <tr>
-                  <th style={{ width: "36%" }}>Datum</th>
-                  <th style={{ width: 120 }}>Den v týdnu</th>
+                  <th style={{ width: "32%" }}>Datum</th>
+                  <th style={{ width: 120 }}>Den</th>
                   <th style={{ width: 140 }}>Příchod</th>
                   <th style={{ width: 140 }}>Odchod</th>
                 </tr>
@@ -377,6 +390,9 @@ export default function AdminPrintPreviewPage() {
                 </tr>
               </tfoot>
             </table>
+            <div className="signature" style={{ textAlign: "center" }}>
+              Tento plán směn pro Vás vytiskla Dagmar · Vytisknuto dne {printedStamp}
+            </div>
           </div>
         );
       })}
