@@ -71,6 +71,67 @@ export async function adminMe(): Promise<AdminMe> {
   }
 }
 
+export type PortalUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  has_password: boolean;
+};
+
+export type AdminUsersResponse = {
+  users: PortalUser[];
+};
+
+export async function adminListUsers(): Promise<AdminUsersResponse> {
+  return apiFetch<AdminUsersResponse>("/api/v1/admin/users", { method: "GET" });
+}
+
+export async function adminCreateUser(payload: { name: string; email: string; role: string }): Promise<PortalUser> {
+  return apiFetch<PortalUser>("/api/v1/admin/users", {
+    method: "POST",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminSendUserReset(userId: number): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}/send-reset`, {
+    method: "POST",
+    headers: withCsrf(),
+  });
+}
+
+export type SmtpSettings = {
+  host?: string | null;
+  port?: number | null;
+  security?: string | null;
+  username?: string | null;
+  from_email?: string | null;
+  from_name?: string | null;
+  password_set?: boolean;
+};
+
+export async function adminGetSmtpSettings(): Promise<SmtpSettings> {
+  return apiFetch<SmtpSettings>("/api/v1/admin/smtp", { method: "GET" });
+}
+
+export async function adminSaveSmtpSettings(payload: {
+  host?: string | null;
+  port?: number | null;
+  security?: string | null;
+  username?: string | null;
+  password?: string | null;
+  from_email?: string | null;
+  from_name?: string | null;
+}): Promise<SmtpSettings> {
+  return apiFetch<SmtpSettings>("/api/v1/admin/smtp", {
+    method: "PUT",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
 export async function adminListInstances(): Promise<{ instances: AdminInstance[] }> {
   const items = await apiFetch<AdminInstance[]>("/api/v1/admin/instances", {
     method: "GET",

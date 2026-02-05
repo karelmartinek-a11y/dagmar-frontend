@@ -59,6 +59,16 @@ export default function AdminLayout() {
       ),
     },
     {
+      to: "/admin/users",
+      label: "Uzivatele",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" stroke="currentColor" strokeWidth="2" />
+          <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
       to: "/admin/dochazka",
       label: "Dochazkove listy",
       icon: (
@@ -103,6 +113,21 @@ export default function AdminLayout() {
           <path d="M12 3v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           <path d="M8 9l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      to: "/admin/settings",
+      label: "Nastaveni",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" stroke="currentColor" strokeWidth="2" />
+          <path
+            d="M3 12h3m12 0h3M12 3v3m0 12v3m-6.4-2.4 2.1-2.1m8.6-8.6 2.1-2.1m0 14.8-2.1-2.1m-8.6-8.6-2.1-2.1"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },

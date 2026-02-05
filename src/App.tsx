@@ -4,12 +4,15 @@ import EmployeePage from "./pages/EmployeePage";
 import AdminLayout from "./pages/AdminLayout";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminInstancesPage from "./pages/AdminInstancesPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminExportPage from "./pages/AdminExportPage";
 import AdminAttendanceSheetsPage from "./pages/AdminAttendanceSheetsPage";
+import AdminSettingsPage from "./pages/AdminSettingsPage";
 import AdminShiftPlanPage from "./pages/AdminShiftPlanPage";
 import AdminPrintsPage from "./pages/AdminPrintsPage";
 import AdminPrintPreviewPage from "./pages/AdminPrintPreviewPage";
 import { PendingPage } from "./pages/PendingPage";
+import PortalResetPage from "./pages/PortalResetPage";
 
 type VersionPayload = {
   frontend_commit?: string;
@@ -78,17 +81,20 @@ export default function App() {
         <Route path="/" element={<Navigate to="/app" replace />} />
 
         <Route path="/app" element={<EmployeePage />} />
+        <Route path="/reset" element={<PortalResetPage />} />
         <Route path="/pending" element={<PendingPage />} />
 
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="instances" replace />} />
           <Route path="instances" element={<AdminInstancesPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
           <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
           <Route path="plan-sluzeb" element={<AdminShiftPlanPage />} />
           <Route path="export" element={<AdminExportPage />} />
           <Route path="tisky" element={<AdminPrintsPage />} />
           <Route path="tisky/preview" element={<AdminPrintPreviewPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/app" replace />} />

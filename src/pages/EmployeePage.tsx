@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
 import { ApiError } from "../api/client";
 import { claimToken, getStatus, registerInstance, type EmploymentTemplate } from "../api/instances";
+import { portalLogin } from "../api/portal";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
@@ -21,6 +22,12 @@ type QueueItem = {
   departure_time: string | null;
   enqueuedAt: number;
 };
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  return fallback;
+}
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -105,6 +112,11 @@ export function EmployeePage() {
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [, setStatusText] = useState<string>("Kontroluji stav…");
   const [activationState, setActivationState] = useState<"unknown" | "pending" | "revoked" | "deactivated" | "active">("unknown");
+  const [loginRequired, setLoginRequired] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [employmentTemplate, setEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
   const [afternoonCutoff, setAfternoonCutoff] = useState<string>("17:00");
   const cutoffMinutes = useMemo(() => parseCutoffToMinutes(afternoonCutoff), [afternoonCutoff]);
@@ -191,6 +203,7 @@ export function EmployeePage() {
 
     async function ensureRegistered() {
       if (!online) return;
+      if (loginRequired) return;
       if (instanceId) return;
 
       try {
@@ -203,7 +216,12 @@ export function EmployeePage() {
         instanceStore.setInstanceId(res.instance_id);
         setActivationState("pending");
         setStatusText("Zařízení není aktivováno");
-      } catch {
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 403 && (err.body as any)?.detail === "REGISTRATION_DISABLED") {
+          setLoginRequired(true);
+          setStatusText("Přihlaste se pomocí e‑mailu a hesla.");
+          return;
+        }
         // ignore; status poll will keep user informed
       }
     }
@@ -212,7 +230,7 @@ export function EmployeePage() {
     return () => {
       cancelled = true;
     };
-  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online]);
+  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online, loginRequired]);
 
   // Poll status and claim token when ACTIVE
   useEffect(() => {
@@ -221,6 +239,10 @@ export function EmployeePage() {
       if (cancelled) return;
       if (!online) {
         setStatusText("Offline");
+        return;
+      }
+      if (loginRequired) {
+        setStatusText("Přihlaste se pomocí e‑mailu.");
         return;
       }
       if (!instanceId) {
@@ -269,6 +291,7 @@ export function EmployeePage() {
     async function pollClaim() {
       if (cancelled) return;
       if (!online) return;
+      if (loginRequired) return;
       if (!instanceId) return;
       if (activationState !== "active") return;
       if (getInstanceToken()) return;
@@ -295,7 +318,7 @@ export function EmployeePage() {
       window.clearInterval(t1);
       window.clearInterval(t2);
     };
-  }, [instanceId, online, activationState]);
+  }, [instanceId, online, activationState, loginRequired]);
 
   // Load attendance for month (only when online)
   useEffect(() => {
@@ -363,6 +386,88 @@ export function EmployeePage() {
     flushQueueIfPossible();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [online]);
+
+  async function onLoginSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoginError(null);
+    if (!loginEmail.trim() || !loginPassword) {
+      setLoginError("Vyplňte e-mail a heslo.");
+      return;
+    }
+    setLoginSubmitting(true);
+    try {
+      const res = await portalLogin({ email: loginEmail.trim(), password: loginPassword });
+      instanceStore.setInstanceId(res.instance_id);
+      setInstanceToken(res.instance_token);
+      if (res.display_name) setInstanceDisplayName(res.display_name);
+      if (res.employment_template) setEmploymentTemplate(res.employment_template as EmploymentTemplate);
+      if (res.afternoon_cutoff) setAfternoonCutoff(res.afternoon_cutoff);
+      setActivationState("active");
+      setLoginRequired(false);
+    } catch (err: unknown) {
+      setLoginError(errorMessage(err, "Přihlášení se nezdařilo."));
+    } finally {
+      setLoginSubmitting(false);
+    }
+  }
+
+  if (loginRequired) {
+    return (
+      <div className="container" style={{ padding: "18px 0 30px" }}>
+        <div className="card pad" style={{ maxWidth: 520, margin: "0 auto" }}>
+          <div style={{ fontSize: 18, fontWeight: 850 }}>Přihlášení</div>
+          <div style={{ color: "var(--muted)", marginTop: 4 }}>Zařízení není autorizováno. Přihlaste se e‑mailem.</div>
+
+          {loginError ? (
+            <div
+              style={{
+                border: "1px solid rgba(239,68,68,0.35)",
+                background: "rgba(239,68,68,0.08)",
+                borderRadius: 12,
+                padding: 12,
+                color: "#b91c1c",
+                marginTop: 12,
+                fontSize: 13,
+              }}
+            >
+              {loginError}
+            </div>
+          ) : null}
+
+          <form onSubmit={onLoginSubmit} className="stack" style={{ gap: 12, marginTop: 12 }}>
+            <div>
+              <div className="label">E-mail</div>
+              <input
+                className="input"
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="name@hotelchodovasc.cz"
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <div className="label">Heslo</div>
+              <input
+                className="input"
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="Zadejte heslo"
+                autoComplete="current-password"
+              />
+            </div>
+            <button type="submit" className="btn solid" disabled={loginSubmitting}>
+              {loginSubmitting ? "Přihlašuji…" : "Přihlásit"}
+            </button>
+            <a href="/reset" style={{ fontSize: 12, color: "var(--muted)" }}>
+              Nastavit nebo změnit heslo
+            </a>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (!instanceId || activationState === "pending" || activationState === "revoked") {
     return <PendingPage instanceId={instanceId} />;

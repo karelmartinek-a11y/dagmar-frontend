@@ -25,6 +25,7 @@ export default function AdminLoginPage() {
   const nextPath = useMemo(() => parseNextParam(loc.search) ?? "/admin/instances", [loc.search]);
   const logoUrl = useMemo(() => "/brand/logo.svg", []);
 
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,14 +51,14 @@ export default function AdminLoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!password) {
-      setError("Vyplňte heslo.");
+    if (!email || !password) {
+      setError("Vyplňte e-mail a heslo.");
       return;
     }
 
     setSubmitting(true);
     try {
-      await adminLogin({ password });
+      await adminLogin({ username: email, password });
       nav(nextPath, { replace: true });
     } catch (err: unknown) {
       setError(errorMessage(err, "Přihlášení se nezdařilo."));
@@ -116,6 +117,18 @@ export default function AdminLoginPage() {
 
         <form onSubmit={onSubmit} className="stack" style={{ gap: 12 }}>
           <div>
+            <div className="label">Admin e-mail</div>
+            <input
+              className="input"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="provoz@hotelchodovasc.cz"
+              disabled={submitting}
+            />
+          </div>
+          <div>
             <div className="label">Admin heslo</div>
             <input
               className="input"
@@ -133,7 +146,7 @@ export default function AdminLoginPage() {
           </button>
 
           <div style={{ fontSize: 12, color: "var(--muted)", textAlign: "center" }}>
-            Přístup je určen pouze administrátorům. Uživatelské jméno se nezadává, stačí heslo. Doména:
+            Přístup je určen pouze administrátorům. Doména:
             <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}> dagmar.hcasc.cz</span>
           </div>
 
