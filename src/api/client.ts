@@ -7,6 +7,7 @@
 export type ApiErrorBody = {
   code?: string;
   message?: string;
+  detail?: string;
   details?: unknown;
 };
 

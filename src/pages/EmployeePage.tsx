@@ -217,7 +217,8 @@ export function EmployeePage() {
         setActivationState("pending");
         setStatusText("Zařízení není aktivováno");
       } catch (err: unknown) {
-        if (err instanceof ApiError && err.status === 403 && (err.body as any)?.detail === "REGISTRATION_DISABLED") {
+        const detail = (err as ApiError | undefined)?.body?.detail;
+        if (err instanceof ApiError && err.status === 403 && detail === "REGISTRATION_DISABLED") {
           setLoginRequired(true);
           setStatusText("Přihlaste se pomocí e‑mailu a hesla.");
           return;
