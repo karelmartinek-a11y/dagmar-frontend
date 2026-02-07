@@ -1,28 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="DAGMAR">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="DAGMAR">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b5bd3"/>
-      <stop offset="0.55" stop-color="#2aa8ff"/>
-      <stop offset="1" stop-color="#6fd3ff"/>
-    </linearGradient>
-    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#001023" flood-opacity="0.45"/>
+    <radialGradient id="blue" cx="35%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#38B6FF"/>
+      <stop offset="1" stop-color="#1E88E5"/>
+    </radialGradient>
+    <radialGradient id="yellow" cx="55%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#FFD24A"/>
+      <stop offset="1" stop-color="#F2C200"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0d1b38" flood-opacity="0.22"/>
     </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#071022"/>
-  <g filter="url(#s)">
-    <path d="M104 190c10-64 68-108 146-108 52 0 92 15 124 44 31 28 45 65 34 110-13 54-57 86-118 96-62 10-110 3-147-21-35-22-47-60-39-121z"
-          fill="url(#g)"/>
-    <path d="M120 300c20 62 78 104 157 104 58 0 103-18 135-54 26-30 34-69 18-115-7-21-19-38-35-52 6 16 7 33 2 52-13 54-57 86-118 96-62 10-110 3-147-21-6-4-10-8-14-10 1 0 1 0 2 0z"
-          fill="rgba(255,255,255,0.10)"/>
-    <g transform="translate(98 214)">
-      <text x="0" y="0" fill="#ffffff" font-size="76" font-weight="900"
-            font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
-            dominant-baseline="hanging" letter-spacing="1.2">DAGMAR</text>
-      <text x="2" y="80" fill="rgba(255,255,255,0.88)" font-size="22" font-weight="700"
-            font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
-            dominant-baseline="hanging" letter-spacing="0.6">docházkový systém</text>
-    </g>
+  <circle cx="88" cy="112" r="70" fill="url(#blue)"/>
+  <circle cx="150" cy="118" r="76" fill="url(#yellow)" opacity="0.98"/>
+
+  <g filter="url(#shadow)">
+    <rect x="84" y="82" width="110" height="96" rx="22" fill="#fff"/>
+    <rect x="118" y="60" width="40" height="44" rx="10" fill="#fff" stroke="#F2C200" stroke-width="6"/>
+    <circle cx="138" cy="78" r="7" fill="#F2C200"/>
+    <circle cx="110" cy="124" r="12" fill="#1E88E5"/>
+    <path d="M94 160c8-18 32-18 40 0" fill="none" stroke="#1E88E5" stroke-width="8" stroke-linecap="round"/>
+    <rect x="140" y="114" width="38" height="8" rx="4" fill="#1E88E5"/>
+    <rect x="140" y="130" width="44" height="8" rx="4" fill="#1E88E5" opacity="0.9"/>
+    <rect x="140" y="146" width="34" height="8" rx="4" fill="#1E88E5" opacity="0.8"/>
   </g>
 </svg>

@@ -1,15 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="DAGMAR">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="DAGMAR">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b5bd3"/>
-      <stop offset="0.55" stop-color="#2aa8ff"/>
-      <stop offset="1" stop-color="#6fd3ff"/>
-    </linearGradient>
+    <radialGradient id="blue" cx="35%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#38B6FF"/>
+      <stop offset="1" stop-color="#1E88E5"/>
+    </radialGradient>
+    <radialGradient id="yellow" cx="55%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#FFD24A"/>
+      <stop offset="1" stop-color="#F2C200"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0d1b38" flood-opacity="0.22"/>
+    </filter>
   </defs>
-  <rect width="256" height="256" rx="56" fill="#071022"/>
-  <path d="M52 96c6-34 38-58 82-58 30 0 52 9 70 25 17 16 25 37 19 61-8 29-31 46-66 52-35 6-63 2-84-12-20-13-27-34-21-68z"
-        fill="url(#g)"/>
-  <text x="128" y="152" text-anchor="middle" fill="#fff" font-size="56" font-weight="900"
-        font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial">D</text>
+  <circle cx="88" cy="112" r="70" fill="url(#blue)"/>
+  <circle cx="150" cy="118" r="76" fill="url(#yellow)" opacity="0.98"/>
+
+  <g filter="url(#shadow)">
+    <rect x="84" y="82" width="110" height="96" rx="22" fill="#fff"/>
+    <rect x="118" y="60" width="40" height="44" rx="10" fill="#fff" stroke="#F2C200" stroke-width="6"/>
+    <circle cx="138" cy="78" r="7" fill="#F2C200"/>
+    <circle cx="110" cy="124" r="12" fill="#1E88E5"/>
+    <path d="M94 160c8-18 32-18 40 0" fill="none" stroke="#1E88E5" stroke-width="8" stroke-linecap="round"/>
+    <rect x="140" y="114" width="38" height="8" rx="4" fill="#1E88E5"/>
+    <rect x="140" y="130" width="44" height="8" rx="4" fill="#1E88E5" opacity="0.9"/>
+    <rect x="140" y="146" width="34" height="8" rx="4" fill="#1E88E5" opacity="0.8"/>
+  </g>
 </svg>
