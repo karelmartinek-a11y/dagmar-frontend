@@ -16,10 +16,6 @@ export type ModalProps = {
   footer?: React.ReactNode;
 };
 
-function cx(...parts: Array<string | null | undefined | false>) {
-  return parts.filter(Boolean).join(" ");
-}
-
 export function Modal({
   open,
   title,

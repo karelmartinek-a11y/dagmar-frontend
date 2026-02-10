@@ -16,7 +16,12 @@ export default function IntroGate({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!show) return;
     const t = window.setTimeout(() => {
-      try { sessionStorage.setItem(KEY, "1"); } catch {}
+      try {
+        sessionStorage.setItem(KEY, "1");
+      } catch (error) {
+        // V privatnim modu muze byt sessionStorage nedostupny; nic dalsiho nedelame.
+        console.warn("IntroGate: nepodarilo se zapsat flag do sessionStorage", error);
+      }
       setShow(false);
     }, 1000);
     return () => window.clearTimeout(t);
