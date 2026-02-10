@@ -740,8 +740,8 @@ function TimeInput(props: {
           background: ok ? "white" : "rgba(220, 38, 38, 0.05)",
         }}
       />
-      {!ok ? <div style={{ fontSize: 11, color: "#dc2626" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
-      {ok && error ? <div style={{ fontSize: 11, color: "#dc2626" }}>{error}</div> : null}
+      {!ok ? <div style={{ fontSize: 11, color: "#9a3412" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {ok && error ? <div style={{ fontSize: 11, color: "#9a3412" }}>{error}</div> : null}
     </div>
   );
 }

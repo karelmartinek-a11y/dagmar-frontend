@@ -31,9 +31,10 @@ export function ConnectivityPill({
   const queued = queuedTotal > 0;
   const sentTime = formatLastSent(lastSentAt);
 
-  const dotColor = online ? "#16a34a" : "#ef4444"; // green/red
-  const borderColor = online ? "rgba(22,163,74,0.35)" : "rgba(239,68,68,0.35)";
-  const bgColor = online ? "rgba(22,163,74,0.10)" : "rgba(239,68,68,0.10)";
+  // Pozor: červená je dle brandu vyhrazená pro signaci. Offline používá tlumenou "amber" paletu.
+  const dotColor = online ? "#16a34a" : "#b45309";
+  const borderColor = online ? "rgba(22,163,74,0.35)" : "rgba(180,83,9,0.35)";
+  const bgColor = online ? "rgba(22,163,74,0.10)" : "rgba(180,83,9,0.12)";
 
   const queueText = queued
     ? `Čeká ${queuedTotal}`

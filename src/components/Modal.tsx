@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import Button from "../ui/Button";
 
 export type ModalProps = {
   open: boolean;
@@ -49,28 +50,28 @@ export function Modal({
 
   const defaultFooter = (
     <>
-      <button type="button" className="btn" onClick={onClose} disabled={loading}>
+      <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
         {cancelText}
-      </button>
+      </Button>
 
       {onConfirm ? (
-        <button
+        <Button
           type="button"
-          className={cx("btn", destructive ? "danger" : "solid")}
+          variant={destructive ? "danger" : "primary"}
           onClick={onConfirm}
           disabled={!confirmEnabled}
         >
           {loading ? "Probíhá…" : confirmText}
-        </button>
+        </Button>
       ) : null}
     </>
   );
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-backdrop" onMouseDown={onClose}>
-      <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
+    <div role="dialog" aria-modal="true" className="kb-modal-backdrop" onMouseDown={onClose}>
+      <div className="kb-modal" onMouseDown={(e) => e.stopPropagation()}>
         {title || description ? (
-          <div className="modal-head">
+          <div className="kb-modal-head">
             {title ? <div className="t">{title}</div> : null}
             {description ? (
               <div style={{ marginTop: 6, color: "var(--muted)", fontSize: 13, lineHeight: 1.45 }}>{description}</div>
@@ -78,8 +79,8 @@ export function Modal({
           </div>
         ) : null}
 
-        <div className="modal-body">{children}</div>
-        <div className="modal-actions">{footer ?? defaultFooter}</div>
+        <div className="kb-modal-body">{children}</div>
+        <div className="kb-modal-actions">{footer ?? defaultFooter}</div>
       </div>
     </div>
   );

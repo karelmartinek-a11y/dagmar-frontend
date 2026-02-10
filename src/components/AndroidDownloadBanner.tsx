@@ -28,51 +28,15 @@ export function AndroidDownloadBanner({ downloadUrl, appName }: Props) {
   };
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(90deg, #0ea5e9, #38bdf8)",
-        color: "white",
-        padding: "12px 14px",
-        borderRadius: "12px",
-        marginBottom: "12px",
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        boxShadow: "0 10px 25px rgba(14,165,233,0.25)",
-      }}
-    >
-      <div style={{ fontWeight: 700, fontSize: "14px", lineHeight: 1.4 }}>
-        Novinka pro Android: aplikaci <span style={{ textDecoration: "underline" }}>{appName}</span> si můžete stáhnout jako APK.
+    <div className="kb-banner" role="note" aria-label="Android instalace">
+      <div className="kb-banner-text">
+        Android: aplikaci <span className="kb-banner-app">{appName}</span> můžete nainstalovat jako APK.
       </div>
-      <a
-        href={downloadUrl}
-        style={{
-          background: "white",
-          color: "#0ea5e9",
-          fontWeight: 800,
-          padding: "8px 12px",
-          borderRadius: "10px",
-          textDecoration: "none",
-          whiteSpace: "nowrap",
-        }}
-      >
+      <a href={downloadUrl} className="kb-btn kb-btn-primary" style={{ textDecoration: "none" }}>
         Stáhnout APK
       </a>
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label="Zavřít upozornění"
-        style={{
-          marginLeft: "auto",
-          background: "transparent",
-          border: "none",
-          color: "white",
-          fontSize: "16px",
-          cursor: "pointer",
-          fontWeight: 700,
-        }}
-      >
-        ×
+      <button type="button" onClick={dismiss} aria-label="Zavřít" className="kb-btn kb-btn-ghost kb-btn-sm">
+        Zavřít
       </button>
     </div>
   );

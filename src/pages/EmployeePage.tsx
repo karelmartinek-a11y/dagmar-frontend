@@ -162,7 +162,8 @@ export function EmployeePage() {
     []
   );
   const displayName = getInstanceDisplayName();
-  const androidDownloadUrl = "https://dagmar.hcasc.cz/download/dochazka-dagmar.apk";
+  // Bez veřejné reference na historickou doménu.
+  const androidDownloadUrl = "/download/dochazka.apk";
 
   useEffect(() => {
     const onUp = () => setOnline(true);
@@ -426,7 +427,7 @@ export function EmployeePage() {
                 background: "rgba(239,68,68,0.08)",
                 borderRadius: 12,
                 padding: 12,
-                color: "#b91c1c",
+                color: "#9a3412",
                 marginTop: 12,
                 fontSize: 13,
               }}
@@ -587,9 +588,9 @@ export function EmployeePage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
+    <div style={{ minHeight: "100vh", background: "var(--kb-bg)" }}>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
-        <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="DAGMAR Docházka" />
+        <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="KájovoDagmar" />
       </div>
       <header
         style={
@@ -597,7 +598,7 @@ export function EmployeePage() {
             position: "sticky",
             top: 0,
             zIndex: 20,
-            backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
+            backgroundImage: "linear-gradient(90deg, #ffffff 0%, #f1f3f6 100%)",
             backgroundColor: "#0a1a34",
             color: "white",
             borderBottom: "1px solid rgba(255,255,255,0.18)",
@@ -651,9 +652,9 @@ export function EmployeePage() {
                     onClick={handlePunchNow}
                     style={{
                       ...headerActionButtonStyle(),
-                      background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-                      border: "1px solid rgba(220,38,38,0.65)",
-                      boxShadow: "0 8px 18px rgba(220,38,38,0.28)",
+                      background: "linear-gradient(135deg, #b45309, #9a3412)",
+                      border: "1px solid rgba(154,52,18,0.45)",
+                      boxShadow: "0 8px 18px rgba(154,52,18,0.18)",
                     }}
                     aria-label="Zapsat aktuální čas"
                   >
@@ -689,7 +690,7 @@ export function EmployeePage() {
       <main style={{ maxWidth: 980, margin: "0 auto", padding: "16px" }}>
         {monthLocked ? (
           <div style={cardStyle()}>
-            <div style={{ fontWeight: 800, marginBottom: 6, color: "#b91c1c" }}>Měsíc uzavřen</div>
+            <div style={{ fontWeight: 800, marginBottom: 6, color: "#9a3412" }}>Měsíc uzavřen</div>
             <div style={{ color: "#334155" }}>
               Docházka za {monthLabel(month)} je uzavřena administrátorem. Úpravy ani zobrazení v této sekci nejsou pro toto zařízení dostupné.
             </div>
@@ -713,7 +714,7 @@ export function EmployeePage() {
               style={{
                 ...cardStyle(),
                 padding: 12,
-                background: "rgba(2,132,199,0.06)",
+                background: "rgba(15,23,42,0.03)",
                 border: "1px solid rgba(15, 23, 42, 0.08)",
                 boxShadow: "none",
                 display: "grid",
@@ -861,7 +862,7 @@ export function EmployeePage() {
 function RestrictedPage(props: { instanceId: string }) {
   const { instanceId } = props;
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f8fb", display: "grid", placeItems: "center", padding: 16 }}>
+    <div style={{ minHeight: "100vh", background: "var(--kb-bg)", display: "grid", placeItems: "center", padding: 16 }}>
       <div
         style={{
           maxWidth: 640,
@@ -983,7 +984,7 @@ function TimeInput(props: {
           cursor: readOnly ? "not-allowed" : "text",
         }}
       />
-      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "#dc2626" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "#9a3412" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
     </div>
   );
 }

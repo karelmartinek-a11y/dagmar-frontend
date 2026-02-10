@@ -61,9 +61,9 @@ function DeploymentBadge() {
   }
 
   return (
-    <div className="deployment-badge" aria-label="Informace o nasazeni">
-      <div>Dagmar Frontend: {frontendCommit || "-"}</div>
-      <div>Dagmar Backend: {backendCommit || "-"}</div>
+    <div className="kb-deployment" aria-label="Informace o nasazení">
+      <div>Frontend: {frontendCommit || "-"}</div>
+      <div>Backend: {backendCommit || "-"}</div>
     </div>
   );
 }

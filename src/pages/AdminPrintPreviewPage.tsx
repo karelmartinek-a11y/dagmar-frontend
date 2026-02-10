@@ -333,7 +333,7 @@ export default function AdminPrintPreviewPage() {
                   </tr>
                 </tfoot>
               </table>
-              <div className="signature">Tento docházkový list pro Vás zpracovala Dagmar.</div>
+              <div className="signature">Tento docházkový list pro Vás zpracoval systém KájovoDagmar.</div>
             </div>
           );
         }

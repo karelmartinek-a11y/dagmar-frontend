@@ -260,7 +260,7 @@ export function PendingPage({ instanceId }: Props) {
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
           <img
             src={logoUrl}
-            alt="DAGMAR"
+            alt=""
             style={{
               width: 120,
               height: 120,
@@ -273,7 +273,7 @@ export function PendingPage({ instanceId }: Props) {
           />
         </div>
         <div style={{ textAlign: "center", marginBottom: 12 }}>
-          <div style={{ fontSize: 13, letterSpacing: 0.4, opacity: 0.8 }}>DAGMAR — Docházka</div>
+          <div style={{ fontSize: 13, letterSpacing: 0.4, opacity: 0.8 }}>KájovoDagmar docházkový systém</div>
           <h1 style={{ margin: "6px 0 0", fontSize: 24, fontWeight: 800 }}>Zařízení není aktivováno</h1>
         </div>
 
@@ -418,7 +418,7 @@ export function PendingPage({ instanceId }: Props) {
             </button>
             {clientType === "ANDROID" ? (
               <a
-                href="https://dagmar.hcasc.cz/download/dochazka-dagmar.apk"
+                href="/download/dochazka.apk"
                 style={{
                   border: "1px solid rgba(255,255,255,0.35)",
                   background: "rgba(255,255,255,0.12)",

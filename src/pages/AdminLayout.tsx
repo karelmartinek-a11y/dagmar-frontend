@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { getAdminMe } from "../api/admin";
+import Button from "../ui/Button";
 
 type MeState =
   | { kind: "loading" }
@@ -50,7 +51,7 @@ export default function AdminLayout() {
   const items: Array<{ to: string; label: string; icon: React.ReactNode }> = [
     {
       to: "/admin/instances",
-      label: "Zarizeni",
+      label: "Zařízení",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M8 7h13M8 12h13M8 17h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -60,7 +61,7 @@ export default function AdminLayout() {
     },
     {
       to: "/admin/users",
-      label: "Uzivatele",
+      label: "Uživatelé",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" stroke="currentColor" strokeWidth="2" />
@@ -70,7 +71,7 @@ export default function AdminLayout() {
     },
     {
       to: "/admin/dochazka",
-      label: "Dochazkove listy",
+      label: "Docházkové listy",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M7 3v3M17 3v3M4 8h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -86,7 +87,7 @@ export default function AdminLayout() {
     },
     {
       to: "/admin/plan-sluzeb",
-      label: "Plan sluzeb",
+      label: "Plán služeb",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
@@ -118,7 +119,7 @@ export default function AdminLayout() {
     },
     {
       to: "/admin/settings",
-      label: "Nastaveni",
+      label: "Nastavení",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" stroke="currentColor" strokeWidth="2" />
@@ -134,59 +135,64 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="container" style={{ padding: "10px 0 30px" }}>
+    <div className="kb-admin">
       {me.kind === "loading" ? (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            display: "grid",
-            placeItems: "center",
-            background: "linear-gradient(180deg, #0b1b3a 0%, #0a1226 35%, #070b14 100%)",
-            color: "#e8eefc",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            <img src="/brand/logo.svg" alt="DAGMAR" style={{ width: 180, height: 180, objectFit: "contain" }} />
-            <div style={{ fontWeight: 800, fontSize: 18 }}>Načítám…</div>
+        <div className="kb-intro" role="status" aria-label="Načítání">
+          <div className="kb-intro-card">
+            <div className="kb-intro-top">
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <img src="/KajovoDagmar-dochazka.png" alt="" style={{ height: 38, width: "auto" }} />
+              </div>
+            </div>
+            <div>
+              <div className="kb-intro-title">Administrace</div>
+              <div className="kb-intro-sub">Načítám…</div>
+            </div>
+            <div className="kb-spinner" aria-hidden="true" />
           </div>
         </div>
       ) : null}
 
-      <header className="header" style={{ position: "sticky", top: 0, zIndex: 50, marginBottom: 18 }}>
-        <div className="header-inner">
-          <div className="brand" style={{ gap: 12 }}>
-            <img src="/brand/icon.svg" alt="DAGMAR" />
-            <div>
-              <div className="title">DAGMAR Admin</div>
-              <div className="subtitle">{me.kind === "auth" ? me.username : ""}</div>
-            </div>
+      <aside className="kb-sidebar" aria-label="Admin navigace">
+        <div className="kb-sidebar-head">
+          <img src="/KajovoDagmar-dochazka.png" alt="" className="kb-sidebar-logo" />
+          <div>
+            <div className="kb-sidebar-title">Administrace</div>
+            <div className="kb-sidebar-sub">{me.kind === "auth" ? me.username : ""}</div>
           </div>
-          <nav className="header-actions" aria-label="Admin menu">
-            {items.map((it) => (
-              <NavLink key={it.to} to={it.to} className={({ isActive }) => cx("btn", "ghost", isActive && "primary")} end>
-                {it.icon}
-                <span>{it.label}</span>
-              </NavLink>
-            ))}
-            <form
-              method="post"
-              action="/api/v1/admin/logout"
-              onSubmit={(e) => {
-                e.preventDefault();
-                onLogout();
-              }}
-            >
-              <button type="submit" className="btn solid">
-                Odhlásit
-              </button>
-            </form>
-          </nav>
         </div>
-      </header>
 
-      <main className="stack">
+        <nav className="kb-nav">
+          {items.map((it) => (
+            <NavLink
+              key={it.to}
+              to={it.to}
+              className={({ isActive }) => cx("kb-navlink", isActive && "active")}
+              end
+            >
+              {it.icon}
+              <span>{it.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="kb-sidebar-foot">
+          <form
+            method="post"
+            action="/api/v1/admin/logout"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onLogout();
+            }}
+          >
+            <Button type="submit" variant="primary" style={{ width: "100%" }}>
+              Odhlásit
+            </Button>
+          </form>
+        </div>
+      </aside>
+
+      <main className="kb-admin-main">
         <Outlet />
       </main>
     </div>
