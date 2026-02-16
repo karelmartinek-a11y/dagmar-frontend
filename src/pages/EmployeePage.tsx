@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
 import { ApiError } from "../api/client";
-import { claimToken, getStatus, registerInstance, type EmploymentTemplate } from "../api/instances";
+import type { EmploymentTemplate } from "../types/employment";
 import { portalLogin } from "../api/portal";
+import { BRAND_ASSETS, APP_NAME_SHORT } from "../brand/brand";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
-import { detectClientType, getOrCreateDeviceFingerprint, getInstanceDisplayName, getInstanceToken, instanceStore, setInstanceDisplayName, setInstanceToken } from "../state/instanceStore";
+import { clearPortalAuthState, getPortalAuthState, setPortalAuthState } from "../state/portalAuthStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
-import { PendingPage } from "./PendingPage";
 
 type DayRow = {
   date: string; // YYYY-MM-DD
@@ -105,14 +105,11 @@ function addMonths(yyyyMmStr: string, delta: number) {
   return yyyyMm(dt);
 }
 
-const POLL_STATUS_MS = 8_000;
-const POLL_CLAIM_MS = 6_000;
-
 export function EmployeePage() {
   const [online, setOnline] = useState<boolean>(navigator.onLine);
-  const [, setStatusText] = useState<string>("Kontroluji stav…");
-  const [activationState, setActivationState] = useState<"unknown" | "pending" | "revoked" | "deactivated" | "active">("unknown");
-  const [loginRequired, setLoginRequired] = useState(false);
+  const [token, setToken] = useState<string | null>(() => getPortalAuthState().accessToken);
+  const [profileId, setProfileId] = useState<string | null>(() => getPortalAuthState().profileId);
+  const [displayName, setDisplayName] = useState<string | null>(() => getPortalAuthState().displayName);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -150,19 +147,6 @@ export function EmployeePage() {
     return workingDaysInMonthCs(y, m) * 8;
   }, [month]);
 
-  const [instanceId, setInstanceId] = useState<string | null>(() => instanceStore.get().instanceId);
-  const [deviceFingerprint, setDeviceFingerprint] = useState<string>(() => getOrCreateDeviceFingerprint());
-
-  const clientType = useMemo(() => detectClientType(), []);
-  const deviceInfo = useMemo(
-    () => ({
-      ua: navigator.userAgent,
-      platform: navigator.platform,
-    }),
-    []
-  );
-  const displayName = getInstanceDisplayName();
-  // Bez veřejné reference na historickou doménu.
   const androidDownloadUrl = "/download/dochazka.apk";
 
   useEffect(() => {
@@ -176,152 +160,6 @@ export function EmployeePage() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const unsubscribe = instanceStore.subscribe((st) => {
-      if (cancelled) return;
-      setInstanceId(st.instanceId);
-      setDeviceFingerprint(st.deviceFingerprint ?? getOrCreateDeviceFingerprint());
-      setActivationState("unknown");
-      setEmploymentTemplate("DPP_DPC");
-      setAfternoonCutoff("17:00");
-
-      // reset offline queue when switching identity to avoid mixing data across devices
-      queueRef.current = [];
-      setQueuedCount(0);
-      setSending(false);
-    });
-
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
-  }, []);
-
-  // Ensure instance registration (get server instance_id for this fingerprint).
-  useEffect(() => {
-    let cancelled = false;
-
-    async function ensureRegistered() {
-      if (!online) return;
-      if (loginRequired) return;
-      if (instanceId) return;
-
-      try {
-        const res = await registerInstance({
-          client_type: clientType,
-          device_fingerprint: deviceFingerprint,
-          device_info: deviceInfo,
-        });
-        if (cancelled) return;
-        instanceStore.setInstanceId(res.instance_id);
-        setActivationState("pending");
-        setStatusText("Zařízení není aktivováno");
-      } catch (err: unknown) {
-        const detail = (err as ApiError | undefined)?.body?.detail;
-        if (err instanceof ApiError && err.status === 403 && detail === "REGISTRATION_DISABLED") {
-          setLoginRequired(true);
-          setStatusText("Přihlaste se pomocí e‑mailu a hesla.");
-          return;
-        }
-        // ignore; status poll will keep user informed
-      }
-    }
-
-    ensureRegistered();
-    return () => {
-      cancelled = true;
-    };
-  }, [clientType, deviceFingerprint, deviceInfo, instanceId, online, loginRequired]);
-
-  // Poll status and claim token when ACTIVE
-  useEffect(() => {
-    let cancelled = false;
-    async function pollStatus() {
-      if (cancelled) return;
-      if (!online) {
-        setStatusText("Offline");
-        return;
-      }
-      if (loginRequired) {
-        setStatusText("Přihlaste se pomocí e‑mailu.");
-        return;
-      }
-      if (!instanceId) {
-        setStatusText("Registruji zařízení…");
-        return;
-      }
-
-      try {
-        const st = await getStatus(instanceId);
-        if (cancelled) return;
-
-        if (st.status === "PENDING") {
-          setStatusText("Zařízení není aktivováno");
-          setActivationState("pending");
-          return;
-        }
-        if (st.status === "REVOKED") {
-          setStatusText("Zařízení bylo odregistrováno");
-          setActivationState("revoked");
-          return;
-        }
-        if (st.status === "DEACTIVATED") {
-          setStatusText("PŘÍSTUP OMEZEN");
-          setActivationState("deactivated");
-          return;
-        }
-
-        // ACTIVE
-        if (st.display_name) setInstanceDisplayName(st.display_name);
-        setEmploymentTemplate(st.employment_template ?? "DPP_DPC");
-        setAfternoonCutoff(st.afternoon_cutoff ?? "17:00");
-        setStatusText("Aktivováno");
-        setActivationState("active");
-      } catch (err: unknown) {
-        // If the stored id isn't a server instance_id, recover by treating it as fingerprint and re-registering.
-        if (err instanceof ApiError && err.status === 404) {
-          instanceStore.setDeviceFingerprint(instanceId);
-          setStatusText("Zařízení není aktivováno");
-          setActivationState("pending");
-          return;
-        }
-        if (!cancelled) setStatusText("Nelze ověřit stav");
-      }
-    }
-
-    async function pollClaim() {
-      if (cancelled) return;
-      if (!online) return;
-      if (loginRequired) return;
-      if (!instanceId) return;
-      if (activationState !== "active") return;
-      if (getInstanceToken()) return;
-
-      try {
-        const res = await claimToken(instanceId);
-        if (cancelled) return;
-        setInstanceToken(res.instance_token);
-        setInstanceDisplayName(res.display_name);
-      } catch {
-        // not active yet or transient error
-      }
-    }
-
-    // immediate
-    pollStatus();
-    pollClaim();
-
-    const t1 = window.setInterval(pollStatus, POLL_STATUS_MS);
-    const t2 = window.setInterval(pollClaim, POLL_CLAIM_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(t1);
-      window.clearInterval(t2);
-    };
-  }, [instanceId, online, activationState, loginRequired]);
-
   // Load attendance for month (only when online)
   useEffect(() => {
     let cancelled = false;
@@ -332,7 +170,6 @@ export function EmployeePage() {
         setMonthLocked(false);
         return;
       }
-      const token = getInstanceToken();
       if (!token) {
         setRows([]);
         setMonthLocked(false);
@@ -369,7 +206,6 @@ export function EmployeePage() {
         if (err instanceof ApiError && err.status === 423) {
           setMonthLocked(true);
           setRows([]);
-          setStatusText("Docházka pro tento měsíc je uzavřena administrátorem");
         } else {
           setRows([]);
           setMonthLocked(false);
@@ -381,7 +217,7 @@ export function EmployeePage() {
     return () => {
       cancelled = true;
     };
-  }, [month, online, refreshTick]);
+  }, [month, online, refreshTick, token]);
 
   // Try to flush any offline queue whenever connectivity returns.
   useEffect(() => {
@@ -399,13 +235,12 @@ export function EmployeePage() {
     setLoginSubmitting(true);
     try {
       const res = await portalLogin({ email: loginEmail.trim(), password: loginPassword });
-      instanceStore.setInstanceId(res.instance_id);
-      setInstanceToken(res.instance_token);
-      if (res.display_name) setInstanceDisplayName(res.display_name);
+      setToken(res.instance_token);
+      setProfileId(res.instance_id);
+      setDisplayName(res.display_name ?? null);
+      setPortalAuthState({ accessToken: res.instance_token, profileId: res.instance_id, displayName: res.display_name ?? null });
       if (res.employment_template) setEmploymentTemplate(res.employment_template as EmploymentTemplate);
       if (res.afternoon_cutoff) setAfternoonCutoff(res.afternoon_cutoff);
-      setActivationState("active");
-      setLoginRequired(false);
     } catch (err: unknown) {
       setLoginError(errorMessage(err, "Přihlášení se nezdařilo."));
     } finally {
@@ -413,12 +248,12 @@ export function EmployeePage() {
     }
   }
 
-  if (loginRequired) {
+  if (!token) {
     return (
       <div className="container" style={{ padding: "18px 0 30px" }}>
         <div className="card pad" style={{ maxWidth: 520, margin: "0 auto" }}>
           <div style={{ fontSize: 18, fontWeight: 850 }}>Přihlášení</div>
-          <div style={{ color: "var(--muted)", marginTop: 4 }}>Zařízení není autorizováno. Přihlaste se e‑mailem.</div>
+          <div style={{ color: "var(--muted)", marginTop: 4 }}>Přihlaste se e-mailem a heslem.</div>
 
           {loginError ? (
             <div
@@ -471,13 +306,6 @@ export function EmployeePage() {
     );
   }
 
-  if (!instanceId || activationState === "pending" || activationState === "revoked") {
-    return <PendingPage instanceId={instanceId} />;
-  }
-  if (activationState === "deactivated") {
-    return <RestrictedPage instanceId={instanceId} />;
-  }
-
   function enqueue(item: QueueItem) {
     // Replace any existing item for same date (latest wins)
     const q = queueRef.current;
@@ -490,8 +318,8 @@ export function EmployeePage() {
   async function flushQueueIfPossible() {
     if (!online) return;
     if (sending) return;
-    const token = getInstanceToken();
-    if (!token) return;
+    const currentToken = token;
+    if (!currentToken) return;
 
     const q = queueRef.current;
     if (q.length === 0) return;
@@ -507,7 +335,7 @@ export function EmployeePage() {
             arrival_time: item.arrival_time,
             departure_time: item.departure_time,
           },
-          token,
+          currentToken,
         );
         q.shift();
         setQueuedCount(q.length);
@@ -537,7 +365,7 @@ export function EmployeePage() {
       }),
     );
 
-    const token = getInstanceToken();
+    const currentToken = token;
     const row = rows.find((r) => r.date === date);
 
     // Compute payload from current state after update
@@ -547,13 +375,13 @@ export function EmployeePage() {
       departure_time: field === "departure_time" ? (trimmed === "" ? null : trimmed) : row?.departure_time ?? null,
     };
 
-    if (!online || !token) {
+    if (!online || !currentToken) {
       enqueue({ ...payload, enqueuedAt: Date.now() });
       return;
     }
 
     try {
-      await putAttendance(payload, token);
+      await putAttendance(payload, currentToken);
     } catch {
       enqueue({ ...payload, enqueuedAt: Date.now() });
     } finally {
@@ -590,7 +418,7 @@ export function EmployeePage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--kb-bg)" }}>
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 16px" }}>
-        <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName="KájovoDagmar" />
+        <AndroidDownloadBanner downloadUrl={androidDownloadUrl} appName={APP_NAME_SHORT} />
       </div>
       <header
         style={
@@ -620,6 +448,24 @@ export function EmployeePage() {
               <div style={{ fontWeight: 700, fontSize: 20, textTransform: "uppercase" }}>
                 {monthHead} - {displayName || "—"}
               </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <img src={BRAND_ASSETS.logoHorizontal} alt={APP_NAME_SHORT} style={{ height: 32, width: "auto", objectFit: "contain" }} />
+              <button
+                type="button"
+                onClick={() => {
+                  clearPortalAuthState();
+                  setToken(null);
+                  setProfileId(null);
+                  setDisplayName(null);
+                  queueRef.current = [];
+                  setQueuedCount(0);
+                }}
+                className="btn"
+                aria-label="Odhlásit"
+              >
+                Odhlásit
+              </button>
             </div>
             <div style={{ fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", fontSize: 28 }}>
               {viewMode === "plan" ? "Plán směn" : "Docházkový list"}
@@ -831,7 +677,7 @@ export function EmployeePage() {
 
         {rows.length === 0 ? (
           <div style={{ marginTop: 14, color: "#64748b", fontSize: 13 }}>
-            {online ? "Načítám… (pokud jste právě aktivovali zařízení, vyčkejte na vydání tokenu)" : ""}
+            {online ? "Načítám…" : ""}
           </div>
         ) : null}
       </main>
@@ -844,7 +690,7 @@ export function EmployeePage() {
             gap: 12,
           }}
         >
-          <FooterStat label="ID entity" value={instanceId ?? "—"} />
+          <FooterStat label="ID profilu" value={profileId ?? "—"} />
           <FooterStat label="Název entity" value={displayName || "—"} />
           <FooterStat label={`Součet hodin (${monthLabel(month)})`} value={`${formatHours(monthTotalMins)} h`} />
           <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
@@ -855,37 +701,6 @@ export function EmployeePage() {
           Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.
         </div>
       </footer>
-    </div>
-  );
-}
-
-function RestrictedPage(props: { instanceId: string }) {
-  const { instanceId } = props;
-  return (
-    <div style={{ minHeight: "100vh", background: "var(--kb-bg)", display: "grid", placeItems: "center", padding: 16 }}>
-      <div
-        style={{
-          maxWidth: 640,
-          width: "100%",
-          background: "white",
-          borderRadius: 16,
-          padding: 18,
-          border: "1px solid rgba(15, 23, 42, 0.10)",
-          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.10)",
-        }}
-      >
-        <div style={{ fontWeight: 900, fontSize: 20, color: "#991b1b", marginBottom: 8 }}>PŘÍSTUP OMEZEN</div>
-        <div style={{ color: "#334155", lineHeight: 1.5 }}>
-          Toto zařízení bylo administrátorem deaktivováno. Docházka zůstává uložená, ale přístup do portálu není pro tuto instanci povolen. Kontaktujte prosím
-          správce, pokud jde o omyl.
-        </div>
-        <div style={{ marginTop: 14, fontSize: 12, color: "#64748b" }}>
-          Instance:{" "}
-          <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-            {instanceId}
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

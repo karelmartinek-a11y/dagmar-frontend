@@ -7,7 +7,7 @@
   "theme_color": "#f6f7f9",
   "icons": [
     {
-      "src": "/KajovoDagmar-dochazka.png",
+      "src": "/LOGO/appicon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"

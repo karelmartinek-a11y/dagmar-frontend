@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { adminLogin, getAdminMe } from "../api/admin";
 import Button from "../ui/Button";
 import { Card } from "../ui/Card";
+import { APP_NAME_LONG, BRAND_ASSETS } from "../brand/brand";
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
@@ -24,7 +25,6 @@ export default function AdminLoginPage() {
   const loc = useLocation();
 
   const nextPath = useMemo(() => parseNextParam(loc.search) ?? "/admin/instances", [loc.search]);
-  const logoUrl = useMemo(() => "/KajovoDagmar-dochazka.png", []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,10 +74,10 @@ export default function AdminLoginPage() {
         <Card className="kb-card-pad">
           <div className="kb-row" style={{ alignItems: "center", justifyContent: "space-between" }}>
             <div className="kb-row" style={{ alignItems: "center" }}>
-              <img src={logoUrl} alt="" style={{ width: 44, height: 44, borderRadius: 12, objectFit: "contain" }} />
+              <img src={BRAND_ASSETS.logoMark} alt="" style={{ width: 44, height: 44, borderRadius: 12, objectFit: "contain" }} />
               <div>
                 <div className="kb-card-title">Administrace</div>
-                <div className="kb-card-sub">KájovoDagmar docházkový systém</div>
+                <div className="kb-card-sub">{APP_NAME_LONG}</div>
               </div>
             </div>
             <a href="/download/admin.apk" className="kb-btn kb-btn-ghost" style={{ textDecoration: "none" }}>

@@ -1,4 +1,4 @@
-import type { EmploymentTemplate } from "../api/instances";
+import type { EmploymentTemplate } from "../types/employment";
 
 export type AttendanceRowLike = {
   date: string; // YYYY-MM-DD
