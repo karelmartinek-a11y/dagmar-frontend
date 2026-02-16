@@ -154,11 +154,11 @@ export default function AdminUsersPage() {
         {error ? (
           <div
             style={{
-              border: "1px solid rgba(239,68,68,0.35)",
-              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(255,0,0,0.35)",
+              background: "rgba(255,0,0,0.08)",
               borderRadius: 12,
               padding: 12,
-              color: "#b91c1c",
+              color: "var(--kb-red)",
               marginTop: 12,
               fontSize: 13,
             }}
@@ -170,11 +170,11 @@ export default function AdminUsersPage() {
         {migrationResult ? (
           <div
             style={{
-              border: "1px solid rgba(16,185,129,0.35)",
-              background: "rgba(16,185,129,0.08)",
+              border: "1px solid rgba(38,43,49,0.35)",
+              background: "rgba(38,43,49,0.08)",
               borderRadius: 12,
               padding: 12,
-              color: "#047857",
+              color: "var(--kb-brand-ink-800)",
               marginTop: 12,
               fontSize: 13,
             }}

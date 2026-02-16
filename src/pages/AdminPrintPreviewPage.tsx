@@ -245,20 +245,20 @@ export default function AdminPrintPreviewPage() {
   return (
     <div style={{ padding: 0, margin: 0 }} ref={containerRef}>
       <style>{`
-        body { background: #f2f4f8; }
+        body { background: #ffffff; }
         .sheet { width: 210mm; min-height: 297mm; padding: 15mm 12mm; margin: 6mm auto; background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
         .sheet + .sheet { page-break-before: always; }
         h1 { margin: 0 0 4px 0; font-size: 18px; }
-        h2 { margin: 0 0 12px 0; font-size: 14px; color: #555; }
+        h2 { margin: 0 0 12px 0; font-size: 14px; color: var(--kb-brand-ink-600); }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #d7deeb; padding: 4px 6px; text-align: left; }
-        th { background: #0f172a; color: #eef2ff; font-weight: 600; }
-        .row-weekend { background: #f5f7ff; }
-        .row-holiday { background: #fff4f2; }
+        th, td { border: 1px solid rgba(82, 85, 93, 0.22); padding: 4px 6px; text-align: left; }
+        th { background: var(--kb-text); color: #ffffff; font-weight: 600; }
+        .row-weekend { background: rgba(82, 85, 93, 0.06); }
+        .row-holiday { background: rgba(255,0,0,0.05); }
         .footer { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; font-size: 12px; }
-        .pill { background: #0f172a; color: #fff; padding: 6px 10px; border-radius: 8px; display: inline-block; font-weight: 600; }
-        .small { color: #6b7280; font-size: 11px; }
-        .signature { margin-top: 14px; font-size: 10px; color: #6b7280; text-align: center; }
+        .pill { background: var(--kb-text); color: #fff; padding: 6px 10px; border-radius: 8px; display: inline-block; font-weight: 600; }
+        .small { color: var(--kb-brand-ink-600); font-size: 11px; }
+        .signature { margin-top: 14px; font-size: 10px; color: var(--kb-brand-ink-600); text-align: center; }
         @media print { body { background: white; } .sheet { box-shadow: none; margin: 0 auto; } }
         .t-center { text-align: center; }
         .t-right { text-align: right; }

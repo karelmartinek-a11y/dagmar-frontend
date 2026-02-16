@@ -7,29 +7,35 @@
   --kb-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
     "Segoe UI Emoji";
 
-  --kb-bg: #f6f7f9;
-  --kb-surface: #ffffff;
-  --kb-surface-2: #f1f3f6;
-  --kb-text: #0b1220;
-  --kb-muted: rgba(11, 18, 32, 0.68);
-  --kb-border: rgba(15, 23, 42, 0.12);
+  --kb-brand-red: #ff0000;
+  --kb-brand-ink-900: #23292c;
+  --kb-brand-ink-800: #262b31;
+  --kb-brand-ink-600: #52555d;
+  --kb-brand-white: #ffffff;
+  --kb-brand-black: #000000;
 
-  --kb-primary: #0b1220;
-  --kb-primary-2: #1f2937;
+  --kb-bg: var(--kb-brand-white);
+  --kb-surface: var(--kb-brand-white);
+  --kb-surface-2: rgba(35, 41, 44, 0.05);
+  --kb-text: var(--kb-brand-ink-900);
+  --kb-muted: rgba(35, 41, 44, 0.72);
+  --kb-border: rgba(35, 41, 44, 0.18);
 
-  --kb-ok: #166534;
-  --kb-warning: #9a3412;
+  --kb-primary: var(--kb-brand-ink-900);
+  --kb-primary-2: var(--kb-brand-ink-800);
 
-  /* Pozor: červená pouze v signaci */
-  --kb-red: #e60000;
+  --kb-ok: var(--kb-brand-ink-800);
+  --kb-warning: var(--kb-brand-red);
+
+  --kb-red: var(--kb-brand-red);
 
   --kb-radius: 16px;
   --kb-radius-sm: 12px;
 
-  --kb-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
-  --kb-shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --kb-shadow: 0 14px 40px rgba(35, 41, 44, 0.12);
+  --kb-shadow-sm: 0 8px 24px rgba(35, 41, 44, 0.1);
 
-  --kb-focus: 0 0 0 3px rgba(15, 23, 42, 0.18);
+  --kb-focus: 0 0 0 3px rgba(35, 41, 44, 0.22);
 }
 
 * {
@@ -82,7 +88,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   padding: 0 14px;
-  background: rgba(246, 247, 249, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border-bottom: 1px solid var(--kb-border);
   backdrop-filter: blur(10px);
 }
@@ -113,13 +119,13 @@ textarea {
   background: var(--kb-red);
   padding: 0 10px;
   border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 18px rgba(35, 41, 44, 0.2);
 }
 
 .kb-signage span {
   font-family: "Montserrat", ui-sans-serif, system-ui;
   font-weight: 700;
-  color: #000;
+  color: var(--kb-brand-black);
   letter-spacing: 0.2px;
 }
 
@@ -170,8 +176,8 @@ textarea {
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  border: 3px solid rgba(15, 23, 42, 0.16);
-  border-top-color: rgba(15, 23, 42, 0.62);
+  border: 3px solid rgba(35, 41, 44, 0.22);
+  border-top-color: rgba(35, 41, 44, 0.7);
   animation: kb-spin 1.05s linear infinite;
 }
 
@@ -282,8 +288,8 @@ textarea {
 
 .kb-btn-primary {
   background: var(--kb-primary);
-  color: #fff;
-  border-color: rgba(11, 18, 32, 0.2);
+  color: var(--kb-brand-white);
+  border-color: rgba(35, 41, 44, 0.22);
 }
 
 .kb-btn-primary:hover {
@@ -300,9 +306,9 @@ textarea {
 
 .kb-btn-danger {
   /* Pozor: není červená (brand) */
-  background: rgba(154, 52, 18, 0.08);
-  border-color: rgba(154, 52, 18, 0.22);
-  color: #7c2d12;
+  background: rgba(255, 0, 0, 0.08);
+  border-color: rgba(255, 0, 0, 0.22);
+  color: var(--kb-brand-red);
 }
 
 /* Form */
@@ -353,8 +359,8 @@ textarea {
 .kb-input[aria-invalid="true"],
 .kb-select[aria-invalid="true"],
 .kb-textarea[aria-invalid="true"] {
-  border-color: rgba(154, 52, 18, 0.38);
-  background: rgba(154, 52, 18, 0.04);
+  border-color: rgba(255, 0, 0, 0.38);
+  background: rgba(255, 0, 0, 0.05);
 }
 
 /* Tables */
@@ -401,41 +407,41 @@ textarea {
   border-radius: 999px;
   font-size: 12px;
   border: 1px solid var(--kb-border);
-  background: rgba(15, 23, 42, 0.03);
+  background: rgba(35, 41, 44, 0.04);
 }
 
 .kb-badge-dot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.38);
+  background: rgba(35, 41, 44, 0.38);
 }
 
 .kb-badge-success {
-  border-color: rgba(22, 101, 52, 0.25);
-  background: rgba(22, 101, 52, 0.06);
+  border-color: rgba(38, 43, 49, 0.25);
+  background: rgba(38, 43, 49, 0.08);
 }
 
 .kb-badge-success .kb-badge-dot {
-  background: #166534;
+  background: var(--kb-brand-ink-800);
 }
 
 .kb-badge-warning {
-  border-color: rgba(154, 52, 18, 0.25);
-  background: rgba(154, 52, 18, 0.06);
+  border-color: rgba(255, 0, 0, 0.25);
+  background: rgba(255, 0, 0, 0.06);
 }
 
 .kb-badge-warning .kb-badge-dot {
-  background: #9a3412;
+  background: var(--kb-brand-red);
 }
 
 .kb-badge-danger {
-  border-color: rgba(124, 45, 18, 0.25);
-  background: rgba(124, 45, 18, 0.06);
+  border-color: rgba(255, 0, 0, 0.25);
+  background: rgba(255, 0, 0, 0.06);
 }
 
 .kb-badge-danger .kb-badge-dot {
-  background: #7c2d12;
+  background: var(--kb-brand-red);
 }
 
 /* Modals: overlay starts under SystemBar */
@@ -444,7 +450,7 @@ textarea {
   inset: 0;
   z-index: 9998;
   padding-top: var(--kb-systembar-h);
-  background: rgba(11, 18, 32, 0.36);
+  background: rgba(35, 41, 44, 0.36);
   display: grid;
   place-items: start center;
 }
@@ -579,8 +585,8 @@ textarea {
 }
 
 .kb-navlink.active {
-  background: rgba(59, 130, 246, 0.10);
-  border-color: rgba(59, 130, 246, 0.22);
+  background: rgba(38, 43, 49, 0.1);
+  border-color: rgba(38, 43, 49, 0.24);
 }
 
 .kb-sidebar-foot {
@@ -631,7 +637,7 @@ textarea {
   right: 10px;
   bottom: 10px;
   z-index: 9997;
-  background: rgba(11, 18, 32, 0.85);
+  background: rgba(35, 41, 44, 0.9);
   color: white;
   padding: 10px 12px;
   border-radius: 12px;

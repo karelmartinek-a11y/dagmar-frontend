@@ -72,11 +72,11 @@ export default function AdminSettingsPage() {
         {error ? (
           <div
             style={{
-              border: "1px solid rgba(239,68,68,0.35)",
-              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(255,0,0,0.35)",
+              background: "rgba(255,0,0,0.08)",
               borderRadius: 12,
               padding: 12,
-              color: "#b91c1c",
+              color: "var(--kb-red)",
               marginTop: 12,
               fontSize: 13,
             }}
