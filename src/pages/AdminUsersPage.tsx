@@ -1,10 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { adminCreateUser, adminListUsers, adminSendUserReset, type PortalUser } from "../api/admin";
+import { adminCreateUser, adminListInstances, adminListUsers, adminSendUserReset, adminUpdateUser, type PortalUser } from "../api/admin";
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string") return err;
   return fallback;
+}
+
+function normalizedLabel(value: string | null | undefined): string {
+  return (value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("cs-CZ");
+}
+
+function makeEmailFromAttendanceName(name: string): string {
+  const slug = normalizedLabel(name)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 48);
+  return `${slug || "uzivatel"}@migration.local`;
 }
 
 export default function AdminUsersPage() {
@@ -15,6 +32,7 @@ export default function AdminUsersPage() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("employee");
   const [saving, setSaving] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -66,6 +84,67 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function migrateAttendancesToUsers() {
+    setSaving(true);
+    setError(null);
+    setMigrationResult(null);
+
+    try {
+      const [usersRes, instancesRes] = await Promise.all([adminListUsers(), adminListInstances()]);
+      const existingUsers = usersRes.users || [];
+      const activeInstances = instancesRes.instances.filter((it) => it.status === "ACTIVE" && it.display_name);
+
+      const usersByName = new Map<string, PortalUser>();
+      for (const u of existingUsers) {
+        const key = normalizedLabel(u.name);
+        if (key && !usersByName.has(key)) usersByName.set(key, u);
+      }
+
+      let created = 0;
+      let linked = 0;
+      let skipped = 0;
+
+      for (const inst of activeInstances) {
+        const displayName = (inst.display_name ?? "").trim();
+        const key = normalizedLabel(displayName);
+        if (!key) {
+          skipped += 1;
+          continue;
+        }
+
+        let user = usersByName.get(key);
+
+        if (!user) {
+          user = await adminCreateUser({
+            name: displayName,
+            email: makeEmailFromAttendanceName(displayName),
+            role: "employee",
+            profile_instance_id: inst.id,
+          });
+          created += 1;
+          linked += 1;
+          usersByName.set(key, user);
+          continue;
+        }
+
+        if (user.profile_instance_id === inst.id) {
+          skipped += 1;
+          continue;
+        }
+
+        await adminUpdateUser(user.id, { profile_instance_id: inst.id });
+        linked += 1;
+      }
+
+      setMigrationResult(`Migrace hotová. Vytvořeno: ${created}, přiřazeno: ${linked}, přeskočeno: ${skipped}.`);
+      await load();
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Migrace docházek na uživatele se nezdařila."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="stack">
       <section className="card pad">
@@ -85,6 +164,22 @@ export default function AdminUsersPage() {
             }}
           >
             {error}
+          </div>
+        ) : null}
+
+        {migrationResult ? (
+          <div
+            style={{
+              border: "1px solid rgba(16,185,129,0.35)",
+              background: "rgba(16,185,129,0.08)",
+              borderRadius: 12,
+              padding: 12,
+              color: "#047857",
+              marginTop: 12,
+              fontSize: 13,
+            }}
+          >
+            {migrationResult}
           </div>
         ) : null}
 
@@ -111,7 +206,10 @@ export default function AdminUsersPage() {
               </select>
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" className="btn" disabled={saving || loading} onClick={migrateAttendancesToUsers}>
+              {saving ? "Migruji…" : "Migrovat docházky na uživatele"}
+            </button>
             <button type="submit" className="btn solid" disabled={saving}>
               {saving ? "Ukládám…" : "Přidat"}
             </button>

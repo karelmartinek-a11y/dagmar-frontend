@@ -96,6 +96,7 @@ export type PortalUser = {
   email: string;
   role: string;
   has_password: boolean;
+  profile_instance_id?: string | null;
 };
 
 export type AdminUsersResponse = {
@@ -106,9 +107,22 @@ export async function adminListUsers(): Promise<AdminUsersResponse> {
   return apiFetch<AdminUsersResponse>("/api/v1/admin/users", { method: "GET" });
 }
 
-export async function adminCreateUser(payload: { name: string; email: string; role: string }): Promise<PortalUser> {
+export async function adminCreateUser(payload: {
+  name: string;
+  email: string;
+  role: string;
+  profile_instance_id?: string | null;
+}): Promise<PortalUser> {
   return apiFetch<PortalUser>("/api/v1/admin/users", {
     method: "POST",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminUpdateUser(userId: number, payload: { profile_instance_id?: string | null }): Promise<PortalUser> {
+  return apiFetch<PortalUser>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}`, {
+    method: "PUT",
     headers: withCsrf(),
     body: payload,
   });
