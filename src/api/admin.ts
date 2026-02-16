@@ -1,6 +1,6 @@
 import { apiFetch, ApiError } from "./client";
 import { ensureCsrfToken, setCsrfToken, withCsrf } from "./csrf";
-import type { EmploymentTemplate } from "./instances";
+import type { EmploymentTemplate } from "../types/employment";
 
 export type AdminMe = {
   authenticated: boolean;

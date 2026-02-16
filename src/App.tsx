@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import EmployeePage from "./pages/EmployeePage";
 import AdminLayout from "./pages/AdminLayout";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminInstancesPage from "./pages/AdminInstancesPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminExportPage from "./pages/AdminExportPage";
 import AdminAttendanceSheetsPage from "./pages/AdminAttendanceSheetsPage";
@@ -11,7 +10,6 @@ import AdminSettingsPage from "./pages/AdminSettingsPage";
 import AdminShiftPlanPage from "./pages/AdminShiftPlanPage";
 import AdminPrintsPage from "./pages/AdminPrintsPage";
 import AdminPrintPreviewPage from "./pages/AdminPrintPreviewPage";
-import { PendingPage } from "./pages/PendingPage";
 import PortalResetPage from "./pages/PortalResetPage";
 
 type VersionPayload = {
@@ -82,12 +80,9 @@ export default function App() {
 
         <Route path="/app" element={<EmployeePage />} />
         <Route path="/reset" element={<PortalResetPage />} />
-        <Route path="/pending" element={<PendingPage />} />
-
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="instances" replace />} />
-          <Route path="instances" element={<AdminInstancesPage />} />
+          <Route index element={<Navigate to="users" replace />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="dochazka" element={<AdminAttendanceSheetsPage />} />
           <Route path="plan-sluzeb" element={<AdminShiftPlanPage />} />

@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { getAdminMe } from "../api/admin";
 import Button from "../ui/Button";
+import { BRAND_ASSETS } from "../brand/brand";
 
 type MeState =
   | { kind: "loading" }
@@ -49,16 +50,6 @@ export default function AdminLayout() {
   }
 
   const items: Array<{ to: string; label: string; icon: React.ReactNode }> = [
-    {
-      to: "/admin/instances",
-      label: "Zařízení",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M8 7h13M8 12h13M8 17h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M3.5 7h.01M3.5 12h.01M3.5 17h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      ),
-    },
     {
       to: "/admin/users",
       label: "Uživatelé",
@@ -141,7 +132,7 @@ export default function AdminLayout() {
           <div className="kb-intro-card">
             <div className="kb-intro-top">
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <img src="/KajovoDagmar-dochazka.png" alt="" style={{ height: 38, width: "auto" }} />
+                <img src={BRAND_ASSETS.logoHorizontal} alt="" style={{ height: 38, width: "auto" }} />
               </div>
             </div>
             <div>
@@ -155,7 +146,7 @@ export default function AdminLayout() {
 
       <aside className="kb-sidebar" aria-label="Admin navigace">
         <div className="kb-sidebar-head">
-          <img src="/KajovoDagmar-dochazka.png" alt="" className="kb-sidebar-logo" />
+          <img src={BRAND_ASSETS.logoHorizontal} alt="" className="kb-sidebar-logo" />
           <div>
             <div className="kb-sidebar-title">Administrace</div>
             <div className="kb-sidebar-sub">{me.kind === "auth" ? me.username : ""}</div>
