@@ -70,7 +70,7 @@ export default function AdminExportPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Export</h1>
-          <div style={{ marginTop: 6, color: "rgba(15,23,42,0.7)", fontSize: 13 }}>
+          <div style={{ marginTop: 6, color: "rgba(35,41,44,0.7)", fontSize: 13 }}>
             CSV export docházky dle měsíce. Individuálně pro instanci nebo hromadně pro všechny.
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function AdminExportPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14, marginTop: 18 }}>
         <section style={card}>
           <h2 style={h2}>Individuální export</h2>
-          <div style={{ color: "rgba(15,23,42,0.7)", fontSize: 13, marginTop: 6 }}>
+          <div style={{ color: "rgba(35,41,44,0.7)", fontSize: 13, marginTop: 6 }}>
             Zadejte <strong>ID instance</strong> a stáhněte CSV pro vybraný měsíc.
           </div>
 
@@ -142,14 +142,14 @@ export default function AdminExportPage() {
             </a>
           </div>
 
-          <div style={{ marginTop: 10, fontSize: 12, color: "rgba(15,23,42,0.6)" }}>
+          <div style={{ marginTop: 10, fontSize: 12, color: "rgba(35,41,44,0.6)" }}>
             Tip: ID instance najdete v sekci <strong>Instances</strong>.
           </div>
         </section>
 
         <section style={card}>
           <h2 style={h2}>Hromadný export</h2>
-          <div style={{ color: "rgba(15,23,42,0.7)", fontSize: 13, marginTop: 6 }}>
+          <div style={{ color: "rgba(35,41,44,0.7)", fontSize: 13, marginTop: 6 }}>
             Stáhne ZIP obsahující CSV soubory pro všechny aktivní instance za vybraný měsíc.
           </div>
 
@@ -169,7 +169,7 @@ export default function AdminExportPage() {
             >
               Stáhnout ZIP
             </a>
-            <div style={{ fontSize: 12, color: "rgba(15,23,42,0.6)" }}>
+            <div style={{ fontSize: 12, color: "rgba(35,41,44,0.6)" }}>
               Souborové názvy mají tvar <code style={codeStyle}>nazev_instance_YYYY-MM.csv</code>.
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function AdminExportPage() {
 
         <section style={card}>
           <h2 style={h2}>Poznámky</h2>
-          <ul style={{ margin: "8px 0 0 18px", color: "rgba(15,23,42,0.75)", fontSize: 13, lineHeight: 1.6 }}>
+          <ul style={{ margin: "8px 0 0 18px", color: "rgba(35,41,44,0.75)", fontSize: 13, lineHeight: 1.6 }}>
             <li>Export pracuje s uloženými hodnotami <strong>příchod</strong> a <strong>odchod</strong> (HH:MM nebo prázdné).</li>
             <li>Datum je ve formátu <strong>YYYY-MM-DD</strong>.</li>
             <li>Pokud je instance REVOKED, export může být prázdný (podle dat v DB).</li>
@@ -190,10 +190,10 @@ export default function AdminExportPage() {
 
 const card: CSSProperties = {
   background: "white",
-  border: "1px solid rgba(15,23,42,0.10)",
+  border: "1px solid rgba(35,41,44,0.10)",
   borderRadius: 14,
   padding: 16,
-  boxShadow: "0 8px 26px rgba(15,23,42,0.06)",
+  boxShadow: "0 8px 26px rgba(35,41,44,0.06)",
 };
 
 const h2: CSSProperties = {
@@ -205,7 +205,7 @@ const h2: CSSProperties = {
 const input: CSSProperties = {
   height: 44,
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.16)",
+  border: "1px solid rgba(35,41,44,0.16)",
   padding: "0 12px",
   fontSize: 14,
   outline: "none",
@@ -220,8 +220,8 @@ const btnPrimary: CSSProperties = {
   padding: "0 14px",
   fontWeight: 800,
   fontSize: 14,
-  border: "1px solid rgba(2,132,199,0.25)",
-  background: "linear-gradient(90deg, rgba(2,132,199,0.98), rgba(59,130,246,0.96))",
+  border: "1px solid rgba(38,43,49,0.25)",
+  background: "linear-gradient(90deg, rgba(38,43,49,0.98), rgba(38,43,49,0.96))",
   color: "white",
 };
 
@@ -229,9 +229,9 @@ const btnSecondary: CSSProperties = {
   height: 44,
   width: 44,
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.16)",
+  border: "1px solid rgba(35,41,44,0.16)",
   background: "white",
-  color: "rgba(15,23,42,0.9)",
+  color: "rgba(35,41,44,0.9)",
   fontWeight: 900,
   cursor: "pointer",
 };
@@ -240,15 +240,15 @@ const warnBox: CSSProperties = {
   marginTop: 12,
   padding: "10px 12px",
   borderRadius: 12,
-  background: "rgba(245, 158, 11, 0.12)",
-  border: "1px solid rgba(245, 158, 11, 0.25)",
-  color: "rgba(120, 53, 15, 0.95)",
+  background: "rgba(255, 0, 0, 0.12)",
+  border: "1px solid rgba(255, 0, 0, 0.25)",
+  color: "rgba(255, 0, 0, 0.95)",
   fontSize: 13,
 };
 
 const codeStyle: CSSProperties = {
-  background: "rgba(15,23,42,0.06)",
-  border: "1px solid rgba(15,23,42,0.10)",
+  background: "rgba(35,41,44,0.06)",
+  border: "1px solid rgba(35,41,44,0.10)",
   borderRadius: 8,
   padding: "2px 8px",
   fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",

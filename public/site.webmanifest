@@ -3,11 +3,11 @@
   "short_name": "KájovoDagmar",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6f7f9",
-  "theme_color": "#f6f7f9",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "/LOGO/appicon-512.png",
+      "src": "/LOGO/assets/icons/appicon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"

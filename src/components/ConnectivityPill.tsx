@@ -32,9 +32,9 @@ export function ConnectivityPill({
   const sentTime = formatLastSent(lastSentAt);
 
   // Pozor: červená je dle brandu vyhrazená pro signaci. Offline používá tlumenou "amber" paletu.
-  const dotColor = online ? "#16a34a" : "#b45309";
-  const borderColor = online ? "rgba(22,163,74,0.35)" : "rgba(180,83,9,0.35)";
-  const bgColor = online ? "rgba(22,163,74,0.10)" : "rgba(180,83,9,0.12)";
+  const dotColor = online ? "var(--kb-brand-ink-800)" : "var(--kb-brand-red)";
+  const borderColor = online ? "rgba(38,43,49,0.35)" : "rgba(255,0,0,0.35)";
+  const bgColor = online ? "rgba(38,43,49,0.1)" : "rgba(255,0,0,0.12)";
 
   const queueText = queued
     ? `Čeká ${queuedTotal}`
@@ -66,7 +66,7 @@ export function ConnectivityPill({
         borderRadius: 999,
         border: `1px solid ${borderColor}`,
         background: bgColor,
-        color: "#0f172a",
+        color: "var(--kb-text)",
         fontSize: 12,
         lineHeight: "16px",
         userSelect: "none",

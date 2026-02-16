@@ -60,10 +60,10 @@ function formatHours(mins: number): string {
 }
 
 function statusTone(status: string): { bg: string; fg: string; border: string } {
-  if (status === "ACTIVE") return { bg: "rgba(16,185,129,0.10)", fg: "#065f46", border: "rgba(16,185,129,0.25)" };
-  if (status === "PENDING") return { bg: "rgba(245,158,11,0.12)", fg: "#92400e", border: "rgba(245,158,11,0.25)" };
-  if (status === "REVOKED") return { bg: "rgba(239,68,68,0.10)", fg: "#991b1b", border: "rgba(239,68,68,0.22)" };
-  return { bg: "rgba(15,23,42,0.06)", fg: "rgba(15,23,42,0.75)", border: "rgba(15,23,42,0.14)" };
+  if (status === "ACTIVE") return { bg: "rgba(38,43,49,0.10)", fg: "var(--kb-brand-ink-800)", border: "rgba(38,43,49,0.25)" };
+  if (status === "PENDING") return { bg: "rgba(255,0,0,0.12)", fg: "var(--kb-red)", border: "rgba(255,0,0,0.25)" };
+  if (status === "REVOKED") return { bg: "rgba(255,0,0,0.10)", fg: "var(--kb-red)", border: "rgba(255,0,0,0.22)" };
+  return { bg: "rgba(35,41,44,0.06)", fg: "rgba(35,41,44,0.75)", border: "rgba(35,41,44,0.14)" };
 }
 
 export default function AdminAttendanceSheetsPage() {
@@ -270,7 +270,7 @@ export default function AdminAttendanceSheetsPage() {
     background: "white",
     border: "1px solid var(--line)",
     borderRadius: 16,
-    boxShadow: "0 8px 26px rgba(15,23,42,0.06)",
+    boxShadow: "0 8px 26px rgba(35,41,44,0.06)",
     padding: 16,
   };
 
@@ -304,11 +304,11 @@ export default function AdminAttendanceSheetsPage() {
             <div
               style={{
                 marginTop: 10,
-                border: "1px solid rgba(239,68,68,0.35)",
-                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(255,0,0,0.35)",
+                background: "rgba(255,0,0,0.08)",
                 borderRadius: 12,
                 padding: 12,
-                color: "#b91c1c",
+                color: "var(--kb-red)",
                 fontSize: 13,
               }}
             >
@@ -338,12 +338,12 @@ export default function AdminAttendanceSheetsPage() {
                       padding: "10px 12px",
                       border: "0",
                       borderBottom: "1px solid var(--line)",
-                      background: isActive ? "rgba(2,132,199,0.06)" : "white",
+                      background: isActive ? "rgba(38,43,49,0.06)" : "white",
                       cursor: "pointer",
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 750, color: "rgba(15,23,42,0.92)", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div style={{ fontWeight: 750, color: "rgba(35,41,44,0.92)", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {it.display_name || "— bez názvu —"}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
@@ -380,15 +380,15 @@ export default function AdminAttendanceSheetsPage() {
             <div style={{ color: "var(--muted)" }}>Vyberte instanci vlevo.</div>
           ) : (
             <>
-              <div style={{ minHeight: "100vh", background: "#f6f8fb", borderRadius: 16, overflow: "hidden", border: "1px solid var(--line)" }}>
+              <div style={{ minHeight: "100vh", background: "#ffffff", borderRadius: 16, overflow: "hidden", border: "1px solid var(--line)" }}>
                 <header
                   style={{
                     position: "sticky",
                     top: 0,
                     zIndex: 10,
-                    backgroundImage: "linear-gradient(90deg, #0b5bd3 0%, #2aa8ff 55%, #6fd3ff 100%)",
+                    backgroundImage: "linear-gradient(90deg, var(--kb-brand-ink-800) 0%, var(--kb-brand-ink-800) 55%, rgba(82, 85, 93, 0.2) 100%)",
                     color: "white",
-                    borderBottom: "1px solid rgba(255,255,255,0.18)",
+                    borderBottom: "1px solid rgba(255,255,255,0.24)",
                     padding: "14px 16px",
                   }}
                 >
@@ -441,11 +441,11 @@ export default function AdminAttendanceSheetsPage() {
                   <div
                     style={{
                       margin: "12px 16px 0 16px",
-                      border: "1px solid rgba(239,68,68,0.35)",
-                      background: "rgba(239,68,68,0.08)",
+                      border: "1px solid rgba(255,0,0,0.35)",
+                      background: "rgba(255,0,0,0.08)",
                       borderRadius: 12,
                       padding: 12,
-                      color: "#b91c1c",
+                      color: "var(--kb-red)",
                       fontSize: 13,
                     }}
                   >
@@ -461,8 +461,8 @@ export default function AdminAttendanceSheetsPage() {
                       style={{
                         ...cardStyle(),
                         padding: 12,
-                        background: "rgba(2,132,199,0.06)",
-                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        background: "rgba(38,43,49,0.06)",
+                        border: "1px solid rgba(35,41,44,0.12)",
                         boxShadow: "none",
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr 1fr",
@@ -470,10 +470,10 @@ export default function AdminAttendanceSheetsPage() {
                         alignItems: "center",
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Den</div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Příchod</div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Odchod</div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)" }}>Den</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)" }}>Příchod</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)" }}>Odchod</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)", textAlign: "right" }}>Hodiny</div>
                     </div>
                   ) : null}
                   {days?.map((d) => {
@@ -493,16 +493,16 @@ export default function AdminAttendanceSheetsPage() {
                         style={{
                           ...cardStyle(),
                           border: isToday
-                            ? "2px solid rgba(37, 99, 235, 0.55)"
+                            ? "2px solid rgba(38,43,49,0.5)"
                             : hasPlan
-                              ? "2px solid rgba(14, 116, 144, 0.45)"
-                              : "1px solid rgba(15, 23, 42, 0.08)",
+                              ? "2px solid rgba(38,43,49,0.4)"
+                              : "1px solid rgba(35,41,44,0.12)",
                           boxShadow: isToday
-                            ? "0 8px 24px rgba(37,99,235,0.12)"
+                            ? "0 8px 24px rgba(38,43,49,0.12)"
                             : hasPlan
-                              ? "0 8px 20px rgba(14, 116, 144, 0.10)"
-                              : "0 6px 18px rgba(15, 23, 42, 0.06)",
-                          background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "white",
+                              ? "0 8px 20px rgba(38,43,49,0.1)"
+                              : "0 6px 18px rgba(35, 41, 44, 0.06)",
+                          background: isSpecial ? "rgba(255,0,0,0.08)" : "white",
                           display: "grid",
                           gridTemplateColumns: "1fr 1fr 1fr 1fr",
                           gap: 12,
@@ -510,8 +510,8 @@ export default function AdminAttendanceSheetsPage() {
                         }}
                       >
                         <div>
-                          <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{d.date.slice(8, 10)}.</div>
-                          <div style={{ fontSize: 12, color: "#475569" }}>
+                          <div style={{ fontWeight: 800, fontSize: 18, color: "var(--kb-text)" }}>{d.date.slice(8, 10)}.</div>
+                          <div style={{ fontSize: 12, color: "var(--kb-brand-ink-600)" }}>
                             {toDowLabel(d.date)}
                             {template === "HPP" && calc.holidayName ? ` • ${calc.holidayName}` : ""}
                           </div>
@@ -523,9 +523,9 @@ export default function AdminAttendanceSheetsPage() {
                                 marginTop: 6,
                                 fontSize: 11,
                                 fontWeight: 800,
-                                color: "#0f172a",
-                                background: "rgba(15,23,42,0.08)",
-                                border: "1px solid rgba(15,23,42,0.12)",
+                                color: "var(--kb-text)",
+                                background: "rgba(35,41,44,0.12)",
+                                border: "1px solid rgba(35,41,44,0.18)",
                                 padding: "4px 8px",
                                 borderRadius: 999,
                               }}
@@ -540,8 +540,8 @@ export default function AdminAttendanceSheetsPage() {
                                 marginTop: 6,
                                 fontSize: 11,
                                 fontWeight: 700,
-                                color: "#1d4ed8",
-                                background: "rgba(29, 78, 216, 0.10)",
+                                color: "var(--kb-brand-ink-800)",
+                                background: "rgba(38,43,49,0.1)",
                                 padding: "4px 8px",
                                 borderRadius: 999,
                               }}
@@ -568,7 +568,7 @@ export default function AdminAttendanceSheetsPage() {
                           error={errorByKey[`${d.date}:departure_time`] ?? null}
                           onCommit={(v) => commitTime(d.date, "departure_time", v)}
                         />
-                        <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
+                        <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "var(--kb-text)" : "rgba(82, 85, 93, 0.6)" }}>
                           {mins !== null ? `${formatHours(mins)} h` : "—"}
                         </div>
                       </div>
@@ -611,9 +611,9 @@ export default function AdminAttendanceSheetsPage() {
                         ...miniBtn(),
                         width: "auto",
                         padding: "0 12px",
-                        background: locked ? "#111827" : "#0ea5e9",
-                        color: locked ? "white" : "#0b172a",
-                        border: locked ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(14,165,233,0.35)",
+                        background: locked ? "var(--kb-brand-ink-900)" : "var(--kb-brand-ink-800)",
+                        color: locked ? "white" : "var(--kb-brand-white)",
+                        border: locked ? "1px solid rgba(255,0,0,0.4)" : "1px solid rgba(38,43,49,0.35)",
                       }}
                       disabled={daysLoading}
                     >
@@ -633,8 +633,8 @@ export default function AdminAttendanceSheetsPage() {
 function headerNavButtonStyle(): React.CSSProperties {
   return {
     appearance: "none",
-    border: "1px solid rgba(255,255,255,0.35)",
-    background: "rgba(255,255,255,0.12)",
+    border: "1px solid rgba(255,255,255,0.4)",
+    background: "rgba(255,255,255,0.15)",
     color: "white",
     width: 46,
     height: 46,
@@ -665,8 +665,8 @@ function cardStyle(): React.CSSProperties {
     background: "white",
     borderRadius: 16,
     padding: 14,
-    border: "1px solid rgba(15, 23, 42, 0.08)",
-    boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
+    border: "1px solid rgba(35,41,44,0.12)",
+    boxShadow: "0 6px 18px rgba(35, 41, 44, 0.06)",
   };
 }
 
@@ -689,7 +689,7 @@ function FooterStat(props: { label: string; value: string; valueStyle?: React.CS
       <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>
         {label}
       </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", ...valueStyle }}>{value}</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--kb-text)", ...valueStyle }}>{value}</div>
     </div>
   );
 }
@@ -713,8 +713,8 @@ function TimeInput(props: {
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
-      {plannedValue ? <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>Plán: {plannedValue}</div> : null}
+      <div style={{ fontSize: 12, color: "var(--kb-brand-ink-600)", fontWeight: 700 }}>{label}</div>
+      {plannedValue ? <div style={{ fontSize: 11, color: "rgba(82, 85, 93, 0.6)", fontWeight: 700 }}>Plán: {plannedValue}</div> : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}
@@ -731,17 +731,17 @@ function TimeInput(props: {
           minWidth: 0,
           height: 44,
           borderRadius: 12,
-          border: ok ? "1px solid rgba(15, 23, 42, 0.18)" : "1px solid rgba(220, 38, 38, 0.6)",
+          border: ok ? "1px solid rgba(35, 41, 44, 0.18)" : "1px solid rgba(255,0,0,0.6)",
           outline: "none",
           padding: "0 12px",
           fontSize: 16,
           fontWeight: 700,
           letterSpacing: 0.2,
-          background: ok ? "white" : "rgba(220, 38, 38, 0.05)",
+          background: ok ? "white" : "rgba(255,0,0,0.05)",
         }}
       />
-      {!ok ? <div style={{ fontSize: 11, color: "#9a3412" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
-      {ok && error ? <div style={{ fontSize: 11, color: "#9a3412" }}>{error}</div> : null}
+      {!ok ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {ok && error ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>{error}</div> : null}
     </div>
   );
 }

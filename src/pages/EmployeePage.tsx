@@ -258,11 +258,11 @@ export function EmployeePage() {
           {loginError ? (
             <div
               style={{
-                border: "1px solid rgba(239,68,68,0.35)",
-                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(255,0,0,0.35)",
+                background: "rgba(255,0,0,0.08)",
                 borderRadius: 12,
                 padding: 12,
-                color: "#9a3412",
+                color: "var(--kb-red)",
                 marginTop: 12,
                 fontSize: 13,
               }}
@@ -426,10 +426,10 @@ export function EmployeePage() {
             position: "sticky",
             top: 0,
             zIndex: 20,
-            backgroundImage: "linear-gradient(90deg, #ffffff 0%, #f1f3f6 100%)",
-            backgroundColor: "#0a1a34",
+            backgroundImage: "linear-gradient(90deg, #ffffff 0%, rgba(35,41,44,0.08) 100%)",
+            backgroundColor: "var(--kb-brand-ink-900)",
             color: "white",
-            borderBottom: "1px solid rgba(255,255,255,0.18)",
+            borderBottom: "1px solid rgba(255,255,255,0.24)",
           }
         }
       >
@@ -498,9 +498,9 @@ export function EmployeePage() {
                     onClick={handlePunchNow}
                     style={{
                       ...headerActionButtonStyle(),
-                      background: "linear-gradient(135deg, #b45309, #9a3412)",
-                      border: "1px solid rgba(154,52,18,0.45)",
-                      boxShadow: "0 8px 18px rgba(154,52,18,0.18)",
+                      background: "linear-gradient(135deg, var(--kb-brand-red), var(--kb-red))",
+                      border: "1px solid rgba(255,0,0,0.45)",
+                      boxShadow: "0 8px 18px rgba(255,0,0,0.18)",
                     }}
                     aria-label="Zapsat aktuální čas"
                   >
@@ -536,8 +536,8 @@ export function EmployeePage() {
       <main style={{ maxWidth: 980, margin: "0 auto", padding: "16px" }}>
         {monthLocked ? (
           <div style={cardStyle()}>
-            <div style={{ fontWeight: 800, marginBottom: 6, color: "#9a3412" }}>Měsíc uzavřen</div>
-            <div style={{ color: "#334155" }}>
+            <div style={{ fontWeight: 800, marginBottom: 6, color: "var(--kb-red)" }}>Měsíc uzavřen</div>
+            <div style={{ color: "var(--kb-brand-ink-600)" }}>
               Docházka za {monthLabel(month)} je uzavřena administrátorem. Úpravy ani zobrazení v této sekci nejsou pro toto zařízení dostupné.
             </div>
           </div>
@@ -546,7 +546,7 @@ export function EmployeePage() {
         {!online ? (
           <div style={cardStyle()}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Offline</div>
-            <div style={{ color: "#334155" }}>
+            <div style={{ color: "var(--kb-brand-ink-600)" }}>
               Bez internetu nelze načíst historii ze serveru. Můžete zadávat změny; budou drženy jen dočasně v paměti a odešlou se, pokud aplikace
               zůstane běžet a připojení se obnoví.
             </div>
@@ -560,8 +560,8 @@ export function EmployeePage() {
               style={{
                 ...cardStyle(),
                 padding: 12,
-                background: "rgba(15,23,42,0.03)",
-                border: "1px solid rgba(15, 23, 42, 0.08)",
+                background: "rgba(35,41,44,0.04)",
+                border: "1px solid rgba(35,41,44,0.12)",
                 boxShadow: "none",
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr 1fr 1fr",
@@ -569,10 +569,10 @@ export function EmployeePage() {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Den</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Příchod</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>Odchod</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#475569", textAlign: "right" }}>Hodiny</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)" }}>Den</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)" }}>Příchod</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)" }}>Odchod</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--kb-brand-ink-600)", textAlign: "right" }}>Hodiny</div>
             </div>
           ) : null}
           {displayedRows.map((r) => {
@@ -592,16 +592,16 @@ export function EmployeePage() {
                 style={{
                   ...cardStyle(),
                   border: isToday
-                    ? "2px solid rgba(37, 99, 235, 0.55)"
+                    ? "2px solid rgba(38,43,49,0.5)"
                     : hasPlan
-                      ? "2px solid rgba(14, 116, 144, 0.45)"
-                      : "1px solid rgba(15, 23, 42, 0.08)",
+                      ? "2px solid rgba(38,43,49,0.4)"
+                      : "1px solid rgba(35,41,44,0.12)",
                   boxShadow: isToday
-                    ? "0 8px 24px rgba(37,99,235,0.12)"
+                    ? "0 8px 24px rgba(38,43,49,0.12)"
                     : hasPlan
-                      ? "0 8px 20px rgba(14, 116, 144, 0.10)"
-                      : "0 6px 18px rgba(15, 23, 42, 0.06)",
-                  background: isSpecial ? "rgba(248, 180, 0, 0.08)" : "white",
+                      ? "0 8px 20px rgba(38,43,49,0.1)"
+                      : "0 6px 18px rgba(35, 41, 44, 0.06)",
+                  background: isSpecial ? "rgba(255,0,0,0.08)" : "white",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr 1fr",
                   gap: 12,
@@ -609,8 +609,8 @@ export function EmployeePage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{r.date.slice(8, 10)}.</div>
-                  <div style={{ fontSize: 12, color: "#475569" }}>
+                  <div style={{ fontWeight: 800, fontSize: 18, color: "var(--kb-text)" }}>{r.date.slice(8, 10)}.</div>
+                  <div style={{ fontSize: 12, color: "var(--kb-brand-ink-600)" }}>
                     {toDowLabel(r.date)}
                     {employmentTemplate === "HPP" && calc.holidayName ? ` • ${calc.holidayName}` : ""}
                   </div>
@@ -622,9 +622,9 @@ export function EmployeePage() {
                         marginTop: 6,
                         fontSize: 11,
                         fontWeight: 800,
-                        color: "#0f172a",
-                        background: "rgba(15,23,42,0.08)",
-                        border: "1px solid rgba(15,23,42,0.12)",
+                        color: "var(--kb-text)",
+                        background: "rgba(35,41,44,0.12)",
+                        border: "1px solid rgba(35,41,44,0.18)",
                         padding: "4px 8px",
                         borderRadius: 999,
                       }}
@@ -639,8 +639,8 @@ export function EmployeePage() {
                         marginTop: 6,
                         fontSize: 11,
                         fontWeight: 700,
-                        color: "#1d4ed8",
-                        background: "rgba(29, 78, 216, 0.10)",
+                        color: "var(--kb-brand-ink-800)",
+                        background: "rgba(38,43,49,0.1)",
                         padding: "4px 8px",
                         borderRadius: 999,
                       }}
@@ -667,7 +667,7 @@ export function EmployeePage() {
                   readOnly={viewMode === "plan"}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
                 />
-                <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "#0f172a" : "#94a3b8" }}>
+                <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "var(--kb-text)" : "rgba(82, 85, 93, 0.6)" }}>
                   {mins !== null ? `${formatHours(mins)} h` : "—"}
                 </div>
               </div>
@@ -676,7 +676,7 @@ export function EmployeePage() {
         </div>
 
         {rows.length === 0 ? (
-          <div style={{ marginTop: 14, color: "#64748b", fontSize: 13 }}>
+          <div style={{ marginTop: 14, color: "var(--kb-brand-ink-600)", fontSize: 13 }}>
             {online ? "Načítám…" : ""}
           </div>
         ) : null}
@@ -697,7 +697,7 @@ export function EmployeePage() {
           <FooterStat label={`Odpolední (${afternoonCutoff})`} value={`${formatHours(monthStats.afternoonMins)} h`} />
           <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
         </div>
-        <div style={{ marginTop: 12, color: "#64748b", fontSize: 12 }}>
+        <div style={{ marginTop: 12, color: "var(--kb-brand-ink-600)", fontSize: 12 }}>
           Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.
         </div>
       </footer>
@@ -708,8 +708,8 @@ export function EmployeePage() {
 function headerNavButtonStyle(): React.CSSProperties {
   return {
     appearance: "none",
-    border: "1px solid rgba(255,255,255,0.35)",
-    background: "rgba(255,255,255,0.12)",
+    border: "1px solid rgba(255,255,255,0.4)",
+    background: "rgba(255,255,255,0.15)",
     color: "white",
     width: 46,
     height: 46,
@@ -741,8 +741,8 @@ function cardStyle(): React.CSSProperties {
     background: "white",
     borderRadius: 16,
     padding: 14,
-    border: "1px solid rgba(15, 23, 42, 0.08)",
-    boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
+    border: "1px solid rgba(35,41,44,0.12)",
+    boxShadow: "0 6px 18px rgba(35, 41, 44, 0.06)",
   };
 }
 
@@ -765,9 +765,9 @@ function TimeInput(props: {
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: 12, color: "var(--kb-brand-ink-600)", fontWeight: 700 }}>{label}</div>
       {plannedValue ? (
-        <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>Plán: {plannedValue}</div>
+        <div style={{ fontSize: 11, color: "rgba(82, 85, 93, 0.6)", fontWeight: 700 }}>Plán: {plannedValue}</div>
       ) : null}
       <input
         inputMode="numeric"
@@ -788,18 +788,18 @@ function TimeInput(props: {
           minWidth: 0,
           height: 44,
           borderRadius: 12,
-          border: ok ? "1px solid rgba(15, 23, 42, 0.18)" : "1px solid rgba(220, 38, 38, 0.6)",
+          border: ok ? "1px solid rgba(35, 41, 44, 0.18)" : "1px solid rgba(255,0,0,0.6)",
           outline: "none",
           padding: "0 12px",
           fontSize: 16,
           fontWeight: 700,
           letterSpacing: 0.2,
-          background: readOnly ? "rgba(226, 232, 240, 0.6)" : ok ? "white" : "rgba(220, 38, 38, 0.05)",
-          color: readOnly ? "#475569" : undefined,
+          background: readOnly ? "rgba(82,85,93,0.18)" : ok ? "white" : "rgba(255,0,0,0.05)",
+          color: readOnly ? "var(--kb-brand-ink-600)" : undefined,
           cursor: readOnly ? "not-allowed" : "text",
         }}
       />
-      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "#9a3412" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
     </div>
   );
 }
@@ -807,10 +807,10 @@ function FooterStat(props: { label: string; value: string; valueStyle?: React.CS
   const { label, value, valueStyle } = props;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 0.5 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--kb-brand-ink-600)", textTransform: "uppercase", letterSpacing: 0.5 }}>
         {label}
       </div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", ...valueStyle }}>{value}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "var(--kb-text)", ...valueStyle }}>{value}</div>
     </div>
   );
 }
