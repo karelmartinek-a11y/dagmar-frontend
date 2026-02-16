@@ -27,6 +27,7 @@ export type AdminInstance = {
 
 export type AdminLoginRequest = {
   username?: string;
+  email?: string;
   password: string;
 };
 
@@ -40,13 +41,31 @@ export type CsrfTokenResponse = {
 };
 
 export async function adminLogin(body: AdminLoginRequest): Promise<AdminLoginResponse> {
-  const res = await apiFetch<AdminLoginResponse>("/api/v1/admin/login", {
-    method: "POST",
-    headers: withCsrf(),
-    body,
-  });
-  if (res?.csrf_token) setCsrfToken(res.csrf_token);
-  return res;
+  const csrf = await ensureCsrfToken();
+
+  try {
+    const res = await apiFetch<AdminLoginResponse>("/api/v1/admin/login", {
+      method: "POST",
+      headers: withCsrf(),
+      csrfToken: csrf,
+      body,
+    });
+    if (res?.csrf_token) setCsrfToken(res.csrf_token);
+    return res;
+  } catch (err) {
+    // Backward compatibility: some deployments accept `email` instead of `username`.
+    if (err instanceof ApiError && err.status === 401 && body.username && !body.email) {
+      const fallbackRes = await apiFetch<AdminLoginResponse>("/api/v1/admin/login", {
+        method: "POST",
+        headers: withCsrf(),
+        csrfToken: csrf,
+        body: { email: body.username, password: body.password },
+      });
+      if (fallbackRes?.csrf_token) setCsrfToken(fallbackRes.csrf_token);
+      return fallbackRes;
+    }
+    throw err;
+  }
 }
 
 export async function adminLogout(): Promise<{ ok: true }> {
