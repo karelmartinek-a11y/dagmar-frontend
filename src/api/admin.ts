@@ -92,11 +92,13 @@ export async function adminMe(): Promise<AdminMe> {
 
 export type PortalUser = {
   id: number;
-  name: string;
-  email: string;
+  name: string | null;
+  email: string | null;
+  phone?: string | null;
   role: string;
   has_password: boolean;
   profile_instance_id?: string | null;
+  is_active?: boolean | null;
 };
 
 export type AdminUsersResponse = {
@@ -110,6 +112,7 @@ export async function adminListUsers(): Promise<AdminUsersResponse> {
 export async function adminCreateUser(payload: {
   name: string;
   email: string;
+  phone?: string | null;
   role: string;
   profile_instance_id?: string | null;
 }): Promise<PortalUser> {
@@ -120,7 +123,17 @@ export async function adminCreateUser(payload: {
   });
 }
 
-export async function adminUpdateUser(userId: number, payload: { profile_instance_id?: string | null }): Promise<PortalUser> {
+export async function adminUpdateUser(
+  userId: number,
+  payload: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    role?: string | null;
+    profile_instance_id?: string | null;
+    is_active?: boolean | null;
+  }
+): Promise<PortalUser> {
   return apiFetch<PortalUser>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}`, {
     method: "PUT",
     headers: withCsrf(),
