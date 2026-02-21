@@ -191,7 +191,7 @@ export default function AdminPrintsPage() {
               Vybraných osob: <strong>{selectedIds.length}</strong>
             </div>
             <div className="row" style={{ gap: 8 }}>
-              <NavLink to="/admin/instances" className="btn ghost">
+              <NavLink to="/admin/users" className="btn ghost">
                 Zpět
               </NavLink>
               <button type="submit" className="btn solid" disabled={selectedIds.length === 0 || !month}>

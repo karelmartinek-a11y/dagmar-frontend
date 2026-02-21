@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { getAdminMe } from "../api/admin";
+import { adminLogout, getAdminMe } from "../api/admin";
 import Button from "../ui/Button";
 import { BRAND_ASSETS } from "../brand/brand";
 
@@ -40,13 +40,14 @@ export default function AdminLayout() {
     };
   }, [navigate]);
 
-  function onLogout() {
+  async function onLogout() {
     try {
-      sessionStorage.removeItem("dagmar_csrf");
+      await adminLogout();
     } catch {
-      // ignore
+      // best effort
+    } finally {
+      navigate("/admin/login", { replace: true });
     }
-    window.location.assign("/api/v1/admin/logout");
   }
 
   const items: Array<{ to: string; label: string; icon: React.ReactNode }> = [
@@ -168,18 +169,11 @@ export default function AdminLayout() {
         </nav>
 
         <div className="kb-sidebar-foot">
-          <form
-            method="post"
-            action="/api/v1/admin/logout"
-            onSubmit={(e) => {
-              e.preventDefault();
-              onLogout();
-            }}
-          >
-            <Button type="submit" variant="primary" style={{ width: "100%" }}>
-              Odhlásit
-            </Button>
-          </form>
+          <Button type="button" variant="primary" style={{ width: "100%" }} onClick={() => {
+            void onLogout();
+          }}>
+            Odhlásit
+          </Button>
         </div>
       </aside>
 
