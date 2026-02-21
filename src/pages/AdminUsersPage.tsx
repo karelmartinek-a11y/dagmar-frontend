@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { adminCreateUser, adminListInstances, adminListUsers, adminSendUserReset, adminUpdateUser, type PortalUser } from "../api/admin";
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -14,14 +14,32 @@ function normalizedLabel(value: string | null | undefined): string {
     .toLocaleLowerCase("cs-CZ");
 }
 
-function makeEmailFromAttendanceName(name: string): string {
+function makeEmailFromAttendanceName(name: string, fallbackDomain: string): string {
   const slug = normalizedLabel(name)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, ".")
     .replace(/^\.+|\.+$/g, "")
     .slice(0, 48);
-  return `${slug || "uzivatel"}@migration.local`;
+  return `${slug || "uzivatel"}@${fallbackDomain}`;
+}
+
+function isEmailValid(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function isPhoneValid(value: string): boolean {
+  const phone = value.trim();
+  if (!phone) return true;
+  return /^\+?[0-9\s()-]{6,20}$/.test(phone);
+}
+
+function normalizeDomain(value: string): string {
+  return value.trim().toLowerCase().replace(/^@+/, "");
+}
+
+function isDomainValid(value: string): boolean {
+  return /^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/i.test(value);
 }
 
 export default function AdminUsersPage() {
@@ -33,6 +51,14 @@ export default function AdminUsersPage() {
   const [role, setRole] = useState("employee");
   const [saving, setSaving] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
+  const [migrationDomain, setMigrationDomain] = useState("migration.local");
+  const [migrationConfirmed, setMigrationConfirmed] = useState(false);
+
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -52,10 +78,16 @@ export default function AdminUsersPage() {
     load();
   }, []);
 
+  const editingUser = useMemo(() => (users || []).find((u) => u.id === editingUserId) ?? null, [users, editingUserId]);
+
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
       setError("Vyplňte jméno a e-mail.");
+      return;
+    }
+    if (!isEmailValid(email)) {
+      setError("Zadejte platný e-mail.");
       return;
     }
     setSaving(true);
@@ -84,7 +116,68 @@ export default function AdminUsersPage() {
     }
   }
 
+  function startEdit(user: PortalUser) {
+    setEditingUserId(user.id);
+    setEditName((user.name ?? "").trim());
+    setEditEmail((user.email ?? "").trim());
+    setEditPhone((user.phone ?? "").trim());
+    setEditError(null);
+  }
+
+  function cancelEdit() {
+    setEditingUserId(null);
+    setEditError(null);
+  }
+
+  async function saveEdit() {
+    if (!editingUser) return;
+    if (!editName.trim() || !editEmail.trim()) {
+      setEditError("Jméno a e-mail jsou povinné.");
+      return;
+    }
+    if (!isEmailValid(editEmail)) {
+      setEditError("Zadejte platný e-mail.");
+      return;
+    }
+    if (!isPhoneValid(editPhone)) {
+      setEditError("Telefon má neplatný formát.");
+      return;
+    }
+
+    setSaving(true);
+    setEditError(null);
+    setError(null);
+    try {
+      await adminUpdateUser(editingUser.id, {
+        name: editName.trim(),
+        email: editEmail.trim(),
+        phone: editPhone.trim() || null,
+      });
+      await load();
+      cancelEdit();
+    } catch (err: unknown) {
+      setEditError(errorMessage(err, "Uložení změn se nezdařilo."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function migrateAttendancesToUsers() {
+    const domain = normalizeDomain(migrationDomain);
+    if (!isDomainValid(domain)) {
+      setError("Zadejte platnou doménu pro fallback e-maily (např. migration.local).");
+      return;
+    }
+    if (!migrationConfirmed) {
+      setError("Potvrďte prosím, že souhlasíte s generováním fallback e-mailů.");
+      return;
+    }
+
+    const accepted = window.confirm(
+      `Budou se generovat fallback e-maily ve tvaru uzivatel@${domain}. Chcete pokračovat?`
+    );
+    if (!accepted) return;
+
     setSaving(true);
     setError(null);
     setMigrationResult(null);
@@ -117,7 +210,7 @@ export default function AdminUsersPage() {
         if (!user) {
           user = await adminCreateUser({
             name: displayName,
-            email: makeEmailFromAttendanceName(displayName),
+            email: makeEmailFromAttendanceName(displayName, domain),
             role: "employee",
             profile_instance_id: inst.id,
           });
@@ -206,6 +299,40 @@ export default function AdminUsersPage() {
               </select>
             </div>
           </div>
+          <div
+            style={{
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              background: "rgba(245, 158, 11, 0.09)",
+              borderRadius: 12,
+              padding: 12,
+              display: "grid",
+              gap: 10,
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700 }}>Migrace docházek: fallback e-maily</div>
+            <div style={{ fontSize: 13, color: "var(--muted)" }}>
+              Pokud uživatel neexistuje, vytvoří se s fallback e-mailem. Před spuštěním potvrďte doménu.
+            </div>
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "minmax(220px, 320px) 1fr" }}>
+              <div>
+                <div className="label">Doména fallback e-mailu</div>
+                <input
+                  className="input"
+                  value={migrationDomain}
+                  onChange={(e) => setMigrationDomain(e.target.value)}
+                  placeholder="migration.local"
+                />
+              </div>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 24, fontSize: 13 }}>
+                <input
+                  type="checkbox"
+                  checked={migrationConfirmed}
+                  onChange={(e) => setMigrationConfirmed(e.target.checked)}
+                />
+                Rozumím, že se budou generovat fallback e-maily pro nové uživatele.
+              </label>
+            </div>
+          </div>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
             <button type="button" className="btn" disabled={saving || loading} onClick={migrateAttendancesToUsers}>
               {saving ? "Migruji…" : "Migrovat docházky na uživatele"}
@@ -229,6 +356,7 @@ export default function AdminUsersPage() {
               <tr>
                 <th>Jméno</th>
                 <th>E-mail</th>
+                <th>Telefon</th>
                 <th>Role</th>
                 <th>Heslo</th>
                 <th style={{ textAlign: "right" }}>Akce</th>
@@ -237,35 +365,74 @@ export default function AdminUsersPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={5} style={{ color: "var(--muted)" }}>
+                  <td colSpan={6} style={{ color: "var(--muted)" }}>
                     Načítám…
                   </td>
                 </tr>
               )}
               {!loading && (users || []).length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ color: "var(--muted)" }}>
+                  <td colSpan={6} style={{ color: "var(--muted)" }}>
                     Zatím nejsou žádní uživatelé.
                   </td>
                 </tr>
               )}
               {!loading &&
-                (users || []).map((u) => (
-                  <tr key={u.id}>
-                    <td style={{ fontWeight: 700 }}>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>{u.role === "employee" ? "Zamestnanec" : u.role}</td>
-                    <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.has_password ? "nastaveno" : "nenastaveno"}</td>
-                    <td style={{ textAlign: "right" }}>
-                      <button type="button" className="btn sm" onClick={() => sendReset(u.id)} disabled={saving}>
-                        Poslat link
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                (users || []).map((u) => {
+                  const isEditing = editingUserId === u.id;
+                  return (
+                    <tr key={u.id}>
+                      <td style={{ fontWeight: 700 }}>
+                        {isEditing ? (
+                          <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                        ) : (
+                          u.name || "—"
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
+                        ) : (
+                          u.email || "—"
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input className="input" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="+420..." />
+                        ) : (
+                          u.phone || "—"
+                        )}
+                      </td>
+                      <td>{u.role === "employee" ? "Zamestnanec" : u.role}</td>
+                      <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.has_password ? "nastaveno" : "nenastaveno"}</td>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                        {isEditing ? (
+                          <div style={{ display: "inline-flex", gap: 8 }}>
+                            <button type="button" className="btn sm solid" onClick={saveEdit} disabled={saving}>
+                              Uložit
+                            </button>
+                            <button type="button" className="btn sm" onClick={cancelEdit} disabled={saving}>
+                              Zrušit
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: "inline-flex", gap: 8 }}>
+                            <button type="button" className="btn sm" onClick={() => startEdit(u)} disabled={saving}>
+                              Upravit
+                            </button>
+                            <button type="button" className="btn sm" onClick={() => sendReset(u.id)} disabled={saving}>
+                              Poslat link
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
+        {editError ? <div style={{ color: "var(--kb-red)", marginTop: 10, fontSize: 13 }}>{editError}</div> : null}
       </section>
     </div>
   );
