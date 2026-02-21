@@ -5,6 +5,18 @@ import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import { APP_NAME_LONG, BRAND_ASSETS } from "../brand/brand";
 
+const ADMIN_FALLBACK_PATH = "/admin/users";
+const VALID_ADMIN_PATHS = new Set([
+  "/admin",
+  "/admin/users",
+  "/admin/dochazka",
+  "/admin/plan-sluzeb",
+  "/admin/export",
+  "/admin/tisky",
+  "/admin/tisky/preview",
+  "/admin/settings",
+]);
+
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string") return err;
@@ -17,6 +29,10 @@ function parseNextParam(search: string): string | null {
   if (!next) return null;
   if (!next.startsWith("/")) return null;
   if (next.startsWith("//")) return null;
+
+  const pathname = new URL(next, window.location.origin).pathname;
+  if (!VALID_ADMIN_PATHS.has(pathname)) return null;
+
   return next;
 }
 
@@ -24,7 +40,7 @@ export default function AdminLoginPage() {
   const nav = useNavigate();
   const loc = useLocation();
 
-  const nextPath = useMemo(() => parseNextParam(loc.search) ?? "/admin/instances", [loc.search]);
+  const nextPath = useMemo(() => parseNextParam(loc.search) ?? ADMIN_FALLBACK_PATH, [loc.search]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,9 +96,6 @@ export default function AdminLoginPage() {
                 <div className="kb-card-sub">{APP_NAME_LONG}</div>
               </div>
             </div>
-            <a href="/download/admin.apk" className="kb-btn kb-btn-ghost" style={{ textDecoration: "none" }}>
-              APK
-            </a>
           </div>
 
           {error ? <div className="kb-error" style={{ marginTop: 14 }}>{error}</div> : null}
