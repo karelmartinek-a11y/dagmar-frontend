@@ -55,35 +55,7 @@ Response 200:
 
 > Tento provisioning flow je legacy a není součástí aktuálního frontend routeru. Používá se pouze pro kompatibilitu starších nasazení.
 
-### POST `/api/v1/instances/register`
-Request:
-```json
-{
-  "client_type": "ANDROID",
-  "device_fingerprint": "string",
-  "device_info": { "any": "json" },
-  "display_name": "string"
-}
-```
-Response 200:
-```json
-{ "instance_id": "uuid", "status": "PENDING" }
-```
-
-### GET `/api/v1/instances/{instance_id}/status`
-Response 200 (příklady):
-```json
-{ "status": "PENDING" }
-```
-```json
-{ "status": "ACTIVE", "display_name": "string", "employment_template": "DPP_DPC", "afternoon_cutoff": "17:00" }
-```
-
-### POST `/api/v1/instances/{instance_id}/claim-token`
-Response 200:
-```json
-{ "instance_token": "string", "display_name": "string" }
-```
+Tyto endpointy byly z kontraktu odstraněny. Public lifecycle (`/instances/register`, `/status`, `/claim-token`) není v aktuálním backendu implementován; FE je nesmí volat.
 
 ---
 
@@ -188,6 +160,19 @@ Response 200:
 ```
 
 (compat) GET `/api/v1/admin/logout` → redirect na `/admin/login`
+
+### POST `/api/v1/admin/forgot-password-help`
+Request:
+```json
+{ "email": "provoz@hotelchodovasc.cz" }
+```
+Response 200:
+```json
+{ "ok": true }
+```
+
+Účel: odeslat administrátorovi nápovědný e-mail dle interního provozního postupu (bez reset tokenu).
+
 
 ---
 
