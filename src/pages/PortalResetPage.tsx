@@ -54,7 +54,7 @@ export default function PortalResetPage() {
       }}
     >
       <div className="card pad" style={{ width: "min(520px, 100%)", boxShadow: "var(--shadow-2)" }}>
-        <div style={{ fontSize: 18, fontWeight: 850 }}>Nastaveni nebo zmena hesla</div>
+        <div style={{ fontSize: 18, fontWeight: 850 }}>Nastavení nebo změna hesla</div>
         <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>Platnost odkazu 24 hodin.</div>
 
         {error ? (
@@ -85,7 +85,7 @@ export default function PortalResetPage() {
               fontSize: 13,
             }}
           >
-            Heslo bylo nastaveno. Muzete se prihlasit.
+            Heslo bylo nastaveno. Můžete se přihlásit.
           </div>
         ) : (
           <form onSubmit={onSubmit} className="stack" style={{ gap: 12, marginTop: 12 }}>
@@ -102,7 +102,7 @@ export default function PortalResetPage() {
               />
             </div>
             <button type="submit" className="btn solid" disabled={saving}>
-              {saving ? "Ukladam…" : "Ulozit heslo"}
+              {saving ? "Ukládám…" : "Uložit heslo"}
             </button>
           </form>
         )}

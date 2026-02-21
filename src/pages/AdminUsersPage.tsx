@@ -295,7 +295,7 @@ export default function AdminUsersPage() {
             <div>
               <div className="label">Druh pohledu</div>
               <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="employee">Zamestnanec</option>
+                <option value="employee">Zaměstnanec</option>
               </select>
             </div>
           </div>
@@ -403,7 +403,7 @@ export default function AdminUsersPage() {
                           u.phone || "—"
                         )}
                       </td>
-                      <td>{u.role === "employee" ? "Zamestnanec" : u.role}</td>
+                      <td>{u.role === "employee" ? "Zaměstnanec" : u.role}</td>
                       <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.has_password ? "nastaveno" : "nenastaveno"}</td>
                       <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                         {isEditing ? (
