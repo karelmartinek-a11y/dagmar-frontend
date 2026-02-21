@@ -51,7 +51,13 @@ Response 200:
 
 ---
 
-## 4) Portal auth (zaměstnanec)
+## 4) Public Instances
+
+Tyto endpointy byly z kontraktu odstraněny. Public lifecycle (`/instances/register`, `/status`, `/claim-token`) není v aktuálním backendu implementován; FE je nesmí volat.
+
+---
+
+## 5) Portal auth (zaměstnanec)
 
 ### POST `/api/v1/portal/login`
 Request:
@@ -81,7 +87,7 @@ Response 200:
 
 ---
 
-## 5) Attendance (zaměstnanec; Bearer token)
+## 6) Attendance (zaměstnanec; Bearer token)
 
 Header:
 - `Authorization: Bearer <instance_token>`
@@ -117,7 +123,7 @@ Poznámka (audit): nevalidní `date` musí vracet HTTP 400 (ne 500).
 
 ---
 
-## 6) Admin auth
+## 7) Admin auth
 
 ### POST `/api/v1/admin/login`
 Request:
@@ -168,7 +174,7 @@ Response 200:
 
 ---
 
-## 7) Admin – Instances (session; POST/DELETE vyžaduje CSRF)
+## 8) Admin – Instances (session; POST/DELETE vyžaduje CSRF)
 
 ### GET `/api/v1/admin/instances`
 Response 200:
@@ -204,7 +210,7 @@ Response: minimálně `{ "ok": true }` (dle implementace).
 
 ---
 
-## 8) Admin – Users (session; POST/PUT vyžaduje CSRF)
+## 9) Admin – Users (session; POST/PUT vyžaduje CSRF)
 
 Aktuální backend má:
 - `GET /api/v1/admin/users`
@@ -267,7 +273,7 @@ Response 200 (návrh):
 
 ---
 
-## 9) Admin – Attendance (session; PUT/POST vyžaduje CSRF)
+## 10) Admin – Attendance (session; PUT/POST vyžaduje CSRF)
 
 ### GET `/api/v1/admin/attendance?instance_id=...&year=YYYY&month=M`
 Response 200:
@@ -298,7 +304,7 @@ Response 200:
 
 ---
 
-## 10) Admin – Shift plan (session; PUT vyžaduje CSRF)
+## 11) Admin – Shift plan (session; PUT vyžaduje CSRF)
 
 ### GET `/api/v1/admin/shift-plan?year=YYYY&month=M`
 Response 200: JSON (viz implementace).
@@ -309,14 +315,14 @@ Request/Response: JSON (viz implementace).
 
 ---
 
-## 11) Admin – Export
+## 12) Admin – Export
 
 ### GET `/api/v1/admin/export?...`
 Response: stažení souboru (CSV/ZIP), nikoli JSON.
 
 ---
 
-## 12) Admin – Settings / SMTP
+## 13) Admin – Settings / SMTP
 
 ### GET+PUT `/api/v1/admin/settings`
 ### GET+PUT `/api/v1/admin/smtp`
