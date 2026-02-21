@@ -51,41 +51,7 @@ Response 200:
 
 ---
 
-## 4) Public Instances
-
-### POST `/api/v1/instances/register`
-Request:
-```json
-{
-  "client_type": "ANDROID",
-  "device_fingerprint": "string",
-  "device_info": { "any": "json" },
-  "display_name": "string"
-}
-```
-Response 200:
-```json
-{ "instance_id": "uuid", "status": "PENDING" }
-```
-
-### GET `/api/v1/instances/{instance_id}/status`
-Response 200 (příklady):
-```json
-{ "status": "PENDING" }
-```
-```json
-{ "status": "ACTIVE", "display_name": "string", "employment_template": "DPP_DPC", "afternoon_cutoff": "17:00" }
-```
-
-### POST `/api/v1/instances/{instance_id}/claim-token`
-Response 200:
-```json
-{ "instance_token": "string", "display_name": "string" }
-```
-
----
-
-## 5) Portal auth (zaměstnanec)
+## 4) Portal auth (zaměstnanec)
 
 ### POST `/api/v1/portal/login`
 Request:
@@ -115,7 +81,7 @@ Response 200:
 
 ---
 
-## 6) Attendance (zaměstnanec; Bearer token)
+## 5) Attendance (zaměstnanec; Bearer token)
 
 Header:
 - `Authorization: Bearer <instance_token>`
@@ -151,7 +117,7 @@ Poznámka (audit): nevalidní `date` musí vracet HTTP 400 (ne 500).
 
 ---
 
-## 7) Admin auth
+## 6) Admin auth
 
 ### POST `/api/v1/admin/login`
 Request:
@@ -187,9 +153,22 @@ Response 200:
 
 (compat) GET `/api/v1/admin/logout` → redirect na `/admin/login`
 
+### POST `/api/v1/admin/forgot-password-help`
+Request:
+```json
+{ "email": "provoz@hotelchodovasc.cz" }
+```
+Response 200:
+```json
+{ "ok": true }
+```
+
+Účel: odeslat administrátorovi nápovědný e-mail dle interního provozního postupu (bez reset tokenu).
+
+
 ---
 
-## 8) Admin – Instances (session; POST/DELETE vyžaduje CSRF)
+## 7) Admin – Instances (session; POST/DELETE vyžaduje CSRF)
 
 ### GET `/api/v1/admin/instances`
 Response 200:
@@ -225,7 +204,7 @@ Response: minimálně `{ "ok": true }` (dle implementace).
 
 ---
 
-## 9) Admin – Users (session; POST/PUT vyžaduje CSRF)
+## 8) Admin – Users (session; POST/PUT vyžaduje CSRF)
 
 Aktuální backend má:
 - `GET /api/v1/admin/users`
@@ -288,7 +267,7 @@ Response 200 (návrh):
 
 ---
 
-## 10) Admin – Attendance (session; PUT/POST vyžaduje CSRF)
+## 9) Admin – Attendance (session; PUT/POST vyžaduje CSRF)
 
 ### GET `/api/v1/admin/attendance?instance_id=...&year=YYYY&month=M`
 Response 200:
@@ -319,7 +298,7 @@ Response 200:
 
 ---
 
-## 11) Admin – Shift plan (session; PUT vyžaduje CSRF)
+## 10) Admin – Shift plan (session; PUT vyžaduje CSRF)
 
 ### GET `/api/v1/admin/shift-plan?year=YYYY&month=M`
 Response 200: JSON (viz implementace).
@@ -330,14 +309,14 @@ Request/Response: JSON (viz implementace).
 
 ---
 
-## 12) Admin – Export
+## 11) Admin – Export
 
 ### GET `/api/v1/admin/export?...`
 Response: stažení souboru (CSV/ZIP), nikoli JSON.
 
 ---
 
-## 13) Admin – Settings / SMTP
+## 12) Admin – Settings / SMTP
 
 ### GET+PUT `/api/v1/admin/settings`
 ### GET+PUT `/api/v1/admin/smtp`

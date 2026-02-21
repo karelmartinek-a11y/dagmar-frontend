@@ -329,6 +329,21 @@ textarea {
   line-height: 1.45;
 }
 
+.kb-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--kb-primary);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.kb-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .kb-input,
 .kb-select,
 .kb-textarea {
