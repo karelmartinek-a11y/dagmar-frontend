@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { adminLogin, adminSendForgotPasswordHelp, getAdminMe } from "../api/admin";
+import { adminLogin, getAdminMe } from "../api/admin";
 import Button from "../ui/Button";
 import { Card } from "../ui/Card";
 import { APP_NAME_LONG, BRAND_ASSETS } from "../brand/brand";
@@ -46,8 +46,6 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [helpSending, setHelpSending] = useState(false);
-  const [helpMessage, setHelpMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -66,26 +64,6 @@ export default function AdminLoginPage() {
       mounted = false;
     };
   }, [nav, nextPath]);
-
-
-  async function onForgotPasswordHelp() {
-    setError(null);
-    setHelpMessage(null);
-    if (!email) {
-      setError("Nejprve zadejte admin e-mail.");
-      return;
-    }
-
-    setHelpSending(true);
-    try {
-      await adminSendForgotPasswordHelp(email);
-      setHelpMessage("Nápovědný e-mail byl odeslán.");
-    } catch (err: unknown) {
-      setError(errorMessage(err, "Nápovědný e-mail se nepodařilo odeslat."));
-    } finally {
-      setHelpSending(false);
-    }
-  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -153,12 +131,8 @@ export default function AdminLoginPage() {
               {submitting ? "Přihlašuji…" : "Přihlásit"}
             </Button>
 
-            <div className="kb-stack" style={{ gap: 8, textAlign: "center" }}>
-              <div className="kb-help">Přístup je určen pouze administrátorům.</div>
-              <button type="button" className="kb-link" onClick={onForgotPasswordHelp} disabled={submitting || helpSending}>
-                {helpSending ? "Odesílám nápovědu…" : "Zapomenuté heslo administrátora"}
-              </button>
-              {helpMessage ? <div className="kb-help">{helpMessage}</div> : null}
+            <div className="kb-help" style={{ textAlign: "center" }}>
+              Přístup je určen pouze administrátorům.
             </div>
           </form>
         </Card>
