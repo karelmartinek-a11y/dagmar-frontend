@@ -1,6 +1,6 @@
 # DAGMAR – API Contract (Dagmar-Frontend ↔ Dagmar-Backend)
 
-Verze: 2026-02-20  
+Verze: 2026-02-21  
 Base path: `/api/v1`  
 Kanonická doména: `https://dagmar.hcasc.cz`
 
@@ -51,7 +51,9 @@ Response 200:
 
 ---
 
-## 4) Public Instances
+## 4) Deprecated — Public Instances (legacy provisioning)
+
+> Tento provisioning flow je legacy a není součástí aktuálního frontend routeru. Používá se pouze pro kompatibilitu starších nasazení.
 
 ### POST `/api/v1/instances/register`
 Request:
@@ -176,7 +178,7 @@ Response 200:
 ```
 nebo:
 ```json
-{ "authenticated": false }
+{ "authenticated": false, "username": null }
 ```
 
 ### POST `/api/v1/admin/logout`
@@ -227,12 +229,11 @@ Response: minimálně `{ "ok": true }` (dle implementace).
 
 ## 9) Admin – Users (session; POST/PUT vyžaduje CSRF)
 
-Aktuální backend má:
+Aktuální backend/frontend používá:
 - `GET /api/v1/admin/users`
 - `POST /api/v1/admin/users`
 - `POST /api/v1/admin/users/{id}/send-reset`
-
-Audit požaduje doplnění update endpointu a telefonního čísla.
+- `PUT /api/v1/admin/users/{id}`
 
 ### GET `/api/v1/admin/users`
 Response 200:
@@ -260,8 +261,8 @@ Response 200:
 { "ok": true }
 ```
 
-### (PLÁNOVANÉ – audit) PUT `/api/v1/admin/users/{user_id}`
-Request (návrh):
+### PUT `/api/v1/admin/users/{user_id}`
+Request (aktuální):
 ```json
 {
   "name": "string",
@@ -272,7 +273,7 @@ Request (návrh):
   "is_active": true
 }
 ```
-Response 200 (návrh):
+Response 200 (aktuální):
 ```json
 {
   "id": 1,

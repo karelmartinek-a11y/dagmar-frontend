@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="stack">
       <section className="card pad">
-        <div style={{ fontSize: 18, fontWeight: 850 }}>Nastaveni</div>
+        <div style={{ fontSize: 18, fontWeight: 850 }}>Nastavení</div>
         <div style={{ color: "var(--muted)", marginTop: 4 }}>SMTP pro odesilani resetovacich odkazu.</div>
 
         {error ? (
@@ -129,7 +129,7 @@ export default function AdminSettingsPage() {
 
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button type="submit" className="btn solid" disabled={saving}>
-              {saving ? "Ukladam…" : "Ulozit"}
+              {saving ? "Ukládám…" : "Uložit"}
             </button>
           </div>
         </form>

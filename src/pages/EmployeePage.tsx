@@ -23,6 +23,42 @@ type QueueItem = {
   enqueuedAt: number;
 };
 
+const OFFLINE_QUEUE_STORAGE_KEY = "dagmar.portal.offlineQueue";
+
+function loadStoredQueue(): QueueItem[] {
+  try {
+    const raw = window.localStorage.getItem(OFFLINE_QUEUE_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is QueueItem => {
+        return Boolean(
+          item &&
+            typeof item === "object" &&
+            typeof (item as QueueItem).date === "string" &&
+            (typeof (item as QueueItem).arrival_time === "string" || (item as QueueItem).arrival_time === null) &&
+            (typeof (item as QueueItem).departure_time === "string" || (item as QueueItem).departure_time === null),
+        );
+      })
+      .map((item) => ({ ...item, enqueuedAt: Number.isFinite(item.enqueuedAt) ? item.enqueuedAt : Date.now() }));
+  } catch {
+    return [];
+  }
+}
+
+function persistQueue(queue: QueueItem[]) {
+  try {
+    if (queue.length === 0) {
+      window.localStorage.removeItem(OFFLINE_QUEUE_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(queue));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string") return err;
@@ -135,11 +171,10 @@ export function EmployeePage() {
   );
   const monthTotalMins = monthStats.totalMins;
 
-  const [, setQueuedCount] = useState<number>(0);
+  const [queuedCount, setQueuedCount] = useState<number>(0);
   const [sending, setSending] = useState<boolean>(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
-  // In-memory offline queue only (no persistence!)
   const queueRef = useRef<QueueItem[]>([]);
   const workingFundHours = useMemo(() => {
     const [y, m] = month.split("-").map((x) => parseInt(x, 10));
@@ -158,6 +193,12 @@ export function EmployeePage() {
       window.removeEventListener("online", onUp);
       window.removeEventListener("offline", onDown);
     };
+  }, []);
+
+  useEffect(() => {
+    const initialQueue = loadStoredQueue();
+    queueRef.current = initialQueue;
+    setQueuedCount(initialQueue.length);
   }, []);
 
   // Load attendance for month (only when online)
@@ -312,6 +353,7 @@ export function EmployeePage() {
     const idx = q.findIndex((x) => x.date === item.date);
     if (idx >= 0) q.splice(idx, 1);
     q.push(item);
+    persistQueue(q);
     setQueuedCount(q.length);
   }
 
@@ -338,6 +380,7 @@ export function EmployeePage() {
           currentToken,
         );
         q.shift();
+        persistQueue(q);
         setQueuedCount(q.length);
       }
     } catch {
@@ -459,6 +502,7 @@ export function EmployeePage() {
                   setProfileId(null);
                   setDisplayName(null);
                   queueRef.current = [];
+                  persistQueue([]);
                   setQueuedCount(0);
                 }}
                 className="btn"
@@ -547,8 +591,8 @@ export function EmployeePage() {
           <div style={cardStyle()}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Offline</div>
             <div style={{ color: "var(--kb-brand-ink-600)" }}>
-              Bez internetu nelze načíst historii ze serveru. Můžete zadávat změny; budou drženy jen dočasně v paměti a odešlou se, pokud aplikace
-              zůstane běžet a připojení se obnoví.
+              Bez internetu nelze načíst historii ze serveru. Můžete zadávat změny; uloží se do zařízení a odešlou se po obnovení připojení.
+              {queuedCount > 0 ? ` Ve frontě čeká ${queuedCount} změn.` : ""}
             </div>
           </div>
         ) : null}
@@ -698,7 +742,7 @@ export function EmployeePage() {
           <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
         </div>
         <div style={{ marginTop: 12, color: "var(--kb-brand-ink-600)", fontSize: 12 }}>
-          Docházka se ukládá pouze na serveru. Offline změny jsou dočasné a ztratí se při zavření stránky/aplikace.
+          Docházka se ukládá na serveru. Offline změny se průběžně ukládají i v zařízení a po obnovení připojení se odešlou automaticky.
         </div>
       </footer>
     </div>

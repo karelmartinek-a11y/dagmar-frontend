@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
 
   const nextPath = useMemo(() => parseNextParam(loc.search) ?? ADMIN_FALLBACK_PATH, [loc.search]);
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("provoz@hotelchodovasc.cz");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +70,10 @@ export default function AdminLoginPage() {
     setError(null);
     if (!email || !password) {
       setError("Vyplňte e-mail a heslo.");
+      return;
+    }
+    if (email.trim().toLowerCase() !== "provoz@hotelchodovasc.cz") {
+      setError("Pro administraci použijte účet provoz@hotelchodovasc.cz.");
       return;
     }
 
@@ -132,7 +136,10 @@ export default function AdminLoginPage() {
             </Button>
 
             <div className="kb-help" style={{ textAlign: "center" }}>
-              Přístup je určen pouze administrátorům.
+              Přístup je určen pouze administrátorům (provoz@hotelchodovasc.cz).
+            </div>
+            <div className="kb-help" style={{ textAlign: "center" }}>
+              Zapomenuté heslo admina řešte přes podporu: <a href="mailto:provoz@hotelchodovasc.cz">provoz@hotelchodovasc.cz</a>.
             </div>
           </form>
         </Card>
