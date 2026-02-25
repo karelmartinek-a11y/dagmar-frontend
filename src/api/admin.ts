@@ -92,13 +92,11 @@ export async function adminMe(): Promise<AdminMe> {
 
 export type PortalUser = {
   id: number;
-  name: string | null;
-  email: string | null;
-  phone?: string | null;
+  name: string;
+  email: string;
   role: string;
   has_password: boolean;
   profile_instance_id?: string | null;
-  is_active?: boolean | null;
 };
 
 export type AdminUsersResponse = {
@@ -112,7 +110,6 @@ export async function adminListUsers(): Promise<AdminUsersResponse> {
 export async function adminCreateUser(payload: {
   name: string;
   email: string;
-  phone?: string | null;
   role: string;
   profile_instance_id?: string | null;
 }): Promise<PortalUser> {
@@ -123,22 +120,45 @@ export async function adminCreateUser(payload: {
   });
 }
 
-export async function adminUpdateUser(
-  userId: number,
-  payload: {
-    name?: string | null;
-    email?: string | null;
-    phone?: string | null;
-    role?: string | null;
-    profile_instance_id?: string | null;
-    is_active?: boolean | null;
+export type AdminUpdateUserPayload = {
+  name?: string;
+  email?: string;
+  role?: string;
+  profile_instance_id?: string | null;
+};
+
+export async function adminUpdateUser(userId: number, payload: AdminUpdateUserPayload): Promise<PortalUser> {
+  const path = `/api/v1/admin/users/${encodeURIComponent(String(userId))}`;
+
+  try {
+    return await apiFetch<PortalUser>(path, {
+      method: "PUT",
+      headers: withCsrf(),
+      body: payload,
+    });
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 404 || err.status === 405)) {
+      try {
+        // Older backends accept POST on the same path.
+        return await apiFetch<PortalUser>(path, {
+          method: "POST",
+          headers: withCsrf(),
+          body: payload,
+        });
+      } catch (err2) {
+        // Some very old deployments use POST /update.
+        if (err2 instanceof ApiError && err2.status === 404) {
+          return await apiFetch<PortalUser>(`${path}/update`, {
+            method: "POST",
+            headers: withCsrf(),
+            body: payload,
+          });
+        }
+        throw err2;
+      }
+    }
+    throw err;
   }
-): Promise<PortalUser> {
-  return apiFetch<PortalUser>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}`, {
-    method: "PUT",
-    headers: withCsrf(),
-    body: payload,
-  });
 }
 
 export async function adminSendUserReset(userId: number): Promise<{ ok: true }> {

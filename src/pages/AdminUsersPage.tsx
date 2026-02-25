@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { adminCreateUser, adminListInstances, adminListUsers, adminSendUserReset, adminUpdateUser, type PortalUser } from "../api/admin";
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -14,32 +14,14 @@ function normalizedLabel(value: string | null | undefined): string {
     .toLocaleLowerCase("cs-CZ");
 }
 
-function makeEmailFromAttendanceName(name: string, fallbackDomain: string): string {
+function makeEmailFromAttendanceName(name: string): string {
   const slug = normalizedLabel(name)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, ".")
     .replace(/^\.+|\.+$/g, "")
     .slice(0, 48);
-  return `${slug || "uzivatel"}@${fallbackDomain}`;
-}
-
-function isEmailValid(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-function isPhoneValid(value: string): boolean {
-  const phone = value.trim();
-  if (!phone) return true;
-  return /^\+?[0-9\s()-]{6,20}$/.test(phone);
-}
-
-function normalizeDomain(value: string): string {
-  return value.trim().toLowerCase().replace(/^@+/, "");
-}
-
-function isDomainValid(value: string): boolean {
-  return /^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/i.test(value);
+  return `${slug || "uzivatel"}@migration.local`;
 }
 
 export default function AdminUsersPage() {
@@ -51,14 +33,10 @@ export default function AdminUsersPage() {
   const [role, setRole] = useState("employee");
   const [saving, setSaving] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
-  const [migrationDomain, setMigrationDomain] = useState("migration.local");
-  const [migrationConfirmed, setMigrationConfirmed] = useState(false);
-
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editError, setEditError] = useState<string | null>(null);
+  const [editRole, setEditRole] = useState("employee");
 
   async function load() {
     setLoading(true);
@@ -78,16 +56,10 @@ export default function AdminUsersPage() {
     load();
   }, []);
 
-  const editingUser = useMemo(() => (users || []).find((u) => u.id === editingUserId) ?? null, [users, editingUserId]);
-
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
       setError("Vyplňte jméno a e-mail.");
-      return;
-    }
-    if (!isEmailValid(email)) {
-      setError("Zadejte platný e-mail.");
       return;
     }
     setSaving(true);
@@ -99,6 +71,44 @@ export default function AdminUsersPage() {
       await load();
     } catch (err: unknown) {
       setError(errorMessage(err, "Uložení se nezdařilo."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function startEdit(u: PortalUser) {
+    setEditingUserId(u.id);
+    setEditName(u.name);
+    setEditEmail(u.email);
+    setEditRole(u.role);
+  }
+
+  function cancelEdit() {
+    setEditingUserId(null);
+    setEditName("");
+    setEditEmail("");
+    setEditRole("employee");
+  }
+
+  async function onUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingUserId) return;
+    if (!editName.trim() || !editEmail.trim()) {
+      setError("Vyplňte jméno a e-mail.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await adminUpdateUser(editingUserId, {
+        name: editName.trim(),
+        email: editEmail.trim(),
+        role: editRole,
+      });
+      await load();
+      cancelEdit();
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Uložení změn se nezdařilo."));
     } finally {
       setSaving(false);
     }
@@ -116,68 +126,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  function startEdit(user: PortalUser) {
-    setEditingUserId(user.id);
-    setEditName((user.name ?? "").trim());
-    setEditEmail((user.email ?? "").trim());
-    setEditPhone((user.phone ?? "").trim());
-    setEditError(null);
-  }
-
-  function cancelEdit() {
-    setEditingUserId(null);
-    setEditError(null);
-  }
-
-  async function saveEdit() {
-    if (!editingUser) return;
-    if (!editName.trim() || !editEmail.trim()) {
-      setEditError("Jméno a e-mail jsou povinné.");
-      return;
-    }
-    if (!isEmailValid(editEmail)) {
-      setEditError("Zadejte platný e-mail.");
-      return;
-    }
-    if (!isPhoneValid(editPhone)) {
-      setEditError("Telefon má neplatný formát.");
-      return;
-    }
-
-    setSaving(true);
-    setEditError(null);
-    setError(null);
-    try {
-      await adminUpdateUser(editingUser.id, {
-        name: editName.trim(),
-        email: editEmail.trim(),
-        phone: editPhone.trim() || null,
-      });
-      await load();
-      cancelEdit();
-    } catch (err: unknown) {
-      setEditError(errorMessage(err, "Uložení změn se nezdařilo."));
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function migrateAttendancesToUsers() {
-    const domain = normalizeDomain(migrationDomain);
-    if (!isDomainValid(domain)) {
-      setError("Zadejte platnou doménu pro fallback e-maily (např. migration.local).");
-      return;
-    }
-    if (!migrationConfirmed) {
-      setError("Potvrďte prosím, že souhlasíte s generováním fallback e-mailů.");
-      return;
-    }
-
-    const accepted = window.confirm(
-      `Budou se generovat fallback e-maily ve tvaru uzivatel@${domain}. Chcete pokračovat?`
-    );
-    if (!accepted) return;
-
     setSaving(true);
     setError(null);
     setMigrationResult(null);
@@ -210,7 +159,7 @@ export default function AdminUsersPage() {
         if (!user) {
           user = await adminCreateUser({
             name: displayName,
-            email: makeEmailFromAttendanceName(displayName, domain),
+            email: makeEmailFromAttendanceName(displayName),
             role: "employee",
             profile_instance_id: inst.id,
           });
@@ -247,11 +196,11 @@ export default function AdminUsersPage() {
         {error ? (
           <div
             style={{
-              border: "1px solid rgba(255,0,0,0.35)",
-              background: "rgba(255,0,0,0.08)",
+              border: "1px solid rgba(239,68,68,0.35)",
+              background: "rgba(239,68,68,0.08)",
               borderRadius: 12,
               padding: 12,
-              color: "var(--kb-red)",
+              color: "#b91c1c",
               marginTop: 12,
               fontSize: 13,
             }}
@@ -263,11 +212,11 @@ export default function AdminUsersPage() {
         {migrationResult ? (
           <div
             style={{
-              border: "1px solid rgba(38,43,49,0.35)",
-              background: "rgba(38,43,49,0.08)",
+              border: "1px solid rgba(16,185,129,0.35)",
+              background: "rgba(16,185,129,0.08)",
               borderRadius: 12,
               padding: 12,
-              color: "var(--kb-brand-ink-800)",
+              color: "#047857",
               marginTop: 12,
               fontSize: 13,
             }}
@@ -295,42 +244,8 @@ export default function AdminUsersPage() {
             <div>
               <div className="label">Druh pohledu</div>
               <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="employee">Zaměstnanec</option>
+                <option value="employee">Zamestnanec</option>
               </select>
-            </div>
-          </div>
-          <div
-            style={{
-              border: "1px solid rgba(245, 158, 11, 0.35)",
-              background: "rgba(245, 158, 11, 0.09)",
-              borderRadius: 12,
-              padding: 12,
-              display: "grid",
-              gap: 10,
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Migrace docházek: fallback e-maily</div>
-            <div style={{ fontSize: 13, color: "var(--muted)" }}>
-              Pokud uživatel neexistuje, vytvoří se s fallback e-mailem. Před spuštěním potvrďte doménu.
-            </div>
-            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "minmax(220px, 320px) 1fr" }}>
-              <div>
-                <div className="label">Doména fallback e-mailu</div>
-                <input
-                  className="input"
-                  value={migrationDomain}
-                  onChange={(e) => setMigrationDomain(e.target.value)}
-                  placeholder="migration.local"
-                />
-              </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 24, fontSize: 13 }}>
-                <input
-                  type="checkbox"
-                  checked={migrationConfirmed}
-                  onChange={(e) => setMigrationConfirmed(e.target.checked)}
-                />
-                Rozumím, že se budou generovat fallback e-maily pro nové uživatele.
-              </label>
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
@@ -356,7 +271,6 @@ export default function AdminUsersPage() {
               <tr>
                 <th>Jméno</th>
                 <th>E-mail</th>
-                <th>Telefon</th>
                 <th>Role</th>
                 <th>Heslo</th>
                 <th style={{ textAlign: "right" }}>Akce</th>
@@ -365,74 +279,74 @@ export default function AdminUsersPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} style={{ color: "var(--muted)" }}>
+                  <td colSpan={5} style={{ color: "var(--muted)" }}>
                     Načítám…
                   </td>
                 </tr>
               )}
               {!loading && (users || []).length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ color: "var(--muted)" }}>
+                  <td colSpan={5} style={{ color: "var(--muted)" }}>
                     Zatím nejsou žádní uživatelé.
                   </td>
                 </tr>
               )}
               {!loading &&
-                (users || []).map((u) => {
-                  const isEditing = editingUserId === u.id;
-                  return (
-                    <tr key={u.id}>
-                      <td style={{ fontWeight: 700 }}>
-                        {isEditing ? (
-                          <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} />
-                        ) : (
-                          u.name || "—"
-                        )}
-                      </td>
-                      <td>
-                        {isEditing ? (
-                          <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
-                        ) : (
-                          u.email || "—"
-                        )}
-                      </td>
-                      <td>
-                        {isEditing ? (
-                          <input className="input" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="+420..." />
-                        ) : (
-                          u.phone || "—"
-                        )}
-                      </td>
-                      <td>{u.role === "employee" ? "Zaměstnanec" : u.role}</td>
-                      <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.has_password ? "nastaveno" : "nenastaveno"}</td>
-                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                        {isEditing ? (
-                          <div style={{ display: "inline-flex", gap: 8 }}>
-                            <button type="button" className="btn sm solid" onClick={saveEdit} disabled={saving}>
-                              Uložit
-                            </button>
-                            <button type="button" className="btn sm" onClick={cancelEdit} disabled={saving}>
-                              Zrušit
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={{ display: "inline-flex", gap: 8 }}>
-                            <button type="button" className="btn sm" onClick={() => startEdit(u)} disabled={saving}>
-                              Upravit
-                            </button>
-                            <button type="button" className="btn sm" onClick={() => sendReset(u.id)} disabled={saving}>
-                              Poslat link
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                (users || []).map((u) => (
+                  <tr key={u.id}>
+                    <td style={{ fontWeight: 700 }}>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>{u.role === "employee" ? "Zamestnanec" : u.role}</td>
+                    <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.has_password ? "nastaveno" : "nenastaveno"}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                        <button type="button" className="btn sm" onClick={() => startEdit(u)} disabled={saving}>
+                          Upravit
+                        </button>
+                        <button type="button" className="btn sm" onClick={() => sendReset(u.id)} disabled={saving}>
+                          Poslat link
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
-        {editError ? <div style={{ color: "var(--kb-red)", marginTop: 10, fontSize: 13 }}>{editError}</div> : null}
+
+        {editingUserId ? (
+          <form onSubmit={onUpdate} className="stack" style={{ gap: 10, marginTop: 16 }}>
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+              <div>
+                <div className="label">Jméno</div>
+                <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} />
+              </div>
+              <div>
+                <div className="label">E-mail</div>
+                <input className="input" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+              </div>
+              <div>
+                <div className="label">Druh pohledu</div>
+                <select className="input" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                  <option value="employee">Zamestnanec</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                Upravujete uživatele ID {editingUserId}.
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button type="button" className="btn" onClick={cancelEdit} disabled={saving}>
+                  Zrušit
+                </button>
+                <button type="submit" className="btn solid" disabled={saving}>
+                  {saving ? "Ukládám…" : "Uložit změny"}
+                </button>
+              </div>
+            </div>
+          </form>
+        ) : null}
       </section>
     </div>
   );
