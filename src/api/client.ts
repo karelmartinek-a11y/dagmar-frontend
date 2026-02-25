@@ -24,7 +24,7 @@ export class ApiError extends Error {
 }
 
 export type FetchJsonOptions = {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
   query?: Record<string, string | number | boolean | null | undefined>;
   body?: unknown;
@@ -193,7 +193,7 @@ export async function apiFetch<T>(pathOrOpts: string | FetchJsonOptions, init?: 
   }
 
   const method =
-    typeof init?.method === 'string' && ['GET', 'POST', 'PUT', 'DELETE'].includes(init.method)
+    typeof init?.method === 'string' && ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(init.method)
       ? (init.method as FetchJsonOptions['method'])
       : undefined;
   const opts: FetchJsonOptions = {

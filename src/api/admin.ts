@@ -139,20 +139,32 @@ export async function adminUpdateUser(userId: number, payload: AdminUpdateUserPa
   } catch (err) {
     if (err instanceof ApiError && (err.status === 404 || err.status === 405)) {
       try {
-        // Older backends accept POST on the same path.
+        // Some deployments expose PATCH on the same path.
         return await apiFetch<PortalUser>(path, {
-          method: "POST",
+          method: "PATCH",
           headers: withCsrf(),
           body: payload,
         });
       } catch (err2) {
-        // Some very old deployments use POST /update.
-        if (err2 instanceof ApiError && err2.status === 404) {
-          return await apiFetch<PortalUser>(`${path}/update`, {
-            method: "POST",
-            headers: withCsrf(),
-            body: payload,
-          });
+        if (err2 instanceof ApiError && (err2.status === 404 || err2.status === 405)) {
+          try {
+            // Older backends accept POST on the same path.
+            return await apiFetch<PortalUser>(path, {
+              method: "POST",
+              headers: withCsrf(),
+              body: payload,
+            });
+          } catch (err3) {
+            // Some very old deployments use POST /update.
+            if (err3 instanceof ApiError && err3.status === 404) {
+              return await apiFetch<PortalUser>(`${path}/update`, {
+                method: "POST",
+                headers: withCsrf(),
+                body: payload,
+              });
+            }
+            throw err3;
+          }
         }
         throw err2;
       }
