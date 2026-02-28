@@ -33,12 +33,27 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - name: Check deploy secrets
+        id: check_secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.DEPLOY_HOST }}" ] && missing="$missing DEPLOY_HOST"
+          [ -z "${{ secrets.DEPLOY_USER }}" ] && missing="$missing DEPLOY_USER"
+          [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ] && missing="$missing DEPLOY_SSH_KEY"
+          if [ -n "$missing" ]; then
+            echo "missing=$missing" >> $GITHUB_OUTPUT
+          fi
+      - name: Stop if secrets missing
+        if: steps.check_secrets.outputs.missing
+        run: |
+          echo "Chybí secrets:${{ steps.check_secrets.outputs.missing }} – nasazení se přeskočí."
+          exit 1
       - name: Deploy to production server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          password: ${{ secrets.DEPLOY_PASS }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -e
             SSH_CMD="ssh -i /root/.ssh/deploy_dagmarhotel -o IdentitiesOnly=yes"
