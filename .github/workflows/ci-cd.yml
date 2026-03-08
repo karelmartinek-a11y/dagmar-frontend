@@ -72,10 +72,11 @@ jobs:
             cd /opt/dagmar/sandbox
             docker compose down --remove-orphans || true
             docker compose rm -f || true
-            if [ -d /opt/dagmar/backend/.venv ]; then
-              export VIRTUAL_ENV=/opt/dagmar/backend/.venv
-              export PATH="/opt/dagmar/backend/.venv/bin:$PATH"
+            if [ ! -d /opt/dagmar/backend/.venv ]; then
+              python3 -m venv /opt/dagmar/backend/.venv
             fi
+            /opt/dagmar/backend/.venv/bin/pip install --upgrade pip
+            /opt/dagmar/backend/.venv/bin/pip install /opt/dagmar/backend
             ./run-tests.sh
             rsync -a --delete /srv/hcasc/_repos/dagmar-frontend/dist/ /var/www/dagmar/frontend/
             printf '%s DAGMAR web: auto-deploy main\n' "$(date '+%F %T')" >> /var/log/dagmar/deploy.log
