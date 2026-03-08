@@ -77,5 +77,5 @@ jobs:
             /opt/dagmar/backend/.venv/bin/pip install --upgrade pip
             /opt/dagmar/backend/.venv/bin/pip install /opt/dagmar/backend
             ./run-tests.sh
-            rsync -a --delete /srv/hcasc/_repos/dagmar-frontend/dist/ /var/www/dagmar/frontend/
+            rsync -a --no-owner --no-group --no-perms --delete /srv/hcasc/_repos/dagmar-frontend/dist/ /var/www/dagmar/frontend/
             printf '%s DAGMAR web: auto-deploy main\n' "$(date '+%F %T')" >> /var/log/dagmar/deploy.log
