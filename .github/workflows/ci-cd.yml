@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: dagmar-deploy
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -72,8 +76,7 @@ jobs:
             cd /opt/dagmar/sandbox
             docker compose down --remove-orphans || true
             docker compose rm -f || true
-            rm -rf /opt/dagmar/backend/.venv
-            python3 -m venv /opt/dagmar/backend/.venv
+            python3 -m venv --clear /opt/dagmar/backend/.venv
             /opt/dagmar/backend/.venv/bin/pip install --upgrade pip
             /opt/dagmar/backend/.venv/bin/pip install /opt/dagmar/backend
             ./run-tests.sh
