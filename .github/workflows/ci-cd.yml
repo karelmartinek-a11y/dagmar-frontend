@@ -64,6 +64,7 @@ jobs:
             git fetch origin main
             git checkout main
             git reset --hard origin/main
+            rm -rf node_modules
             npm ci
             npm run build
             FRONT_TAG=$(git rev-parse --short HEAD)
