@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { adminCreateUser, adminListInstances, adminListUsers, adminSendUserReset, adminUpdateUser, type PortalUser } from "../api/admin";
+import { adminCreateUser, adminDeleteUser, adminListInstances, adminListUsers, adminSendUserReset, adminUpdateUser, type PortalUser } from "../api/admin";
+import type { EmploymentTemplate } from "../types/employment";
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
@@ -24,6 +25,17 @@ function makeEmailFromAttendanceName(name: string): string {
   return `${slug || "uzivatel"}@migration.local`;
 }
 
+const EMPLOYMENT_OPTIONS: Array<{ value: EmploymentTemplate; label: string }> = [
+  { value: "HPP", label: "HPP" },
+  { value: "DPP_DPC", label: "DPP / DPČ" },
+];
+
+function employmentTemplateLabel(value: PortalUser["employment_template"]): string {
+  if (value === "HPP") return "HPP";
+  if (value === "DPP_DPC") return "DPP / DPČ";
+  return "Neuvedeno";
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<PortalUser[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,12 +43,14 @@ export default function AdminUsersPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("employee");
+  const [employmentTemplate, setEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
   const [saving, setSaving] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState("employee");
+  const [editEmploymentTemplate, setEditEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
 
   async function load() {
     setLoading(true);
@@ -65,9 +79,10 @@ export default function AdminUsersPage() {
     setSaving(true);
     setError(null);
     try {
-      await adminCreateUser({ name: name.trim(), email: email.trim(), role });
+      await adminCreateUser({ name: name.trim(), email: email.trim(), role, employment_template: employmentTemplate });
       setName("");
       setEmail("");
+      setEmploymentTemplate("DPP_DPC");
       await load();
     } catch (err: unknown) {
       setError(errorMessage(err, "Uložení se nezdařilo."));
@@ -81,6 +96,7 @@ export default function AdminUsersPage() {
     setEditName(u.name);
     setEditEmail(u.email);
     setEditRole(u.role);
+    setEditEmploymentTemplate(u.employment_template === "HPP" ? "HPP" : "DPP_DPC");
   }
 
   function cancelEdit() {
@@ -88,6 +104,7 @@ export default function AdminUsersPage() {
     setEditName("");
     setEditEmail("");
     setEditRole("employee");
+    setEditEmploymentTemplate("DPP_DPC");
   }
 
   async function onUpdate(e: React.FormEvent) {
@@ -104,6 +121,7 @@ export default function AdminUsersPage() {
         name: editName.trim(),
         email: editEmail.trim(),
         role: editRole,
+        employment_template: editEmploymentTemplate,
       });
       await load();
       cancelEdit();
@@ -121,6 +139,23 @@ export default function AdminUsersPage() {
       await adminSendUserReset(userId);
     } catch (err: unknown) {
       setError(errorMessage(err, "Odeslání odkazu se nezdařilo."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteUser(user: PortalUser) {
+    const confirmed = window.confirm(`Smazat uživatele ${user.name}? Tímto se smaže i jeho docházka.`);
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      await adminDeleteUser(user.id);
+      if (editingUserId === user.id) cancelEdit();
+      await load();
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Smazání uživatele se nezdařilo."));
     } finally {
       setSaving(false);
     }
@@ -161,6 +196,7 @@ export default function AdminUsersPage() {
             name: displayName,
             email: makeEmailFromAttendanceName(displayName),
             role: "employee",
+            employment_template: inst.employment_template,
             profile_instance_id: inst.id,
           });
           created += 1;
@@ -247,6 +283,16 @@ export default function AdminUsersPage() {
                 <option value="employee">Zamestnanec</option>
               </select>
             </div>
+            <div>
+              <div className="label">Úvazek</div>
+              <select className="input" value={employmentTemplate} onChange={(e) => setEmploymentTemplate(e.target.value as EmploymentTemplate)}>
+                {EMPLOYMENT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
             <button type="button" className="btn" disabled={saving || loading} onClick={migrateAttendancesToUsers}>
@@ -262,7 +308,7 @@ export default function AdminUsersPage() {
       <section className="card pad">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <div style={{ fontWeight: 850 }}>Seznam uživatelů</div>
-          <div style={{ fontSize: 12, color: "var(--muted)" }}>Reset hesla má platnost 24 hodin.</div>
+          <div style={{ fontSize: 12, color: "var(--muted)" }}>Reset hesla má platnost 24 hodin. Smazání uživatele maže i jeho docházku.</div>
         </div>
 
         <div style={{ overflow: "auto", marginTop: 12 }}>
@@ -272,6 +318,7 @@ export default function AdminUsersPage() {
                 <th>Jméno</th>
                 <th>E-mail</th>
                 <th>Role</th>
+                <th>Úvazek</th>
                 <th>Heslo</th>
                 <th style={{ textAlign: "right" }}>Akce</th>
               </tr>
@@ -279,14 +326,14 @@ export default function AdminUsersPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={5} style={{ color: "var(--muted)" }}>
+                  <td colSpan={6} style={{ color: "var(--muted)" }}>
                     Načítám…
                   </td>
                 </tr>
               )}
               {!loading && (users || []).length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ color: "var(--muted)" }}>
+                  <td colSpan={6} style={{ color: "var(--muted)" }}>
                     Zatím nejsou žádní uživatelé.
                   </td>
                 </tr>
@@ -297,6 +344,7 @@ export default function AdminUsersPage() {
                     <td style={{ fontWeight: 700 }}>{u.name}</td>
                     <td>{u.email}</td>
                     <td>{u.role === "employee" ? "Zamestnanec" : u.role}</td>
+                    <td>{employmentTemplateLabel(u.employment_template)}</td>
                     <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.has_password ? "nastaveno" : "nenastaveno"}</td>
                     <td style={{ textAlign: "right" }}>
                       <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap" }}>
@@ -305,6 +353,9 @@ export default function AdminUsersPage() {
                         </button>
                         <button type="button" className="btn sm" onClick={() => sendReset(u.id)} disabled={saving}>
                           Poslat link
+                        </button>
+                        <button type="button" className="btn sm" onClick={() => deleteUser(u)} disabled={saving}>
+                          Smazat
                         </button>
                       </div>
                     </td>
@@ -329,6 +380,16 @@ export default function AdminUsersPage() {
                 <div className="label">Druh pohledu</div>
                 <select className="input" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
                   <option value="employee">Zamestnanec</option>
+                </select>
+              </div>
+              <div>
+                <div className="label">Úvazek</div>
+                <select className="input" value={editEmploymentTemplate} onChange={(e) => setEditEmploymentTemplate(e.target.value as EmploymentTemplate)}>
+                  {EMPLOYMENT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

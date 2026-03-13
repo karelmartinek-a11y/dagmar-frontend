@@ -96,6 +96,7 @@ export type PortalUser = {
   email: string;
   role: string;
   has_password: boolean;
+  employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
 };
 
@@ -111,6 +112,7 @@ export async function adminCreateUser(payload: {
   name: string;
   email: string;
   role: string;
+  employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
 }): Promise<PortalUser> {
   return apiFetch<PortalUser>("/api/v1/admin/users", {
@@ -124,6 +126,7 @@ export type AdminUpdateUserPayload = {
   name?: string;
   email?: string;
   role?: string;
+  employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
 };
 
@@ -176,6 +179,13 @@ export async function adminUpdateUser(userId: number, payload: AdminUpdateUserPa
 export async function adminSendUserReset(userId: number): Promise<{ ok: true }> {
   return apiFetch<{ ok: true }>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}/send-reset`, {
     method: "POST",
+    headers: withCsrf(),
+  });
+}
+
+export async function adminDeleteUser(userId: number): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}`, {
+    method: "DELETE",
     headers: withCsrf(),
   });
 }

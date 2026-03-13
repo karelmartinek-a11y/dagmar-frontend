@@ -15,6 +15,13 @@ Jakákoli změna endpointu nebo payloadu se musí promítnout do:
 - JSON requesty: `Content-Type: application/json; charset=utf-8`
 - Čas: `"HH:MM"` (24h, nulované)
 - Datum: `"YYYY-MM-DD"`
+- Referenční čas pro uživatelský zápis docházky: `Europe/Prague`
+
+### GET `/api/v1/time`
+Response 200:
+```json
+{ "datetime": "2026-03-13T10:24:00+01:00", "timezone": "Europe/Prague", "source": "server" }
+```
 
 ---
 
@@ -123,6 +130,14 @@ Response 200:
 
 Poznámka (audit): nevalidní `date` musí vracet HTTP 400 (ne 500).
 
+Forenzní pravidla pro uživatele:
+- Uživatel nesmí zapsat příchod ani odchod v budoucnosti vzhledem k času `Europe/Prague`.
+- Web preferuje internetový čas; fallback je `/api/v1/time`; finální autorita je backend.
+- Pro aktuální datum smí uživatel příchod i odchod měnit opakovaně.
+- Pro předchozí dny v otevřeném měsíci smí uživatel pouze doplnit chybějící příchod nebo odchod.
+- Již uložený příchod nebo odchod na minulém dni už uživatel nesmí měnit ani mazat.
+- Tato omezení se nevztahují na admin endpointy.
+
 ---
 
 ## 7) Admin auth
@@ -219,13 +234,14 @@ Aktuální backend/frontend používá:
 - `POST /api/v1/admin/users`
 - `POST /api/v1/admin/users/{id}/send-reset`
 - `PUT /api/v1/admin/users/{id}`
+- `DELETE /api/v1/admin/users/{id}`
 
 ### GET `/api/v1/admin/users`
 Response 200:
 ```json
 {
   "users": [
-    { "id": 1, "name": "string", "email": "string", "role": "employee", "has_password": false }
+    { "id": 1, "name": "string", "email": "string", "role": "employee", "employment_template": "DPP_DPC", "has_password": false }
   ]
 }
 ```
@@ -233,11 +249,11 @@ Response 200:
 ### POST `/api/v1/admin/users`
 Request (aktuální):
 ```json
-{ "name": "string", "email": "user@example.com", "role": "employee" }
+{ "name": "string", "email": "user@example.com", "role": "employee", "employment_template": "DPP_DPC" }
 ```
 Response 200:
 ```json
-{ "id": 1, "name": "string", "email": "user@example.com", "role": "employee", "has_password": false }
+{ "id": 1, "name": "string", "email": "user@example.com", "role": "employee", "employment_template": "DPP_DPC", "has_password": false }
 ```
 
 ### POST `/api/v1/admin/users/{user_id}/send-reset`
@@ -254,6 +270,7 @@ Request (aktuální):
   "email": "user@example.com",
   "phone": "+420123456789",
   "role": "employee",
+  "employment_template": "HPP",
   "profile_instance_id": "uuid-or-null",
   "is_active": true
 }
@@ -266,11 +283,22 @@ Response 200 (aktuální):
   "email": "user@example.com",
   "phone": "+420123456789",
   "role": "employee",
+  "employment_template": "HPP",
   "has_password": true,
   "profile_instance_id": "uuid-or-null",
   "is_active": true
 }
 ```
+
+### DELETE `/api/v1/admin/users/{user_id}`
+Response 200:
+```json
+{ "ok": true }
+```
+
+Sémantika:
+- smazání uživatele musí kaskádově smazat i jeho docházku
+- admin není omezen forenzními pravidly platnými pro uživatele
 
 ---
 
@@ -328,3 +356,18 @@ Response: stažení souboru (CSV/ZIP), nikoli JSON.
 ### GET+PUT `/api/v1/admin/settings`
 ### GET+PUT `/api/v1/admin/smtp`
 Pozn.: SMTP heslo se nesmí vracet v plaintextu v žádném GET response (aktuálně se vrací jen `password_set`).
+
+## 14) Reminder e-maily ke směně
+
+Tyto reminder e-maily se posílají na e-mail uložený u uživatele.
+
+### Chybějící příchod
+- Pokud má uživatel plánovaný příchod a 5 minut po plánovaném čase nemá zaznamenaný příchod, odešle se e-mail `Nemáš zapsaný příchod`.
+- Odeslání se opakuje maximálně 5x, vždy po 10 minutách, dokud není příchod zapsán.
+
+### Chybějící odchod ve 20:00
+- Pokud má uživatel v daný den ve 20:00 zaznamenán pouze příchod bez odchodu, odešle se e-mail `JSI JEŠTĚ V PRÁCI? NEMÁŠ ZAPSÁN ODCHOD`.
+- Odeslání se opakuje maximálně 5x, vždy po 15 minutách, dokud není odchod zapsán.
+
+Poznámka:
+- plánování, deduplikace a odesílání reminderů zajišťuje backend nebo jeho scheduler; frontend tyto maily pouze dokumentuje a konzumuje výsledný stav dat

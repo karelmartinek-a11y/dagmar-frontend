@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
+import { getPragueTimeSnapshot, type PragueTimeSource } from "../api/time";
 import { ApiError } from "../api/client";
 import type { EmploymentTemplate } from "../types/employment";
 import { portalLogin } from "../api/portal";
@@ -130,6 +131,65 @@ function isoToday() {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
+const PRAGUE_TIME_ZONE = "Europe/Prague";
+
+type PragueClock = {
+  date: string;
+  time: string;
+  minutes: number;
+  source: PragueTimeSource;
+};
+
+function getPragueParts(timestamp: number) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PRAGUE_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(timestamp));
+
+  const readPart = (type: string) => parts.find((part) => part.type === type)?.value ?? "00";
+
+  return {
+    year: readPart("year"),
+    month: readPart("month"),
+    day: readPart("day"),
+    hour: readPart("hour"),
+    minute: readPart("minute"),
+  };
+}
+
+function toPragueClock(timestamp: number, source: PragueTimeSource): PragueClock {
+  const parts = getPragueParts(timestamp);
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    time: `${parts.hour}:${parts.minute}`,
+    minutes: Number(parts.hour) * 60 + Number(parts.minute),
+    source,
+  };
+}
+
+function compareIsoDates(left: string, right: string): number {
+  return left.localeCompare(right);
+}
+
+function isFutureTimeOnSameDay(value: string | null, currentMinutes: number): boolean {
+  if (!value) return false;
+  const [hour, minute] = value.split(":").map((item) => parseInt(item, 10));
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return false;
+  return hour * 60 + minute > currentMinutes;
+}
+
+function getHistoricalReadOnlyReason(row: DayRow, field: "arrival_time" | "departure_time", today: string): string | null {
+  const dateCmp = compareIsoDates(row.date, today);
+  if (dateCmp > 0) return "Budoucí průchod uživatel nesmí zadat.";
+  if (dateCmp < 0 && row[field] !== null) return "Na minulých dnech už lze jen doplnit chybějící čas.";
+  return null;
+}
+
 function formatHours(mins: number): string {
   return (mins / 60).toFixed(1);
 }
@@ -157,6 +217,9 @@ export function EmployeePage() {
   const [rows, setRows] = useState<DayRow[]>([]);
   const [viewMode, setViewMode] = useState<"attendance" | "plan">("attendance");
   const [monthLocked, setMonthLocked] = useState(false);
+  const [clockNowMs, setClockNowMs] = useState(() => Date.now());
+  const [clockOffsetMs, setClockOffsetMs] = useState(0);
+  const [clockSource, setClockSource] = useState<PragueTimeSource>("browser");
   const displayedRows = useMemo(() => {
     if (viewMode === "attendance") return rows;
     return rows.map((r) => ({
@@ -174,6 +237,7 @@ export function EmployeePage() {
   const [queuedCount, setQueuedCount] = useState<number>(0);
   const [sending, setSending] = useState<boolean>(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  const pragueNow = useMemo(() => toPragueClock(clockNowMs + clockOffsetMs, clockSource), [clockNowMs, clockOffsetMs, clockSource]);
 
   const queueRef = useRef<QueueItem[]>([]);
   const workingFundHours = useMemo(() => {
@@ -199,6 +263,33 @@ export function EmployeePage() {
     const initialQueue = loadStoredQueue();
     queueRef.current = initialQueue;
     setQueuedCount(initialQueue.length);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function syncClock() {
+      const snapshot = await getPragueTimeSnapshot();
+      if (cancelled) return;
+      setClockOffsetMs(snapshot.timestamp - Date.now());
+      setClockNowMs(Date.now());
+      setClockSource(snapshot.source);
+    }
+
+    void syncClock();
+
+    const syncHandle = window.setInterval(() => {
+      void syncClock();
+    }, 5 * 60 * 1000);
+    const tickHandle = window.setInterval(() => {
+      setClockNowMs(Date.now());
+    }, 30 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(syncHandle);
+      window.clearInterval(tickHandle);
+    };
   }, []);
 
   // Load attendance for month (only when online)
@@ -398,24 +489,38 @@ export function EmployeePage() {
       return;
     }
 
+    const row = rows.find((item) => item.date === date);
+    if (!row) return;
+
+    const readOnlyReason = getHistoricalReadOnlyReason(row, field, pragueNow.date);
+    if (readOnlyReason) {
+      window.alert(readOnlyReason);
+      return;
+    }
+
+    const nextValue = trimmed === "" ? null : trimmed;
+    if (date === pragueNow.date && isFutureTimeOnSameDay(nextValue, pragueNow.minutes)) {
+      window.alert("U dnešního dne nelze zadat čas v budoucnosti. Rozhoduje aktuální čas v Praze.");
+      return;
+    }
+
     // Update UI immediately (optimistic)
     setRows((prev) =>
       prev.map((r) => {
         if (r.date !== date) return r;
         const next: DayRow = { ...r };
-        next[field] = trimmed === "" ? null : trimmed;
+        next[field] = nextValue;
         return next;
       }),
     );
 
     const currentToken = token;
-    const row = rows.find((r) => r.date === date);
 
     // Compute payload from current state after update
     const payload = {
       date,
-      arrival_time: field === "arrival_time" ? (trimmed === "" ? null : trimmed) : row?.arrival_time ?? null,
-      departure_time: field === "departure_time" ? (trimmed === "" ? null : trimmed) : row?.departure_time ?? null,
+      arrival_time: field === "arrival_time" ? nextValue : row.arrival_time ?? null,
+      departure_time: field === "departure_time" ? nextValue : row.departure_time ?? null,
     };
 
     if (!online || !currentToken) {
@@ -432,7 +537,7 @@ export function EmployeePage() {
     }
   }
 
-  const today = isoToday();
+  const today = pragueNow.date || isoToday();
   const monthHead = monthLabel(month).toUpperCase();
 
   function handlePunchNow() {
@@ -445,8 +550,7 @@ export function EmployeePage() {
       window.alert("Dnešní den není v aktuálním přehledu.");
       return;
     }
-    const now = new Date();
-    const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    const hhmm = pragueNow.time;
     if (!todayRow.arrival_time) {
       onChangeTime(today, "arrival_time", hhmm);
       return;
@@ -621,6 +725,8 @@ export function EmployeePage() {
           ) : null}
           {displayedRows.map((r) => {
             const isToday = r.date === today;
+            const arrivalReadOnlyReason = viewMode === "attendance" ? getHistoricalReadOnlyReason(r, "arrival_time", today) : null;
+            const departureReadOnlyReason = viewMode === "attendance" ? getHistoricalReadOnlyReason(r, "departure_time", today) : null;
             const hasPlan = Boolean(r.planned_arrival_time || r.planned_departure_time);
             const calc = computeDayCalc(r, employmentTemplate, cutoffMinutes);
             const mins = calc.workedMins;
@@ -699,7 +805,8 @@ export function EmployeePage() {
                   placeholder="HH:MM"
                   value={r.arrival_time ?? ""}
                   plannedValue={viewMode === "attendance" ? r.planned_arrival_time : undefined}
-                  readOnly={viewMode === "plan"}
+                  readOnly={viewMode === "plan" || arrivalReadOnlyReason !== null}
+                  readOnlyReason={viewMode === "plan" ? null : arrivalReadOnlyReason}
                   onChange={(v) => onChangeTime(r.date, "arrival_time", v)}
                 />
 
@@ -708,7 +815,8 @@ export function EmployeePage() {
                   placeholder="HH:MM"
                   value={r.departure_time ?? ""}
                   plannedValue={viewMode === "attendance" ? r.planned_departure_time : undefined}
-                  readOnly={viewMode === "plan"}
+                  readOnly={viewMode === "plan" || departureReadOnlyReason !== null}
+                  readOnlyReason={viewMode === "plan" ? null : departureReadOnlyReason}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
                 />
                 <div title={hoursTitle} style={{ textAlign: "right", fontWeight: 800, color: mins ? "var(--kb-text)" : "rgba(82, 85, 93, 0.6)" }}>
@@ -743,6 +851,7 @@ export function EmployeePage() {
         </div>
         <div style={{ marginTop: 12, color: "var(--kb-brand-ink-600)", fontSize: 12 }}>
           Docházka se ukládá na serveru. Offline změny se průběžně ukládají i v zařízení a po obnovení připojení se odešlou automaticky.
+          {` Uživatelská omezení se vyhodnocují podle času v Praze (${pragueNow.source === "internet" ? "internet" : pragueNow.source === "server" ? "server" : "nouzový čas prohlížeče"}).`}
         </div>
       </footer>
     </div>
@@ -796,9 +905,10 @@ function TimeInput(props: {
   value: string;
   plannedValue?: string | null;
   readOnly?: boolean;
+  readOnlyReason?: string | null;
   onChange: (v: string) => void;
 }) {
-  const { label, placeholder, value, plannedValue, readOnly, onChange } = props;
+  const { label, placeholder, value, plannedValue, readOnly, readOnlyReason, onChange } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -843,6 +953,7 @@ function TimeInput(props: {
           cursor: readOnly ? "not-allowed" : "text",
         }}
       />
+      {readOnly && readOnlyReason ? <div style={{ fontSize: 11, color: "var(--kb-brand-ink-600)" }}>{readOnlyReason}</div> : null}
       {!ok && !readOnly ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
     </div>
   );
