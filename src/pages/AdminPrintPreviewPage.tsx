@@ -73,6 +73,11 @@ function formatDateLong(dateIso: string) {
   return dt.toLocaleDateString("cs-CZ", { day: "numeric", month: "long", year: "numeric" });
 }
 
+function parseLocalDate(dateIso: string) {
+  const [y, m, d] = dateIso.split("-").map((x) => parseInt(x, 10));
+  return new Date(y, m - 1, d);
+}
+
 function parseBreakWindows(breakTooltip: string | null): Array<{ start: string; end: string }> {
   if (!breakTooltip) return [];
   const regex = /([0-2]?\d:[0-5]\d)\u2013([0-2]?\d:[0-5]\d)/g; // times separated by en dash
@@ -147,6 +152,7 @@ export default function AdminPrintPreviewPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [docs, setDocs] = useState<DocRecord[]>([]);
+  const [pdfGenerated, setPdfGenerated] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const label = monthLabel(parsedMonth.year, parsedMonth.month);
@@ -158,6 +164,7 @@ export default function AdminPrintPreviewPage() {
     async function load() {
       setLoading(true);
       setError(null);
+      setPdfGenerated(false);
       try {
         const instRes = await adminListInstances();
         if (cancelled) return;
@@ -183,6 +190,7 @@ export default function AdminPrintPreviewPage() {
           const plan = await adminGetShiftPlanMonth({ year: parsedMonth.year, month: parsedMonth.month });
           if (cancelled) return;
           const rows = plan.rows.filter((r) => idList.includes(r.instance_id));
+          if (rows.length === 0) throw new Error("Pro vybrané entity nebyla nalezena žádná data plánu směn.");
           const records: DocRecord[] = rows
             .map((row) => {
               const inst = map.get(row.instance_id);
@@ -207,7 +215,7 @@ export default function AdminPrintPreviewPage() {
   }, [docType, idList, parsedMonth, hasValidMonth]);
 
   useEffect(() => {
-    if (loading || error || docs.length === 0) return;
+    if (loading || error || docs.length === 0 || pdfGenerated) return;
     const maybeContainer = containerRef.current;
     if (!maybeContainer) return;
     const container = maybeContainer as HTMLDivElement;
@@ -230,11 +238,14 @@ export default function AdminPrintPreviewPage() {
       }
 
       pdf.save(`tisky-${docType}-${month || "mesic"}.pdf`);
+      setPdfGenerated(true);
       window.setTimeout(() => window.close(), 400);
     }
 
-    generatePdf().catch((err) => console.error(err));
-  }, [loading, error, docs, docType, month]);
+    generatePdf().catch((err) => {
+      setError(err instanceof Error ? err.message : "Generování PDF selhalo.");
+    });
+  }, [loading, error, docs, docType, month, pdfGenerated]);
 
   const dayCache = useMemo(() => dayList(parsedMonth.year, parsedMonth.month), [parsedMonth]);
 
@@ -356,7 +367,7 @@ export default function AdminPrintPreviewPage() {
                 {doc.row.days.map((day) => {
                   const holidayName = getCzechHolidayName(day.date);
                   const weekend = isWeekendDate(day.date);
-                  const dow = new Date(day.date).toLocaleDateString("cs-CZ", { weekday: "long" });
+                  const dow = parseLocalDate(day.date).toLocaleDateString("cs-CZ", { weekday: "long" });
                   const rowClass = holidayName ? "row-holiday" : weekend ? "row-weekend" : "";
                   return (
                     <tr key={day.date} className={rowClass}>
