@@ -39,7 +39,9 @@ Tento dokument popisuje nevyjednatelná pravidla pro zápis docházky ze strany 
 
 - Pokud má uživatel plánovaný příchod a 5 minut po plánovaném příchodu nemá zapsaný příchod, odešle se e-mail s textem `Nemáš zapsaný příchod`.
 - Tento e-mail se pošle celkem 5x, vždy po 10 minutách od předchozího pokusu, dokud není příchod zapsán.
-- Pokud má uživatel v daný den ve 20:00 zapsán pouze příchod bez odchodu, odešle se e-mail s textem `JSI JEŠTĚ V PRÁCI? NEMÁŠ ZAPSÁN ODCHOD`.
-- Tento druhý e-mail se pošle celkem 5x, vždy po 15 minutách, dokud není odchod zapsán.
+- Pokud má uživatel naplánované ukončení směny a ještě 2 hodiny po něm nemá zapsaný odchod, odešle se e-mail s textem `Jsi ještě v práci? Nemáš zapsán odchod`.
+- Tento druhý e-mail se pošle celkem 5x, vždy po 10 minutách, dokud není odchod zapsán.
+- Další kontrola probíhá v 8:00 ráno. Pokud má uživatel za předchozí den zapsán pouze příchod bez odchodu, odešle se mu stejný dotaz.
+- Ranní upozornění se pošle celkem 5x, vždy po 10 minutách, dokud není včerejší odchod doplněn.
 - Výstražné e-maily se posílají na e-mail uložený u uživatele.
 - Za plánování a deduplikaci těchto výstrah odpovídá backend.
