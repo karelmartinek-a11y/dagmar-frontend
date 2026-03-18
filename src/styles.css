@@ -798,6 +798,9 @@ textarea {
 }
 
 .plan-table {
+  --plan-head-h1: 35px;
+  --plan-head-h2: 33px;
+  --plan-head-h3: 28px;
   width: max-content;
   min-width: 100%;
   border-collapse: separate;
@@ -836,13 +839,20 @@ textarea {
   color: #191919;
 }
 
+.plan-table-head--numbers .plan-table-th {
+  top: 0;
+  height: var(--plan-head-h1);
+}
+
 .plan-table-head--weekday .plan-table-th,
 .plan-table-head--holiday .plan-table-th {
-  top: 35px;
+  top: var(--plan-head-h1);
+  height: var(--plan-head-h2);
 }
 
 .plan-table-head--holiday .plan-table-th {
-  top: 68px;
+  top: calc(var(--plan-head-h1) + var(--plan-head-h2));
+  height: var(--plan-head-h3);
 }
 
 .plan-table-th--weekend {
@@ -964,7 +974,7 @@ textarea {
 }
 
 .plan-table-th--holiday {
-  min-height: 28px;
+  min-height: var(--plan-head-h3);
   color: rgba(35, 41, 44, 0.62);
 }
 
