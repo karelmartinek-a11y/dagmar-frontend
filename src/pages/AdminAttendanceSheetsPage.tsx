@@ -4,7 +4,7 @@ import { adminGetAttendanceMonth, adminLockAttendance, adminUpsertAttendance, ad
 import { adminGetSettings, adminListInstances, type AdminInstance } from "../api/admin";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { normalizeTime, isValidTimeOrEmpty } from "../utils/timeInput";
-import { planStatusLabel } from "../utils/planStatus";
+import { planStatusInputPlaceholder, planStatusLabel } from "../utils/planStatus";
 import type { ShiftPlanDayStatus } from "../api/adminShiftPlan";
 
 function pad2(n: number) {
@@ -722,7 +722,7 @@ function TimeInput(props: {
   const plannedLabel = plannedStatus ? planStatusLabel(plannedStatus) : plannedValue;
   const plannedTone =
     plannedStatus === "HOLIDAY" ? "var(--kb-red)" : plannedStatus === "OFF" ? "#0c5fd3" : "rgba(82, 85, 93, 0.6)";
-  const statusPlaceholder = plannedStatus ? planStatusLabel(plannedStatus)?.toLocaleUpperCase("cs-CZ") ?? null : null;
+  const statusPlaceholder = planStatusInputPlaceholder(plannedStatus);
   const effectivePlaceholder = !local && statusPlaceholder ? statusPlaceholder : placeholder;
   const hasStatusPlaceholder = Boolean(statusPlaceholder);
 

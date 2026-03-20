@@ -10,7 +10,7 @@ import {
 } from "../api/adminShiftPlan";
 import { getCzechHolidayName, isWeekendDate, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { isValidTimeOrEmpty, normalizeTime } from "../utils/timeInput";
-import { planStatusLabel } from "../utils/planStatus";
+import { planStatusInputPlaceholder, planStatusLabel } from "../utils/planStatus";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -734,7 +734,7 @@ export default function AdminShiftPlanPage() {
                                 }
                                 onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
                                 onKeyDown={handleInputKeyDown}
-                                placeholder={isBlocked ? statusLabel?.toLocaleUpperCase("cs-CZ") ?? "HH:MM" : "HH:MM"}
+                                placeholder={isBlocked ? planStatusInputPlaceholder(planDay?.status) ?? "HH:MM" : "HH:MM"}
                                 maxLength={5}
                                 disabled={isBlocked}
                               />
@@ -788,7 +788,7 @@ export default function AdminShiftPlanPage() {
                                 }
                                 onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
                                 onKeyDown={handleInputKeyDown}
-                                placeholder={isBlocked ? statusLabel?.toLocaleUpperCase("cs-CZ") ?? "HH:MM" : "HH:MM"}
+                                placeholder={isBlocked ? planStatusInputPlaceholder(planDay?.status) ?? "HH:MM" : "HH:MM"}
                                 maxLength={5}
                                 disabled={isBlocked}
                               />

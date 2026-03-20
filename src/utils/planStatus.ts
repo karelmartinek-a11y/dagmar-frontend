@@ -5,3 +5,8 @@ export function planStatusLabel(status: ShiftPlanDayStatus | null | undefined): 
   if (status === "OFF") return "volno";
   return null;
 }
+
+export function planStatusInputPlaceholder(status: ShiftPlanDayStatus | null | undefined): string | null {
+  const label = planStatusLabel(status);
+  return label ? label.toLocaleUpperCase("cs-CZ") : null;
+}

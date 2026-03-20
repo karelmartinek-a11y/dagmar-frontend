@@ -52,8 +52,9 @@ Výsledek: 0 výskytů napříč repozitářem.
 ```bash
 npm ci
 npm run lint
-npm run build
+npm run typecheck
 npm test
+npm run build
 npm run check:branding
 ```
 
