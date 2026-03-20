@@ -229,6 +229,7 @@ export function EmployeePage() {
       ...r,
       arrival_time: r.planned_arrival_time,
       departure_time: r.planned_departure_time,
+      planned_status: r.planned_status,
     }));
   }, [rows, viewMode]);
   const monthStats = useMemo(
@@ -236,6 +237,7 @@ export function EmployeePage() {
     [displayedRows, employmentTemplate, cutoffMinutes]
   );
   const monthTotalMins = monthStats.totalMins;
+  const monthHolidayMins = monthStats.holidayMins;
 
   const [queuedCount, setQueuedCount] = useState<number>(0);
   const [sending, setSending] = useState<boolean>(false);
@@ -850,7 +852,10 @@ export function EmployeePage() {
         >
           <FooterStat label="ID profilu" value={profileId ?? "—"} />
           <FooterStat label="Název entity" value={displayName || "—"} />
-          <FooterStat label={`Součet hodin (${monthLabel(month)})`} value={`${formatHours(monthTotalMins)} h`} />
+          <FooterStat
+            label={`Součet hodin (${monthLabel(month)})`}
+            value={`${formatHours(monthTotalMins)} h (z toho ${formatHours(monthHolidayMins)} h dovolená)`}
+          />
           <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
           <FooterStat label={`Odpolední (${afternoonCutoff})`} value={`${formatHours(monthStats.afternoonMins)} h`} />
           <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />

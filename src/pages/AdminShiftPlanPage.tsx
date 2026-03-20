@@ -48,6 +48,9 @@ function minutesFromHHMM(value: string | null) {
 
 function plannedMinutes(row: ShiftPlanRow) {
   return row.days.reduce((acc, day) => {
+    if (day.status === "HOLIDAY") {
+      return acc + 8 * 60;
+    }
     const arrival = minutesFromHHMM(day.arrival_time);
     const departure = minutesFromHHMM(day.departure_time);
 

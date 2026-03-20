@@ -84,6 +84,7 @@ export default function AdminAttendanceSheetsPage() {
   const template = selected?.employment_template ?? "DPP_DPC";
   const monthStats = useMemo(() => computeMonthStats(days ?? [], template, cutoffMinutes), [days, template, cutoffMinutes]);
   const monthTotalMins = monthStats.totalMins;
+  const monthHolidayMins = monthStats.holidayMins;
   const workingFundHours = useMemo(() => {
     const parsed = parseYYYYMM(month);
     if (!parsed) return 0;
@@ -602,7 +603,10 @@ export default function AdminAttendanceSheetsPage() {
                       valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }}
                     />
                     <FooterStat label="Název entity" value={selected.display_name || "— bez názvu —"} />
-                    <FooterStat label="Součet hodin" value={`${formatHours(monthTotalMins)} h`} />
+                    <FooterStat
+                      label="Součet hodin"
+                      value={`${formatHours(monthTotalMins)} h (z toho ${formatHours(monthHolidayMins)} h dovolená)`}
+                    />
                     <FooterStat label="Víkend + svátky" value={`${formatHours(monthStats.weekendHolidayMins)} h`} />
                     <FooterStat label="Odpolední" value={`${formatHours(monthStats.afternoonMins)} h`} />
                     <FooterStat label="Pracovní fond" value={`${workingFundHours} h`} />
