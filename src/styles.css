@@ -532,7 +532,7 @@ textarea {
   background: var(--kb-surface);
   border-radius: var(--kb-radius);
   box-shadow: var(--kb-shadow);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .kb-sidebar-head {
