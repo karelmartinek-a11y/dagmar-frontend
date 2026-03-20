@@ -1,4 +1,5 @@
 import { ChangeEvent, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   adminGetShiftPlanMonth,
   adminSetShiftPlanSelection,
@@ -88,6 +89,7 @@ export default function AdminShiftPlanPage() {
   const [tableScrollWidth, setTableScrollWidth] = useState(0);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [instanceQuery, setInstanceQuery] = useState("");
+  const [sidebarBottomTarget, setSidebarBottomTarget] = useState<HTMLElement | null>(null);
   const successTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const tableWrapperRef = useRef<HTMLDivElement | null>(null);
   const topScrollRef = useRef<HTMLDivElement | null>(null);
@@ -231,6 +233,11 @@ export default function AdminShiftPlanPage() {
       document.removeEventListener("scroll", closeMenu, true);
       document.removeEventListener("keydown", handleKey);
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setSidebarBottomTarget(document.getElementById("admin-sidebar-bottom-extra"));
   }, []);
 
   useLayoutEffect(() => {
@@ -503,8 +510,53 @@ export default function AdminShiftPlanPage() {
     setContextMenu({ x: event.clientX, y: event.clientY, instanceId, date });
   };
 
+  const instancePicker = (
+    <div className="plan-instance-picker plan-instance-picker--sidebar">
+      <div className="plan-instance-header">
+        <div>
+          <div className="plan-instance-title">VĂ˝bÄ›r uĹľivatelĹŻ pro plĂˇn</div>
+          <div className="plan-instance-subtitle">Jen seznam uĹľivatelĹŻ, ne existujĂ­cĂ­ dochĂˇzky.</div>
+        </div>
+        <div className="plan-instance-count">
+          VybrĂˇno {selectedIds.length}/{activeInstances.length}
+        </div>
+      </div>
+      <div className="plan-instance-filter">
+        <label htmlFor="plan-instance-search">Filtrovat</label>
+        <input
+          id="plan-instance-search"
+          type="text"
+          placeholder="napĹ™. NovĂˇk, pokoj nebo typ Ăşvazku"
+          value={instanceQuery}
+          onChange={(e) => setInstanceQuery(e.target.value)}
+        />
+      </div>
+      <div className="plan-instance-list">
+        {filteredInstances.map((inst) => {
+          const selected = selectedIds.includes(inst.id);
+          return (
+            <label key={inst.id} className={`plan-instance-row${selected ? " selected" : ""}`}>
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => handleToggleInstance(inst.id)}
+                aria-label={`Zahrnout ${inst.display_name ?? inst.id}`}
+              />
+              <div className="plan-instance-main">
+                <div className="plan-instance-name">{inst.display_name ?? inst.id}</div>
+                <div className="plan-instance-meta">{employmentTemplateLabel(inst.employment_template)}</div>
+              </div>
+            </label>
+          );
+        })}
+        {filteredInstances.length === 0 ? <div className="plan-instance-empty">Ĺ˝ĂˇdnĂ˝ uĹľivatel neodpovĂ­dĂˇ filtru.</div> : null}
+      </div>
+    </div>
+  );
+
   return (
     <div className="plan-page">
+      {sidebarBottomTarget ? createPortal(instancePicker, sidebarBottomTarget) : null}
       <div className="plan-top-row">
         <div>
           <div className="page-title">Plán služeb</div>
@@ -524,52 +576,6 @@ export default function AdminShiftPlanPage() {
       </div>
 
       <div className="plan-layout">
-        <aside className="plan-sidebar">
-          <div className="plan-instance-picker">
-            <div className="plan-instance-header">
-              <div>
-                <div className="plan-instance-title">Výběr uživatelů pro plán</div>
-                <div className="plan-instance-subtitle">Jen seznam uživatelů, ne existující docházky.</div>
-              </div>
-              <div className="plan-instance-count">
-                Vybráno {selectedIds.length}/{activeInstances.length}
-              </div>
-            </div>
-            <div className="plan-instance-filter">
-              <label htmlFor="plan-instance-search">Filtrovat</label>
-              <input
-                id="plan-instance-search"
-                type="text"
-                placeholder="např. Novák, pokoj nebo typ úvazku"
-                value={instanceQuery}
-                onChange={(e) => setInstanceQuery(e.target.value)}
-              />
-            </div>
-            <div className="plan-instance-list">
-              {filteredInstances.map((inst) => {
-                const selected = selectedIds.includes(inst.id);
-                return (
-                  <label key={inst.id} className={`plan-instance-row${selected ? " selected" : ""}`}>
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => handleToggleInstance(inst.id)}
-                      aria-label={`Zahrnout ${inst.display_name ?? inst.id}`}
-                    />
-                    <div className="plan-instance-main">
-                      <div className="plan-instance-name">{inst.display_name ?? inst.id}</div>
-                      <div className="plan-instance-meta">{employmentTemplateLabel(inst.employment_template)}</div>
-                    </div>
-                  </label>
-                );
-              })}
-              {filteredInstances.length === 0 ? (
-                <div className="plan-instance-empty">Žádný uživatel neodpovídá filtru.</div>
-              ) : null}
-            </div>
-          </div>
-        </aside>
-
         <main className="plan-main">
           <div className="plan-toolbar">
             <div className="plan-toolbar-summary">

@@ -177,6 +177,7 @@ export default function AdminLayout() {
             Odhlásit
           </Button>
         </div>
+        <div id="admin-sidebar-bottom-extra" className="kb-sidebar-bottom-extra" />
       </aside>
 
       <main className="kb-admin-main">
