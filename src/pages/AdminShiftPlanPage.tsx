@@ -46,20 +46,24 @@ function minutesFromHHMM(value: string | null) {
   return hh * 60 + mm;
 }
 
-function plannedMinutes(row: ShiftPlanRow) {
-  return row.days.reduce((acc, day) => {
-    if (day.status === "HOLIDAY") {
-      return acc + 8 * 60;
-    }
-    const arrival = minutesFromHHMM(day.arrival_time);
-    const departure = minutesFromHHMM(day.departure_time);
+function plannedMinutesWithHoliday(row: ShiftPlanRow) {
+  return row.days.reduce(
+    (acc, day) => {
+      if (day.status === "HOLIDAY") {
+        acc.holidayMins += 8 * 60;
+        acc.totalMins += 8 * 60;
+        return acc;
+      }
+      const arrival = minutesFromHHMM(day.arrival_time);
+      const departure = minutesFromHHMM(day.departure_time);
 
-    if (arrival !== null && departure !== null && departure > arrival) {
-      return acc + (departure - arrival);
-    }
-
-    return acc;
-  }, 0);
+      if (arrival !== null && departure !== null && departure > arrival) {
+        acc.totalMins += departure - arrival;
+      }
+      return acc;
+    },
+    { totalMins: 0, holidayMins: 0 },
+  );
 }
 
 function formatHours(mins: number) {
@@ -594,7 +598,9 @@ export default function AdminShiftPlanPage() {
                     },
                     {} as Record<string, (typeof row.days)[number]>,
                   );
-                  const totalHours = formatHours(plannedMinutes(row));
+                  const { totalMins, holidayMins } = plannedMinutesWithHoliday(row);
+                  const totalHours = formatHours(totalMins);
+                  const holidayHours = formatHours(holidayMins);
                   const fundHours = formatHours(workingFundHours * 60);
 
                   return (
@@ -652,6 +658,9 @@ export default function AdminShiftPlanPage() {
                         <td className="plan-sum-cell" rowSpan={2}>
                           <div className="plan-sum-label">Celkem měsíc</div>
                           <div className="plan-sum-value">{totalHours} h</div>
+                          {holidayMins > 0 ? (
+                            <div className="plan-sum-meta">z toho {holidayHours} h dovolená</div>
+                          ) : null}
                           <div className="plan-sum-meta">Fond {fundHours} h</div>
                         </td>
                       </tr>
