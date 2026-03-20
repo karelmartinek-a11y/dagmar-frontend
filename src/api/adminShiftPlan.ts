@@ -11,7 +11,10 @@ export type ShiftPlanDay = {
   date: string;
   arrival_time: string | null;
   departure_time: string | null;
+  status?: ShiftPlanDayStatus | null;
 };
+
+export type ShiftPlanDayStatus = "HOLIDAY" | "OFF";
 
 export type ShiftPlanRow = {
   instance_id: string;
@@ -39,6 +42,7 @@ export type ShiftPlanUpsertRequest = {
   date: string;
   arrival_time: string | null;
   departure_time: string | null;
+  status?: ShiftPlanDayStatus | null;
 };
 
 export async function adminGetShiftPlanMonth(params: { year: number; month: number }): Promise<ShiftPlanMonth> {

@@ -4,6 +4,8 @@ import { adminGetAttendanceMonth, adminLockAttendance, adminUpsertAttendance, ad
 import { adminGetSettings, adminListInstances, type AdminInstance } from "../api/admin";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { normalizeTime, isValidTimeOrEmpty } from "../utils/timeInput";
+import { planStatusLabel } from "../utils/planStatus";
+import type { ShiftPlanDayStatus } from "../api/adminShiftPlan";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -477,7 +479,7 @@ export default function AdminAttendanceSheetsPage() {
                     </div>
                   ) : null}
                   {days?.map((d) => {
-                    const hasPlan = Boolean(d.planned_arrival_time || d.planned_departure_time);
+                    const hasPlan = Boolean(d.planned_arrival_time || d.planned_departure_time || d.planned_status);
                     const calc = computeDayCalc({ date: d.date, arrival_time: d.arrival_time, departure_time: d.departure_time }, template, cutoffMinutes);
                     const mins = calc.workedMins;
                     const isSpecial = template === "HPP" && calc.isWeekendOrHoliday;
@@ -556,6 +558,7 @@ export default function AdminAttendanceSheetsPage() {
                           placeholder="HH:MM"
                           value={d.arrival_time ?? ""}
                           plannedValue={d.planned_arrival_time}
+                          plannedStatus={d.planned_status}
                           error={errorByKey[`${d.date}:arrival_time`] ?? null}
                           onCommit={(v) => commitTime(d.date, "arrival_time", v)}
                         />
@@ -565,6 +568,7 @@ export default function AdminAttendanceSheetsPage() {
                           placeholder="HH:MM"
                           value={d.departure_time ?? ""}
                           plannedValue={d.planned_departure_time}
+                          plannedStatus={d.planned_status}
                           error={errorByKey[`${d.date}:departure_time`] ?? null}
                           onCommit={(v) => commitTime(d.date, "departure_time", v)}
                         />
@@ -699,10 +703,11 @@ function TimeInput(props: {
   placeholder: string;
   value: string;
   plannedValue?: string | null;
+  plannedStatus?: ShiftPlanDayStatus | null;
   error: string | null;
   onCommit: (v: string) => void;
 }) {
-  const { label, placeholder, value, plannedValue, error, onCommit } = props;
+  const { label, placeholder, value, plannedValue, plannedStatus, error, onCommit } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -710,11 +715,14 @@ function TimeInput(props: {
   }, [value]);
 
   const ok = isValidTimeOrEmpty(local);
+  const plannedLabel = plannedStatus ? planStatusLabel(plannedStatus) : plannedValue;
+  const plannedTone =
+    plannedStatus === "HOLIDAY" ? "var(--kb-red)" : plannedStatus === "OFF" ? "#0c5fd3" : "rgba(82, 85, 93, 0.6)";
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ fontSize: 12, color: "var(--kb-brand-ink-600)", fontWeight: 700 }}>{label}</div>
-      {plannedValue ? <div style={{ fontSize: 11, color: "rgba(82, 85, 93, 0.6)", fontWeight: 700 }}>Plán: {plannedValue}</div> : null}
+      {plannedLabel ? <div style={{ fontSize: 11, color: plannedTone, fontWeight: 700 }}>Plán: {plannedLabel}</div> : null}
       <input
         inputMode="numeric"
         placeholder={placeholder}

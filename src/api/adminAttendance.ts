@@ -1,4 +1,5 @@
 import { apiFetch, ApiError } from "./client";
+import type { ShiftPlanDayStatus } from "./adminShiftPlan";
 import { ensureCsrfToken } from "./csrf";
 
 export type AdminInstanceStatus = "PENDING" | "ACTIVE" | "REVOKED";
@@ -20,6 +21,7 @@ export type AdminAttendanceDay = {
   departure_time: string | null; // HH:MM
   planned_arrival_time?: string | null;
   planned_departure_time?: string | null;
+  planned_status?: ShiftPlanDayStatus | null;
 };
 
 export type AdminAttendanceMonthResponse = {

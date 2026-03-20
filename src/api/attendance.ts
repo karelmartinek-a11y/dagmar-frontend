@@ -1,4 +1,5 @@
 import { apiFetch, ApiError } from "./client";
+import type { ShiftPlanDayStatus } from "./adminShiftPlan";
 
 export type AttendanceDay = {
   date: string; // YYYY-MM-DD
@@ -6,6 +7,7 @@ export type AttendanceDay = {
   departure_time: string | null; // HH:MM
   planned_arrival_time: string | null;
   planned_departure_time: string | null;
+  planned_status?: ShiftPlanDayStatus | null;
 };
 
 export type AttendanceMonthResponse = {

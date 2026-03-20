@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
+import type { ShiftPlanDayStatus } from "../api/adminShiftPlan";
 import { getPragueTimeSnapshot, type PragueTimeSource } from "../api/time";
 import { ApiError } from "../api/client";
 import type { EmploymentTemplate } from "../types/employment";
@@ -8,6 +9,7 @@ import { BRAND_ASSETS, APP_NAME_SHORT } from "../brand/brand";
 import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { clearPortalAuthState, getPortalAuthState, setPortalAuthState } from "../state/portalAuthStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
+import { planStatusLabel } from "../utils/planStatus";
 
 type DayRow = {
   date: string; // YYYY-MM-DD
@@ -15,6 +17,7 @@ type DayRow = {
   departure_time: string | null;
   planned_arrival_time: string | null;
   planned_departure_time: string | null;
+  planned_status?: ShiftPlanDayStatus | null;
 };
 
 type QueueItem = {
@@ -328,6 +331,7 @@ export function EmployeePage() {
               departure_time: null,
               planned_arrival_time: null,
               planned_departure_time: null,
+              planned_status: null,
             },
           );
         }
@@ -727,7 +731,7 @@ export function EmployeePage() {
             const isToday = r.date === today;
             const arrivalReadOnlyReason = viewMode === "attendance" ? getHistoricalReadOnlyReason(r, "arrival_time", today) : null;
             const departureReadOnlyReason = viewMode === "attendance" ? getHistoricalReadOnlyReason(r, "departure_time", today) : null;
-            const hasPlan = Boolean(r.planned_arrival_time || r.planned_departure_time);
+            const hasPlan = Boolean(r.planned_arrival_time || r.planned_departure_time || r.planned_status);
             const calc = computeDayCalc(r, employmentTemplate, cutoffMinutes);
             const mins = calc.workedMins;
             const isSpecial = employmentTemplate === "HPP" && calc.isWeekendOrHoliday;
@@ -805,6 +809,7 @@ export function EmployeePage() {
                   placeholder="HH:MM"
                   value={r.arrival_time ?? ""}
                   plannedValue={viewMode === "attendance" ? r.planned_arrival_time : undefined}
+                  plannedStatus={viewMode === "attendance" ? r.planned_status : undefined}
                   readOnly={viewMode === "plan" || arrivalReadOnlyReason !== null}
                   readOnlyReason={viewMode === "plan" ? null : arrivalReadOnlyReason}
                   onChange={(v) => onChangeTime(r.date, "arrival_time", v)}
@@ -815,6 +820,7 @@ export function EmployeePage() {
                   placeholder="HH:MM"
                   value={r.departure_time ?? ""}
                   plannedValue={viewMode === "attendance" ? r.planned_departure_time : undefined}
+                  plannedStatus={viewMode === "attendance" ? r.planned_status : undefined}
                   readOnly={viewMode === "plan" || departureReadOnlyReason !== null}
                   readOnlyReason={viewMode === "plan" ? null : departureReadOnlyReason}
                   onChange={(v) => onChangeTime(r.date, "departure_time", v)}
@@ -904,11 +910,12 @@ function TimeInput(props: {
   placeholder: string;
   value: string;
   plannedValue?: string | null;
+  plannedStatus?: ShiftPlanDayStatus | null;
   readOnly?: boolean;
   readOnlyReason?: string | null;
   onChange: (v: string) => void;
 }) {
-  const { label, placeholder, value, plannedValue, readOnly, readOnlyReason, onChange } = props;
+  const { label, placeholder, value, plannedValue, plannedStatus, readOnly, readOnlyReason, onChange } = props;
   const [local, setLocal] = useState(value);
 
   useEffect(() => {
@@ -916,12 +923,15 @@ function TimeInput(props: {
   }, [value]);
 
   const ok = isValidTimeOrEmpty(local);
+  const plannedLabel = plannedStatus ? planStatusLabel(plannedStatus) : plannedValue;
+  const plannedTone =
+    plannedStatus === "HOLIDAY" ? "var(--kb-red)" : plannedStatus === "OFF" ? "#0c5fd3" : "rgba(82, 85, 93, 0.6)";
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
       <div style={{ fontSize: 12, color: "var(--kb-brand-ink-600)", fontWeight: 700 }}>{label}</div>
-      {plannedValue ? (
-        <div style={{ fontSize: 11, color: "rgba(82, 85, 93, 0.6)", fontWeight: 700 }}>Plán: {plannedValue}</div>
+      {plannedLabel ? (
+        <div style={{ fontSize: 11, color: plannedTone, fontWeight: 700 }}>Plán: {plannedLabel}</div>
       ) : null}
       <input
         inputMode="numeric"

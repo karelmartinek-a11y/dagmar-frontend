@@ -5,9 +5,11 @@ import {
   adminUpsertShiftPlan,
   type ShiftPlanMonth,
   type ShiftPlanRow,
+  type ShiftPlanDayStatus,
 } from "../api/adminShiftPlan";
 import { getCzechHolidayName, isWeekendDate, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { isValidTimeOrEmpty, normalizeTime } from "../utils/timeInput";
+import { planStatusLabel } from "../utils/planStatus";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -61,6 +63,8 @@ function formatHours(mins: number) {
   return (mins / 60).toFixed(1);
 }
 
+type ContextMenuState = { x: number; y: number; instanceId: string; date: string };
+
 export default function AdminShiftPlanPage() {
   const [month, setMonth] = useState(() => {
     const now = new Date();
@@ -74,6 +78,7 @@ export default function AdminShiftPlanPage() {
   const [successCells, setSuccessCells] = useState<Record<string, boolean>>({});
   const [refreshTick, setRefreshTick] = useState(0);
   const [tableScrollWidth, setTableScrollWidth] = useState(0);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const successTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const tableWrapperRef = useRef<HTMLDivElement | null>(null);
   const topScrollRef = useRef<HTMLDivElement | null>(null);
@@ -99,6 +104,50 @@ export default function AdminShiftPlanPage() {
   );
 
   const workingFundHours = useMemo(() => workingDaysInMonthCs(year, monthNum) * 8, [year, monthNum]);
+
+  const makeCellKey = (
+    instanceId: string,
+    date: string,
+    field: "arrival_time" | "departure_time",
+  ) => `${instanceId}:${date}:${field}`;
+
+  const addSuccessFlash = (cellKey: string) => {
+    setSuccessCells((prev) => ({ ...prev, [cellKey]: true }));
+
+    if (successTimeouts.current[cellKey]) {
+      clearTimeout(successTimeouts.current[cellKey]);
+    }
+
+    successTimeouts.current[cellKey] = setTimeout(() => {
+      setSuccessCells((prev) => {
+        const next = { ...prev };
+        delete next[cellKey];
+        return next;
+      });
+      delete successTimeouts.current[cellKey];
+    }, 900);
+  };
+
+  const setSavingForDay = (instanceId: string, date: string, value: boolean) => {
+    setSavingCells((prev) => {
+      const next = { ...prev };
+      const arrivalKey = makeCellKey(instanceId, date, "arrival_time");
+      const departureKey = makeCellKey(instanceId, date, "departure_time");
+      if (value) {
+        next[arrivalKey] = true;
+        next[departureKey] = true;
+      } else {
+        delete next[arrivalKey];
+        delete next[departureKey];
+      }
+      return next;
+    });
+  };
+
+  const setSuccessForDay = (instanceId: string, date: string) => {
+    addSuccessFlash(makeCellKey(instanceId, date, "arrival_time"));
+    addSuccessFlash(makeCellKey(instanceId, date, "departure_time"));
+  };
 
   const applyFieldValue = (
     instanceId: string,
@@ -155,6 +204,23 @@ export default function AdminShiftPlanPage() {
     const timeouts = successTimeouts.current;
     return () => {
       Object.values(timeouts).forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
+
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setContextMenu(null);
+    };
+
+    document.addEventListener("click", closeMenu);
+    document.addEventListener("scroll", closeMenu, true);
+    document.addEventListener("keydown", handleKey);
+
+    return () => {
+      document.removeEventListener("click", closeMenu);
+      document.removeEventListener("scroll", closeMenu, true);
+      document.removeEventListener("keydown", handleKey);
     };
   }, []);
 
@@ -345,6 +411,64 @@ export default function AdminShiftPlanPage() {
     }
   };
 
+  const handleDayStatusChange = async (instanceId: string, date: string, status: ShiftPlanDayStatus | null) => {
+    if (!plan) return;
+    setSaveError(null);
+    setContextMenu(null);
+
+    const row = plan.rows.find((item) => item.instance_id === instanceId);
+    const day = row?.days.find((item) => item.date === date);
+    if (!row || !day) return;
+
+    const nextStatus = status ?? null;
+    const nextArrival = nextStatus ? null : day.arrival_time ?? null;
+    const nextDeparture = nextStatus ? null : day.departure_time ?? null;
+
+    setPlan((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        rows: prev.rows.map((r) => {
+          if (r.instance_id !== instanceId) return r;
+          return {
+            ...r,
+            days: r.days.map((d) => {
+              if (d.date !== date) return d;
+              return {
+                ...d,
+                status: nextStatus,
+                arrival_time: nextStatus ? null : d.arrival_time,
+                departure_time: nextStatus ? null : d.departure_time,
+              };
+            }),
+          };
+        }),
+      };
+    });
+
+    setSavingForDay(instanceId, date, true);
+
+    try {
+      await adminUpsertShiftPlan({
+        instance_id: instanceId,
+        date,
+        arrival_time: nextArrival,
+        departure_time: nextDeparture,
+        status: nextStatus,
+      });
+      setSuccessForDay(instanceId, date);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Nelze uložit změnu.");
+    } finally {
+      setSavingForDay(instanceId, date, false);
+    }
+  };
+
+  const handleCellContextMenu = (event: React.MouseEvent, instanceId: string, date: string) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, instanceId, date });
+  };
+
   return (
     <div className="plan-page">
       <div className="plan-top-row">
@@ -484,20 +608,30 @@ export default function AdminShiftPlanPage() {
                           const planDay = dayMap[day.date];
                           const value = planDay?.arrival_time ?? "";
                           const cellKey = `${rowId}:${day.date}:arrival_time`;
+                          const statusLabel = planStatusLabel(planDay?.status);
+                          const isBlocked = Boolean(statusLabel);
+                          const statusClass =
+                            planDay?.status === "HOLIDAY"
+                              ? " plan-table-cell--holiday"
+                              : planDay?.status === "OFF"
+                                ? " plan-table-cell--off"
+                                : "";
 
                           return (
                             <td
                               className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
                                 successCells[cellKey] ? " plan-table-cell--success" : ""
-                              }`}
+                              }${statusClass}`}
                               key={cellKey}
+                              onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
                             >
+                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
                               <input
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9:]*"
                                 className="plan-table-input"
-                                value={value}
+                                value={isBlocked ? "" : value}
                                 onChange={(event) =>
                                   handleInputChange(rowId, day.date, "arrival_time", event.target.value)
                                 }
@@ -505,6 +639,7 @@ export default function AdminShiftPlanPage() {
                                 onKeyDown={handleInputKeyDown}
                                 placeholder="HH:MM"
                                 maxLength={5}
+                                disabled={isBlocked}
                               />
                               <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
                             </td>
@@ -525,20 +660,30 @@ export default function AdminShiftPlanPage() {
                           const planDay = dayMap[day.date];
                           const value = planDay?.departure_time ?? "";
                           const cellKey = `${rowId}:${day.date}:departure_time`;
+                          const statusLabel = planStatusLabel(planDay?.status);
+                          const isBlocked = Boolean(statusLabel);
+                          const statusClass =
+                            planDay?.status === "HOLIDAY"
+                              ? " plan-table-cell--holiday"
+                              : planDay?.status === "OFF"
+                                ? " plan-table-cell--off"
+                                : "";
 
                           return (
                             <td
                               className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
                                 successCells[cellKey] ? " plan-table-cell--success" : ""
-                              }`}
+                              }${statusClass}`}
                               key={cellKey}
+                              onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
                             >
+                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
                               <input
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9:]*"
                                 className="plan-table-input"
-                                value={value}
+                                value={isBlocked ? "" : value}
                                 onChange={(event) =>
                                   handleInputChange(rowId, day.date, "departure_time", event.target.value)
                                 }
@@ -546,6 +691,7 @@ export default function AdminShiftPlanPage() {
                                 onKeyDown={handleInputKeyDown}
                                 placeholder="HH:MM"
                                 maxLength={5}
+                                disabled={isBlocked}
                               />
                               <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
                             </td>
@@ -562,6 +708,20 @@ export default function AdminShiftPlanPage() {
           <div className="plan-table-bottom-scroll" ref={bottomScrollRef}>
             <div style={{ width: tableScrollWidth }} />
           </div>
+
+          {contextMenu ? (
+            <div className="plan-context-menu" style={{ top: contextMenu.y, left: contextMenu.x }}>
+              <button type="button" onClick={() => handleDayStatusChange(contextMenu.instanceId, contextMenu.date, "HOLIDAY")}>
+                Dovolená
+              </button>
+              <button type="button" onClick={() => handleDayStatusChange(contextMenu.instanceId, contextMenu.date, "OFF")}>
+                Volno
+              </button>
+              <button type="button" onClick={() => handleDayStatusChange(contextMenu.instanceId, contextMenu.date, null)}>
+                Vymazat
+              </button>
+            </div>
+          ) : null}
         </>
       )}
     </div>
