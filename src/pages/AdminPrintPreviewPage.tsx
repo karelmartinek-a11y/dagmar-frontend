@@ -13,6 +13,7 @@ import {
   parseCutoffToMinutes,
   workingDaysInMonthCs,
 } from "../utils/attendanceCalc";
+import { employmentTemplateLabel } from "../utils/uiLabels";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -132,8 +133,7 @@ type PlanDoc = {
 type DocRecord = AttendanceDoc | PlanDoc;
 
 function templateLabel(tpl: AdminInstance["employment_template"]): string {
-  if (tpl === "HPP") return "HPP";
-  return "DPP/DPČ";
+  return employmentTemplateLabel(tpl);
 }
 
 export default function AdminPrintPreviewPage() {
@@ -172,7 +172,7 @@ export default function AdminPrintPreviewPage() {
         const selected = idList
           .map((id) => map.get(id))
           .filter(Boolean) as AdminInstance[];
-        if (selected.length === 0) throw new Error("Zadna vybrana entita nebyla nalezena.");
+        if (selected.length === 0) throw new Error("Nebylo nalezeno žádné vybrané zařízení.");
 
         if (docType === "attendance") {
           const records: DocRecord[] = [];
@@ -190,7 +190,7 @@ export default function AdminPrintPreviewPage() {
           const plan = await adminGetShiftPlanMonth({ year: parsedMonth.year, month: parsedMonth.month });
           if (cancelled) return;
           const rows = plan.rows.filter((r) => idList.includes(r.instance_id));
-          if (rows.length === 0) throw new Error("Pro vybrané entity nebyla nalezena žádná data plánu směn.");
+          if (rows.length === 0) throw new Error("Pro vybraná zařízení nebyla nalezena žádná data plánu směn.");
           const records: DocRecord[] = rows
             .map((row) => {
               const inst = map.get(row.instance_id);
@@ -202,7 +202,7 @@ export default function AdminPrintPreviewPage() {
         }
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Nepodarilo se nacist data pro tisk.");
+        setError(err instanceof Error ? err.message : "Nepodařilo se načíst data pro tisk.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -243,14 +243,14 @@ export default function AdminPrintPreviewPage() {
     }
 
     generatePdf().catch((err) => {
-      setError(err instanceof Error ? err.message : "Generování PDF selhalo.");
+      setError(err instanceof Error ? err.message : "Generování tiskového dokumentu selhalo.");
     });
   }, [loading, error, docs, docType, month, pdfGenerated]);
 
   const dayCache = useMemo(() => dayList(parsedMonth.year, parsedMonth.month), [parsedMonth]);
 
   if (!hasValidMonth) {
-    return <div className="card">Neplatny parametr mesice.</div>;
+    return <div className="card">Neplatný údaj měsíce.</div>;
   }
 
   return (
@@ -275,7 +275,7 @@ export default function AdminPrintPreviewPage() {
         .t-right { text-align: right; }
       `}</style>
 
-      {loading ? <div className="card">Nacitam data...</div> : null}
+      {loading ? <div className="card">Načítám data...</div> : null}
       {error ? <div className="card error">{error}</div> : null}
 
       {docs.map((doc) => {
@@ -283,23 +283,23 @@ export default function AdminPrintPreviewPage() {
           const stats = computeMonthStats(doc.days, doc.instance.employment_template, doc.cutoffMinutes);
           return (
             <div key={doc.instance.id + "-att"} className="sheet">
-              <h1>{label} · DOCHAZKOVY LIST</h1>
+              <h1>{label} · DOCHÁZKOVÝ LIST</h1>
               <h2>
                 {doc.instance.display_name ?? doc.instance.id} · {templateLabel(doc.instance.employment_template)}
               </h2>
-              <table aria-label="Dochazka">
+              <table aria-label="Docházkový list">
                 <thead>
                   <tr>
                     <th style={{ width: "36%" }}>Datum</th>
-                    <th style={{ width: 104 }}>STAMP1</th>
-                    <th style={{ width: 104 }}>STAMP2</th>
-                    <th style={{ width: 104 }}>STAMP3</th>
-                    <th style={{ width: 104 }}>STAMP4</th>
-                    <th style={{ width: 104 }}>STAMP5</th>
-                    <th style={{ width: 104 }}>STAMPT6</th>
-                    <th style={{ width: 88 }}>CELKEM</th>
-                    <th style={{ width: 88 }}>ODP</th>
-                    <th style={{ width: 88 }}>SONESV</th>
+                    <th style={{ width: 104 }}>Příchod 1</th>
+                    <th style={{ width: 104 }}>Odchod 1</th>
+                    <th style={{ width: 104 }}>Příchod 2</th>
+                    <th style={{ width: 104 }}>Odchod 2</th>
+                    <th style={{ width: 104 }}>Příchod 3</th>
+                    <th style={{ width: 104 }}>Odchod 3</th>
+                    <th style={{ width: 88 }}>Celkem</th>
+                    <th style={{ width: 88 }}>Odpolední</th>
+                    <th style={{ width: 88 }}>Víkendy a svátky</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -354,7 +354,7 @@ export default function AdminPrintPreviewPage() {
           <div key={doc.instance.id + "-plan"} className="sheet">
             <h1>{label} · PLÁN SMĚN</h1>
             <h2>{doc.instance.display_name ?? doc.instance.id}</h2>
-            <table aria-label="Plan smen">
+            <table aria-label="Plán směn">
               <thead>
                 <tr>
                   <th style={{ width: "36%" }}>Datum</th>
@@ -382,7 +382,7 @@ export default function AdminPrintPreviewPage() {
               <tfoot>
                 <tr>
                   <td></td>
-                  <td>Součet plán</td>
+                  <td>Součet plánovaných hodin</td>
                   <td>{formatHoursComma(totalPlanMins)} h</td>
                   <td>Fond: {formatHoursComma(workingDaysInMonthCs(parsedMonth.year, parsedMonth.month) * 60 * 8)} h</td>
                 </tr>

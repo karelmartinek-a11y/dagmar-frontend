@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
 
           <form onSubmit={onSubmit} className="kb-stack" style={{ marginTop: 14 }}>
             <div className="kb-field">
-              <div className="kb-label">Admin e-mail</div>
+              <div className="kb-label">E-mail správce</div>
               <input
                 className="kb-input"
                 type="email"
@@ -119,7 +119,7 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="kb-field">
-              <div className="kb-label">Admin heslo</div>
+              <div className="kb-label">Heslo správce</div>
               <input
                 className="kb-input"
                 type="password"

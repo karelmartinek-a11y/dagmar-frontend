@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import EmployeePage from "./pages/EmployeePage";
 import AdminLayout from "./pages/AdminLayout";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -66,13 +66,10 @@ function DeploymentBadge() {
   );
 }
 
-/**
- * Routes:
- * - /app        Zaměstnanec (web i Android WebView)
- * - /admin      Admin UI (layout + podstránky)
- * - /admin/login
- */
-export default function App() {
+function AppShell() {
+  const location = useLocation();
+  const isPrintPreview = location.pathname === "/admin/tisky/preview";
+
   return (
     <>
       <Routes>
@@ -81,6 +78,7 @@ export default function App() {
         <Route path="/app" element={<EmployeePage />} />
         <Route path="/reset" element={<PortalResetPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/tisky/preview" element={<AdminPrintPreviewPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="users" replace />} />
           <Route path="users" element={<AdminUsersPage />} />
@@ -88,13 +86,22 @@ export default function App() {
           <Route path="plan-sluzeb" element={<AdminShiftPlanPage />} />
           <Route path="export" element={<AdminExportPage />} />
           <Route path="tisky" element={<AdminPrintsPage />} />
-          <Route path="tisky/preview" element={<AdminPrintPreviewPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Routes>
-      <DeploymentBadge />
+      {isPrintPreview ? null : <DeploymentBadge />}
     </>
   );
+}
+
+/**
+ * Routes:
+ * - /app        Zaměstnanec (web i Android WebView)
+ * - /admin      Administrace (rozvržení + podstránky)
+ * - /admin/login
+ */
+export default function App() {
+  return <AppShell />;
 }

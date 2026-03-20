@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { adminListInstances, type AdminInstance } from "../api/admin";
+import { employmentTemplateLabel } from "../utils/uiLabels";
 
 type DocType = "attendance" | "plan";
 
@@ -78,8 +79,8 @@ export default function AdminPrintsPage() {
     <div className="card pad print-shell">
       <header className="print-hero">
         <div className="stack" style={{ gap: 6 }}>
-          <span className="eyebrow">Admin · Tisky</span>
-          <h1 className="print-title">Hromadné PDF výstupy</h1>
+          <span className="eyebrow">Administrace · Tisky</span>
+          <h1 className="print-title">Hromadné podklady k tisku</h1>
           <p className="muted">
             Vyberte typ dokumentu, měsíc a osoby. Náhled se otevře v novém okně, stránka zůstane připravená pro další akci.
           </p>
@@ -133,7 +134,7 @@ export default function AdminPrintsPage() {
             <div>
               <div className="eyebrow">Krok 2</div>
               <div className="panel-title">Výběr osob</div>
-              <p className="muted small">Filtrovat podle jména nebo ID, poté označit pro zahrnutí do PDF.</p>
+              <p className="muted small">Filtrovat podle jména nebo identifikátoru, poté označit pro zahrnutí do podkladů k tisku.</p>
             </div>
             <div className="row" style={{ gap: 8 }}>
               <button type="button" className="btn ghost" onClick={selectAllVisible} disabled={filtered.length === 0}>
@@ -150,7 +151,7 @@ export default function AdminPrintsPage() {
               <input
                 type="search"
                 className="input"
-                placeholder="Hledat podle jména nebo ID"
+                placeholder="Hledat podle jména nebo identifikátoru"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 style={{ flex: 1, minWidth: 260 }}
@@ -171,7 +172,7 @@ export default function AdminPrintsPage() {
                   <div className="stack" style={{ gap: 2 }}>
                     <span className="print-name">{it.display_name ?? it.id}</span>
                     <span className="muted small">
-                      {it.id} · {it.employment_template}
+                      Identifikátor {it.id} · {employmentTemplateLabel(it.employment_template)}
                     </span>
                   </div>
                 </label>
@@ -184,7 +185,7 @@ export default function AdminPrintsPage() {
           <div className="panel-head">
             <div className="eyebrow">Krok 3</div>
             <div className="panel-title">Potvrzení a tisk</div>
-            <p className="muted small">PDF náhled se otevře v novém panelu. Původní stránka zůstane pro další tisk.</p>
+            <p className="muted small">Náhled pro tisk se otevře v novém panelu. Původní stránka zůstane pro další tisk.</p>
           </div>
           <div className="panel-body row" style={{ justifyContent: "space-between", alignItems: "center" }}>
             <div className="muted small">
@@ -195,7 +196,7 @@ export default function AdminPrintsPage() {
                 Zpět
               </NavLink>
               <button type="submit" className="btn solid" disabled={selectedIds.length === 0 || !month}>
-                Vygenerovat PDF
+                Otevřít podklady k tisku
               </button>
             </div>
           </div>

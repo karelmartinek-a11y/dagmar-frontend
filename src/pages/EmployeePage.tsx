@@ -10,6 +10,7 @@ import { AndroidDownloadBanner } from "../components/AndroidDownloadBanner";
 import { clearPortalAuthState, getPortalAuthState, setPortalAuthState } from "../state/portalAuthStore";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { planStatusInputPlaceholder, planStatusLabel } from "../utils/planStatus";
+import { timeFieldPlaceholder } from "../utils/uiLabels";
 
 type DayRow = {
   date: string; // YYYY-MM-DD
@@ -617,6 +618,7 @@ export function EmployeePage() {
                 }}
                 className="btn"
                 aria-label="Odhlásit"
+                title="Odhlásit"
               >
                 Odhlásit
               </button>
@@ -638,6 +640,7 @@ export function EmployeePage() {
               onClick={() => setMonth((m) => addMonths(m, -1))}
               style={headerNavButtonStyle()}
               aria-label="Předchozí měsíc"
+              title="Předchozí měsíc"
             >
               ←
             </button>
@@ -657,12 +660,19 @@ export function EmployeePage() {
                       boxShadow: "0 8px 18px rgba(255,0,0,0.18)",
                     }}
                     aria-label="Zapsat aktuální čas"
+                    title="Zapsat aktuální čas"
                   >
-                    TEĎ
+                    Teď
                   </button>
                 </>
               ) : (
-                <button type="button" onClick={() => setViewMode("attendance")} style={headerActionButtonStyle()} aria-label="Přepnout na docházkový list">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("attendance")}
+                  style={headerActionButtonStyle()}
+                  aria-label="Přepnout na docházkový list"
+                  title="Přepnout na docházkový list"
+                >
                   Docházkový list
                 </button>
               )}
@@ -671,6 +681,7 @@ export function EmployeePage() {
                 onClick={() => setRefreshTick((t) => t + 1)}
                 style={headerActionButtonStyle()}
                 aria-label="Obnovit"
+                title="Obnovit"
               >
                 Obnovit
               </button>
@@ -680,6 +691,7 @@ export function EmployeePage() {
               onClick={() => setMonth((m) => addMonths(m, +1))}
               style={headerNavButtonStyle()}
               aria-label="Další měsíc"
+              title="Další měsíc"
             >
               →
             </button>
@@ -808,7 +820,7 @@ export function EmployeePage() {
 
                 <TimeInput
                   label="Příchod"
-                  placeholder="HH:MM"
+                  placeholder={timeFieldPlaceholder()}
                   value={r.arrival_time ?? ""}
                   plannedValue={viewMode === "attendance" ? r.planned_arrival_time : undefined}
                   plannedStatus={viewMode === "attendance" ? r.planned_status : undefined}
@@ -819,7 +831,7 @@ export function EmployeePage() {
 
                 <TimeInput
                   label="Odchod"
-                  placeholder="HH:MM"
+                  placeholder={timeFieldPlaceholder()}
                   value={r.departure_time ?? ""}
                   plannedValue={viewMode === "attendance" ? r.planned_departure_time : undefined}
                   plannedStatus={viewMode === "attendance" ? r.planned_status : undefined}
@@ -850,8 +862,8 @@ export function EmployeePage() {
             gap: 12,
           }}
         >
-          <FooterStat label="ID profilu" value={profileId ?? "—"} />
-          <FooterStat label="Název entity" value={displayName || "—"} />
+          <FooterStat label="Identifikátor profilu" value={profileId ?? "—"} />
+          <FooterStat label="Název zařízení" value={displayName || "—"} />
           <FooterStat
             label={`Součet hodin (${monthLabel(month)})`}
             value={`${formatHours(monthTotalMins)} h (z toho ${formatHours(monthHolidayMins)} h dovolená)`}
@@ -982,7 +994,7 @@ function TimeInput(props: {
         }}
       />
       {readOnly && readOnlyReason ? <div style={{ fontSize: 11, color: "var(--kb-brand-ink-600)" }}>{readOnlyReason}</div> : null}
-      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {!ok && !readOnly ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas například jako 08:30, nebo pole nechte prázdné.</div> : null}
     </div>
   );
 }

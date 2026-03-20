@@ -5,6 +5,7 @@ import { adminGetSettings, adminListInstances, type AdminInstance } from "../api
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { normalizeTime, isValidTimeOrEmpty } from "../utils/timeInput";
 import { planStatusInputPlaceholder, planStatusLabel } from "../utils/planStatus";
+import { instanceStatusLabel, timeFieldPlaceholder } from "../utils/uiLabels";
 import type { ShiftPlanDayStatus } from "../api/adminShiftPlan";
 
 function pad2(n: number) {
@@ -366,7 +367,7 @@ export default function AdminAttendanceSheetsPage() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {it.status}
+                      {instanceStatusLabel(it.status)}
                     </div>
                   </button>
                 );
@@ -412,7 +413,13 @@ export default function AdminAttendanceSheetsPage() {
                       gap: 12,
                     }}
                   >
-                    <button type="button" onClick={() => setMonth((m) => addMonths(m, -1))} style={headerNavButtonStyle()} aria-label="Předchozí měsíc">
+                    <button
+                      type="button"
+                      onClick={() => setMonth((m) => addMonths(m, -1))}
+                      style={headerNavButtonStyle()}
+                      aria-label="Předchozí měsíc"
+                      title="Předchozí měsíc"
+                    >
                       ←
                     </button>
                     <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
@@ -421,20 +428,28 @@ export default function AdminAttendanceSheetsPage() {
                         onClick={() => setMonth(yyyyMm(new Date()))}
                         style={headerActionButtonStyle()}
                         aria-label="Aktuální měsíc"
+                        title="Aktuální měsíc"
                         disabled={isCurrentMonth}
                       >
-                        Teď
+                        Dnešní měsíc
                       </button>
                       <button
                         type="button"
                         onClick={() => setRefreshTick((t) => t + 1)}
                         style={headerActionButtonStyle()}
                         aria-label="Obnovit"
+                        title="Obnovit"
                       >
                         Obnovit
                       </button>
                     </div>
-                    <button type="button" onClick={() => setMonth((m) => addMonths(m, +1))} style={headerNavButtonStyle()} aria-label="Další měsíc">
+                    <button
+                      type="button"
+                      onClick={() => setMonth((m) => addMonths(m, +1))}
+                      style={headerNavButtonStyle()}
+                      aria-label="Další měsíc"
+                      title="Další měsíc"
+                    >
                       →
                     </button>
                   </div>
@@ -556,7 +571,7 @@ export default function AdminAttendanceSheetsPage() {
 
                         <TimeInput
                           label="Příchod"
-                          placeholder="HH:MM"
+                          placeholder={timeFieldPlaceholder()}
                           value={d.arrival_time ?? ""}
                           plannedValue={d.planned_arrival_time}
                           plannedStatus={d.planned_status}
@@ -566,7 +581,7 @@ export default function AdminAttendanceSheetsPage() {
 
                         <TimeInput
                           label="Odchod"
-                          placeholder="HH:MM"
+                          placeholder={timeFieldPlaceholder()}
                           value={d.departure_time ?? ""}
                           plannedValue={d.planned_departure_time}
                           plannedStatus={d.planned_status}
@@ -598,11 +613,11 @@ export default function AdminAttendanceSheetsPage() {
                     }}
                   >
                     <FooterStat
-                      label="ID entity"
+                      label="Identifikátor zařízení"
                       value={selected.id}
                       valueStyle={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", wordBreak: "break-all", fontSize: 13 }}
                     />
-                    <FooterStat label="Název entity" value={selected.display_name || "— bez názvu —"} />
+                    <FooterStat label="Název zařízení" value={selected.display_name || "— bez názvu —"} />
                     <FooterStat
                       label="Součet hodin"
                       value={`${formatHours(monthTotalMins)} h (z toho ${formatHours(monthHolidayMins)} h dovolená)`}
@@ -625,7 +640,7 @@ export default function AdminAttendanceSheetsPage() {
                       }}
                       disabled={daysLoading}
                     >
-                      {locked ? "Odemknout" : "UZAVŘÍT MĚSÍC"}
+                      {locked ? "Odemknout měsíc" : "Uzavřít měsíc"}
                     </button>
                   </div>
                 </footer>
@@ -759,7 +774,7 @@ function TimeInput(props: {
           background: hasStatusPlaceholder ? "rgba(255,255,255,0.96)" : ok ? "white" : "rgba(255,0,0,0.05)",
         }}
       />
-      {!ok ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}
+      {!ok ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas například jako 08:30, nebo pole nechte prázdné.</div> : null}
       {ok && error ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>{error}</div> : null}
     </div>
   );

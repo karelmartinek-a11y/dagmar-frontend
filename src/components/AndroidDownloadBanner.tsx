@@ -35,7 +35,7 @@ export function AndroidDownloadBanner({ downloadUrl, appName }: Props) {
       <a href={downloadUrl} className="kb-btn kb-btn-primary" style={{ textDecoration: "none" }}>
         Stáhnout APK
       </a>
-      <button type="button" onClick={dismiss} aria-label="Zavřít" className="kb-btn kb-btn-ghost kb-btn-sm">
+      <button type="button" onClick={dismiss} aria-label="Zavřít" title="Zavřít" className="kb-btn kb-btn-ghost kb-btn-sm">
         Zavřít
       </button>
     </div>

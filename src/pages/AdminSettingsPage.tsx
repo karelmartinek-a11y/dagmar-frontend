@@ -32,7 +32,7 @@ export default function AdminSettingsPage() {
       setFromEmail(cfg.from_email || "");
       setFromName(cfg.from_name || "");
     } catch (err: unknown) {
-      setError(errorMessage(err, "Nelze načíst SMTP nastavení."));
+      setError(errorMessage(err, "Nelze načíst nastavení odchozí pošty."));
     }
   }
 
@@ -64,10 +64,31 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="stack">
-      <section className="card pad">
-        <div style={{ fontSize: 18, fontWeight: 850 }}>Nastavení</div>
-        <div style={{ color: "var(--muted)", marginTop: 4 }}>SMTP pro odesilani resetovacich odkazu.</div>
+    <div className="admin-page">
+      <section className="card admin-hero">
+        <div className="admin-hero-copy">
+          <div className="eyebrow">Administrace · Nastavení</div>
+          <h1 className="admin-hero-title">Odchozí pošta</h1>
+          <div className="admin-hero-text">
+            Nastavení odesílání zpráv pro obnovu hesla. Důležité technické údaje, bezpečnostní volby i identita odesílatele jsou rozdělené do širšího ergonomického rozvržení.
+          </div>
+        </div>
+        <div className="admin-kpis">
+          <div className="admin-kpi">
+            <div className="admin-kpi-value">{smtp?.host || "—"}</div>
+            <div className="admin-kpi-label">Používaný server</div>
+          </div>
+          <div className="admin-kpi">
+            <div className="admin-kpi-value">{smtp?.password_set ? "Ano" : "Ne"}</div>
+            <div className="admin-kpi-label">Uložené heslo</div>
+          </div>
+        </div>
+      </section>
+
+      <div className="admin-two-column">
+        <section className="card pad">
+          <div style={{ fontSize: 18, fontWeight: 850 }}>Nastavení doručování</div>
+          <div style={{ color: "var(--muted)", marginTop: 4 }}>Nastavení odchozí pošty pro rozesílání odkazů k obnově hesla.</div>
 
         {error ? (
           <div
@@ -85,10 +106,10 @@ export default function AdminSettingsPage() {
           </div>
         ) : null}
 
-        <form onSubmit={onSave} className="stack" style={{ gap: 10, marginTop: 12 }}>
-          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <form onSubmit={onSave} className="stack" style={{ gap: 12, marginTop: 12 }}>
+          <div className="admin-form-grid">
             <div>
-              <div className="label">SMTP host</div>
+              <div className="label">Server odchozí pošty</div>
               <input className="input" value={host} onChange={(e) => setHost(e.target.value)} placeholder="mail.example.cz" />
             </div>
             <div>
@@ -96,15 +117,15 @@ export default function AdminSettingsPage() {
               <input className="input" value={port} onChange={(e) => setPort(e.target.value)} placeholder="465" />
             </div>
             <div>
-              <div className="label">Zabezpeceni</div>
+              <div className="label">Zabezpečení spojení</div>
               <select className="input" value={security} onChange={(e) => setSecurity(e.target.value)}>
-                <option value="SSL">SSL</option>
-                <option value="STARTTLS">STARTTLS</option>
-                <option value="NONE">NONE</option>
+                <option value="SSL">Šifrované spojení</option>
+                <option value="STARTTLS">Navázání šifrování po připojení</option>
+                <option value="NONE">Bez šifrování</option>
               </select>
             </div>
             <div>
-              <div className="label">Uzivatelske jmeno</div>
+              <div className="label">Přihlašovací jméno</div>
               <input className="input" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="user@example.cz" />
             </div>
             <div>
@@ -114,15 +135,15 @@ export default function AdminSettingsPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={smtp?.password_set ? "Zmenit heslo" : "Zadat heslo"}
+                placeholder={smtp?.password_set ? "Změnit heslo" : "Zadat heslo"}
               />
             </div>
             <div>
-              <div className="label">From e-mail</div>
+              <div className="label">Odesílací e-mail</div>
               <input className="input" value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} placeholder="noreply@hotelchodovasc.cz" />
             </div>
             <div>
-              <div className="label">From jmeno</div>
+              <div className="label">Jméno odesílatele</div>
               <input className="input" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="ASC Hotel Chodov" />
             </div>
           </div>
@@ -132,8 +153,34 @@ export default function AdminSettingsPage() {
               {saving ? "Ukládám…" : "Uložit"}
             </button>
           </div>
-        </form>
-      </section>
+          </form>
+        </section>
+
+        <aside className="stack admin-side-card">
+          <section className="card pad">
+            <div style={{ fontWeight: 850 }}>Doporučený postup</div>
+            <ul className="admin-note-list">
+              <li>Nejdříve vyplňte server, port a způsob zabezpečení spojení.</li>
+              <li>Poté doplňte přihlašovací jméno, heslo a identitu odesílatele.</li>
+              <li>Po uložení ověřte obnovu hesla odesláním skutečného odkazu.</li>
+            </ul>
+          </section>
+
+          <section className="card pad">
+            <div style={{ fontWeight: 850 }}>Aktuální stav</div>
+            <div className="admin-note-box" style={{ marginTop: 12 }}>
+              <div className="admin-note-title">Uložené údaje</div>
+              <div style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.7 }}>
+                Server: <strong>{smtp?.host || "neuvedeno"}</strong>
+                <br />
+                Port: <strong>{smtp?.port ? String(smtp.port) : "neuvedeno"}</strong>
+                <br />
+                Odesílatel: <strong>{smtp?.from_name || "neuvedeno"}</strong>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }
