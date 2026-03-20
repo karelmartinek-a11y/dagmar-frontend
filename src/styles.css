@@ -876,6 +876,32 @@ textarea {
   color: var(--muted);
 }
 
+.plan-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.plan-instance-picker--sidebar {
+  position: sticky;
+  top: 12px;
+}
+
+.plan-main {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .plan-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-instance-picker--sidebar {
+    position: static;
+  }
+}
+
 .plan-error {
   border-color: rgba(255, 0, 0, 0.22);
   color: var(--kb-brand-red);
