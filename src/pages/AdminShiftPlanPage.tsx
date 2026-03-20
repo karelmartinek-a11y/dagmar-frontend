@@ -509,258 +509,254 @@ export default function AdminShiftPlanPage() {
         </div>
       </div>
 
-      <div className="plan-layout">
-        <aside className="plan-instance-picker plan-instance-picker--sidebar">
-          <div className="plan-instance-header">
-            <div>
-              <div className="plan-instance-title">Výběr uživatelů pro plán</div>
-              <div className="plan-instance-subtitle">Jen seznam uživatelů, ne existující docházky.</div>
-            </div>
-            <div className="plan-instance-count">
-              Vybráno {selectedIds.length}/{activeInstances.length}
-            </div>
+      <div className="plan-instance-picker">
+        <div className="plan-instance-header">
+          <div>
+            <div className="plan-instance-title">Výběr uživatelů pro plán</div>
+            <div className="plan-instance-subtitle">Jen seznam uživatelů, ne existující docházky.</div>
           </div>
-          <div className="plan-instance-filter">
-            <label htmlFor="plan-instance-search">Filtrovat</label>
-            <input
-              id="plan-instance-search"
-              type="text"
-              placeholder="např. Novák, pokoj, DPP…"
-              value={instanceQuery}
-              onChange={(e) => setInstanceQuery(e.target.value)}
-            />
+          <div className="plan-instance-count">
+            Vybráno {selectedIds.length}/{activeInstances.length}
           </div>
-          <div className="plan-instance-list">
-            {filteredInstances.map((inst) => {
-              const selected = selectedIds.includes(inst.id);
-              return (
-                <label key={inst.id} className={`plan-instance-row${selected ? " selected" : ""}`}>
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => handleToggleInstance(inst.id)}
-                    aria-label={`Zahrnout ${inst.display_name ?? inst.id}`}
-                  />
-                  <div className="plan-instance-main">
-                    <div className="plan-instance-name">{inst.display_name ?? inst.id.slice(0, 8)}</div>
-                    <div className="plan-instance-meta">{inst.employment_template}</div>
-                  </div>
-                  <div className="plan-instance-id">{inst.id.slice(0, 8)}…</div>
-                </label>
-              );
-            })}
-            {filteredInstances.length === 0 ? (
-              <div className="plan-instance-empty">Žádný uživatel neodpovídá filtru.</div>
-            ) : null}
-          </div>
-        </aside>
-
-        <div className="plan-main">
-          {loading ? <div className="plan-loading">Načítám plán…</div> : null}
-          {!loading && error ? <div className="plan-error">{error}</div> : null}
-          {saveError ? <div className="plan-error">{saveError}</div> : null}
-
-          {rows.length === 0 ? (
-            <div className="plan-empty-state">
-              Vyberte zařízení nahoře a vytvořte plán. Každá osoba má dva řádky, horní pro příchody a spodní pro odchody.
-            </div>
-          ) : (
-            <>
-              <div className="plan-table-top-scroll" ref={topScrollRef}>
-                <div style={{ width: tableScrollWidth }} />
-              </div>
-
-              <div className="plan-table-wrapper" ref={tableWrapperRef}>
-                <table className="plan-table">
-                  <colgroup>
-                    <col style={{ width: 280 }} />
-                    <col style={{ width: 108 }} />
-                    {days.map((day) => (
-                      <col key={`col-${day.date}`} style={{ width: 70 }} />
-                    ))}
-                    <col style={{ width: 140 }} />
-                  </colgroup>
-
-                  <thead>
-                    <tr className="plan-table-head plan-table-head--numbers">
-                      <th className="plan-table-th plan-table-th--name" rowSpan={3}>
-                        Jméno
-                      </th>
-                      <th className="plan-table-th plan-table-th--type" rowSpan={3}>
-                        Typ
-                      </th>
-                      {days.map((day) => (
-                        <th
-                          className={`plan-table-th plan-table-th--day${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
-                          key={`header-day-${day.date}`}
-                        >
-                          {day.number}
-                        </th>
-                      ))}
-                      <th className="plan-table-th plan-table-th--sum" rowSpan={3}>
-                        Celkem
-                      </th>
-                    </tr>
-
-                    <tr className="plan-table-head plan-table-head--weekday">
-                      {days.map((day) => (
-                        <th
-                          className={`plan-table-th plan-table-th--weekday${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
-                          key={`header-weekday-${day.date}`}
-                        >
-                          {day.weekday.toUpperCase()}
-                        </th>
-                      ))}
-                    </tr>
-
-                    <tr className="plan-table-head plan-table-head--holiday">
-                      {days.map((day) => (
-                        <th
-                          className={`plan-table-th plan-table-th--holiday${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
-                          key={`header-holiday-${day.date}`}
-                        >
-                          {day.isWeekendOrHoliday ? (day.isHoliday ? "svátek" : "víkend") : ""}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {rows.map((row) => {
-                      const rowId = row.instance_id;
-                      const dayMap = row.days.reduce(
-                        (acc, day) => {
-                          acc[day.date] = day;
-                          return acc;
-                        },
-                        {} as Record<string, (typeof row.days)[number]>,
-                      );
-                      const { totalMins, holidayMins } = plannedMinutesWithHoliday(row);
-                      const totalHours = formatHours(totalMins);
-                      const holidayHours = formatHours(holidayMins);
-                      const fundHours = formatHours(workingFundHours * 60);
-
-                      return (
-                        <Fragment key={rowId}>
-                          <tr className="plan-table-row plan-table-row-arrival">
-                            <td className="plan-name-cell" rowSpan={2}>
-                              <div className="plan-name">{row.display_name ?? rowId}</div>
-                              <div className="plan-name-meta">{row.employment_template ?? ""}</div>
-                            </td>
-
-                            <td className="plan-type-cell">PŘÍCHOD</td>
-
-                            {days.map((day) => {
-                              const planDay = dayMap[day.date];
-                              const value = planDay?.arrival_time ?? "";
-                              const cellKey = `${rowId}:${day.date}:arrival_time`;
-                              const statusLabel = planStatusLabel(planDay?.status);
-                              const isBlocked = Boolean(statusLabel);
-                              const statusClass =
-                                planDay?.status === "HOLIDAY"
-                                  ? " plan-table-cell--holiday"
-                                  : planDay?.status === "OFF"
-                                    ? " plan-table-cell--off"
-                                    : "";
-
-                              return (
-                                <td
-                                  className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
-                                    successCells[cellKey] ? " plan-table-cell--success" : ""
-                                  }${statusClass}`}
-                                  key={cellKey}
-                                  onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
-                                >
-                                  {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
-                                  <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9:]*"
-                                    className="plan-table-input"
-                                    value={isBlocked ? "" : value}
-                                    onChange={(event) =>
-                                      handleInputChange(rowId, day.date, "arrival_time", event.target.value)
-                                    }
-                                    onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
-                                    onKeyDown={handleInputKeyDown}
-                                    placeholder="HH:MM"
-                                    maxLength={5}
-                                    disabled={isBlocked}
-                                  />
-                                  <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
-                                </td>
-                              );
-                            })}
-
-                            <td className="plan-sum-cell" rowSpan={2}>
-                              <div className="plan-sum-label">Celkem měsíc</div>
-                              <div className="plan-sum-value">{totalHours} h</div>
-                              {holidayMins > 0 ? (
-                                <div className="plan-sum-meta">z toho {holidayHours} h dovolená</div>
-                              ) : null}
-                              <div className="plan-sum-meta">Fond {fundHours} h</div>
-                            </td>
-                          </tr>
-
-                          <tr className="plan-table-row plan-table-row-departure">
-                            <td className="plan-type-cell">ODCHOD</td>
-
-                            {days.map((day) => {
-                              const planDay = dayMap[day.date];
-                              const value = planDay?.departure_time ?? "";
-                              const cellKey = `${rowId}:${day.date}:departure_time`;
-                              const statusLabel = planStatusLabel(planDay?.status);
-                              const isBlocked = Boolean(statusLabel);
-                              const statusClass =
-                                planDay?.status === "HOLIDAY"
-                                  ? " plan-table-cell--holiday"
-                                  : planDay?.status === "OFF"
-                                    ? " plan-table-cell--off"
-                                    : "";
-
-                              return (
-                                <td
-                                  className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
-                                    successCells[cellKey] ? " plan-table-cell--success" : ""
-                                  }${statusClass}`}
-                                  key={cellKey}
-                                  onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
-                                >
-                                  {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
-                                  <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9:]*"
-                                    className="plan-table-input"
-                                    value={isBlocked ? "" : value}
-                                    onChange={(event) =>
-                                      handleInputChange(rowId, day.date, "departure_time", event.target.value)
-                                    }
-                                    onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
-                                    onKeyDown={handleInputKeyDown}
-                                    placeholder="HH:MM"
-                                    maxLength={5}
-                                    disabled={isBlocked}
-                                  />
-                                  <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="plan-table-bottom-scroll" ref={bottomScrollRef}>
-                <div style={{ width: tableScrollWidth }} />
-              </div>
-            </>
-          )}
+        </div>
+        <div className="plan-instance-filter">
+          <label htmlFor="plan-instance-search">Filtrovat</label>
+          <input
+            id="plan-instance-search"
+            type="text"
+            placeholder="např. Novák, pokoj, DPP…"
+            value={instanceQuery}
+            onChange={(e) => setInstanceQuery(e.target.value)}
+          />
+        </div>
+        <div className="plan-instance-list">
+          {filteredInstances.map((inst) => {
+            const selected = selectedIds.includes(inst.id);
+            return (
+              <label key={inst.id} className={`plan-instance-row${selected ? " selected" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => handleToggleInstance(inst.id)}
+                  aria-label={`Zahrnout ${inst.display_name ?? inst.id}`}
+                />
+                <div className="plan-instance-main">
+                  <div className="plan-instance-name">{inst.display_name ?? inst.id.slice(0, 8)}</div>
+                  <div className="plan-instance-meta">{inst.employment_template}</div>
+                </div>
+                <div className="plan-instance-id">{inst.id.slice(0, 8)}…</div>
+              </label>
+            );
+          })}
+          {filteredInstances.length === 0 ? (
+            <div className="plan-instance-empty">Žádný uživatel neodpovídá filtru.</div>
+          ) : null}
         </div>
       </div>
+
+      {loading ? <div className="plan-loading">Načítám plán…</div> : null}
+      {!loading && error ? <div className="plan-error">{error}</div> : null}
+      {saveError ? <div className="plan-error">{saveError}</div> : null}
+
+      {rows.length === 0 ? (
+        <div className="plan-empty-state">
+          Vyberte zařízení nahoře a vytvořte plán. Každá osoba má dva řádky, horní pro příchody a spodní pro odchody.
+        </div>
+      ) : (
+        <>
+          <div className="plan-table-top-scroll" ref={topScrollRef}>
+            <div style={{ width: tableScrollWidth }} />
+          </div>
+
+          <div className="plan-table-wrapper" ref={tableWrapperRef}>
+            <table className="plan-table">
+              <colgroup>
+                <col style={{ width: 280 }} />
+                <col style={{ width: 108 }} />
+                {days.map((day) => (
+                  <col key={`col-${day.date}`} style={{ width: 70 }} />
+                ))}
+                <col style={{ width: 140 }} />
+              </colgroup>
+
+              <thead>
+                <tr className="plan-table-head plan-table-head--numbers">
+                  <th className="plan-table-th plan-table-th--name" rowSpan={3}>
+                    Jméno
+                  </th>
+                  <th className="plan-table-th plan-table-th--type" rowSpan={3}>
+                    Typ
+                  </th>
+                  {days.map((day) => (
+                    <th
+                      className={`plan-table-th plan-table-th--day${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-day-${day.date}`}
+                    >
+                      {day.number}
+                    </th>
+                  ))}
+                  <th className="plan-table-th plan-table-th--sum" rowSpan={3}>
+                    Celkem
+                  </th>
+                </tr>
+
+                <tr className="plan-table-head plan-table-head--weekday">
+                  {days.map((day) => (
+                    <th
+                      className={`plan-table-th plan-table-th--weekday${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-weekday-${day.date}`}
+                    >
+                      {day.weekday.toUpperCase()}
+                    </th>
+                  ))}
+                </tr>
+
+                <tr className="plan-table-head plan-table-head--holiday">
+                  {days.map((day) => (
+                    <th
+                      className={`plan-table-th plan-table-th--holiday${day.isWeekendOrHoliday ? " plan-table-th--weekend" : ""}`}
+                      key={`header-holiday-${day.date}`}
+                    >
+                      {day.isWeekendOrHoliday ? (day.isHoliday ? "svátek" : "víkend") : ""}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {rows.map((row) => {
+                  const rowId = row.instance_id;
+                  const dayMap = row.days.reduce(
+                    (acc, day) => {
+                      acc[day.date] = day;
+                      return acc;
+                    },
+                    {} as Record<string, (typeof row.days)[number]>,
+                  );
+                  const { totalMins, holidayMins } = plannedMinutesWithHoliday(row);
+                  const totalHours = formatHours(totalMins);
+                  const holidayHours = formatHours(holidayMins);
+                  const fundHours = formatHours(workingFundHours * 60);
+
+                  return (
+                    <Fragment key={rowId}>
+                      <tr className="plan-table-row plan-table-row-arrival">
+                        <td className="plan-name-cell" rowSpan={2}>
+                          <div className="plan-name">{row.display_name ?? rowId}</div>
+                          <div className="plan-name-meta">{row.employment_template ?? ""}</div>
+                        </td>
+
+                        <td className="plan-type-cell">PŘÍCHOD</td>
+
+                        {days.map((day) => {
+                          const planDay = dayMap[day.date];
+                          const value = planDay?.arrival_time ?? "";
+                          const cellKey = `${rowId}:${day.date}:arrival_time`;
+                          const statusLabel = planStatusLabel(planDay?.status);
+                          const isBlocked = Boolean(statusLabel);
+                          const statusClass =
+                            planDay?.status === "HOLIDAY"
+                              ? " plan-table-cell--holiday"
+                              : planDay?.status === "OFF"
+                                ? " plan-table-cell--off"
+                                : "";
+
+                          return (
+                            <td
+                              className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
+                                successCells[cellKey] ? " plan-table-cell--success" : ""
+                              }${statusClass}`}
+                              key={cellKey}
+                              onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
+                            >
+                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9:]*"
+                                className="plan-table-input"
+                                value={isBlocked ? "" : value}
+                                onChange={(event) =>
+                                  handleInputChange(rowId, day.date, "arrival_time", event.target.value)
+                                }
+                                onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
+                                onKeyDown={handleInputKeyDown}
+                                placeholder="HH:MM"
+                                maxLength={5}
+                                disabled={isBlocked}
+                              />
+                              <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
+                            </td>
+                          );
+                        })}
+
+                        <td className="plan-sum-cell" rowSpan={2}>
+                          <div className="plan-sum-label">Celkem měsíc</div>
+                          <div className="plan-sum-value">{totalHours} h</div>
+                          {holidayMins > 0 ? (
+                            <div className="plan-sum-meta">z toho {holidayHours} h dovolená</div>
+                          ) : null}
+                          <div className="plan-sum-meta">Fond {fundHours} h</div>
+                        </td>
+                      </tr>
+
+                      <tr className="plan-table-row plan-table-row-departure">
+                        <td className="plan-type-cell">ODCHOD</td>
+
+                        {days.map((day) => {
+                          const planDay = dayMap[day.date];
+                          const value = planDay?.departure_time ?? "";
+                          const cellKey = `${rowId}:${day.date}:departure_time`;
+                          const statusLabel = planStatusLabel(planDay?.status);
+                          const isBlocked = Boolean(statusLabel);
+                          const statusClass =
+                            planDay?.status === "HOLIDAY"
+                              ? " plan-table-cell--holiday"
+                              : planDay?.status === "OFF"
+                                ? " plan-table-cell--off"
+                                : "";
+
+                          return (
+                            <td
+                              className={`plan-table-cell${day.isWeekendOrHoliday ? " plan-table-cell--weekend" : ""}${
+                                successCells[cellKey] ? " plan-table-cell--success" : ""
+                              }${statusClass}`}
+                              key={cellKey}
+                              onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
+                            >
+                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9:]*"
+                                className="plan-table-input"
+                                value={isBlocked ? "" : value}
+                                onChange={(event) =>
+                                  handleInputChange(rowId, day.date, "departure_time", event.target.value)
+                                }
+                                onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
+                                onKeyDown={handleInputKeyDown}
+                                placeholder="HH:MM"
+                                maxLength={5}
+                                disabled={isBlocked}
+                              />
+                              <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="plan-table-bottom-scroll" ref={bottomScrollRef}>
+            <div style={{ width: tableScrollWidth }} />
+          </div>
+        </>
+      )}
 
       {loading ? <div className="plan-loading">Načítám plán…</div> : null}
       {!loading && error ? <div className="plan-error">{error}</div> : null}
