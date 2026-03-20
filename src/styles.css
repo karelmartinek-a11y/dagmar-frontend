@@ -1273,6 +1273,19 @@ textarea {
 .plan-instance-list {
   border: 1px solid var(--line);
   border-radius: 12px;
+  display: grid;
+  grid-auto-rows: min-content;
+  max-height: min(62vh, 720px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.plan-instance-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .plan-instance-row {
