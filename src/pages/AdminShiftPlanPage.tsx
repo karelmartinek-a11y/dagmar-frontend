@@ -723,7 +723,6 @@ export default function AdminShiftPlanPage() {
                               key={cellKey}
                               onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
                             >
-                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
                               <input
                                 type="text"
                                 inputMode="numeric"
@@ -735,7 +734,7 @@ export default function AdminShiftPlanPage() {
                                 }
                                 onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
                                 onKeyDown={handleInputKeyDown}
-                                placeholder="HH:MM"
+                                placeholder={isBlocked ? statusLabel?.toLocaleUpperCase("cs-CZ") ?? "HH:MM" : "HH:MM"}
                                 maxLength={5}
                                 disabled={isBlocked}
                               />
@@ -778,7 +777,6 @@ export default function AdminShiftPlanPage() {
                               key={cellKey}
                               onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
                             >
-                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
                               <input
                                 type="text"
                                 inputMode="numeric"
@@ -790,7 +788,7 @@ export default function AdminShiftPlanPage() {
                                 }
                                 onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
                                 onKeyDown={handleInputKeyDown}
-                                placeholder="HH:MM"
+                                placeholder={isBlocked ? statusLabel?.toLocaleUpperCase("cs-CZ") ?? "HH:MM" : "HH:MM"}
                                 maxLength={5}
                                 disabled={isBlocked}
                               />
