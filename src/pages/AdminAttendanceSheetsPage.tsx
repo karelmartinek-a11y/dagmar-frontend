@@ -722,6 +722,9 @@ function TimeInput(props: {
   const plannedLabel = plannedStatus ? planStatusLabel(plannedStatus) : plannedValue;
   const plannedTone =
     plannedStatus === "HOLIDAY" ? "var(--kb-red)" : plannedStatus === "OFF" ? "#0c5fd3" : "rgba(82, 85, 93, 0.6)";
+  const statusPlaceholder = plannedStatus ? planStatusLabel(plannedStatus)?.toLocaleUpperCase("cs-CZ") ?? null : null;
+  const effectivePlaceholder = !local && statusPlaceholder ? statusPlaceholder : placeholder;
+  const hasStatusPlaceholder = Boolean(statusPlaceholder);
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
@@ -729,7 +732,7 @@ function TimeInput(props: {
       {plannedLabel ? <div style={{ fontSize: 11, color: plannedTone, fontWeight: 700 }}>Plán: {plannedLabel}</div> : null}
       <input
         inputMode="numeric"
-        placeholder={placeholder}
+        placeholder={effectivePlaceholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
         onBlur={() => {
@@ -743,13 +746,17 @@ function TimeInput(props: {
           minWidth: 0,
           height: 44,
           borderRadius: 12,
-          border: ok ? "1px solid rgba(35, 41, 44, 0.18)" : "1px solid rgba(255,0,0,0.6)",
+          border: ok
+            ? hasStatusPlaceholder
+              ? `1px solid ${plannedTone}`
+              : "1px solid rgba(35, 41, 44, 0.18)"
+            : "1px solid rgba(255,0,0,0.6)",
           outline: "none",
           padding: "0 12px",
           fontSize: 16,
           fontWeight: 700,
           letterSpacing: 0.2,
-          background: ok ? "white" : "rgba(255,0,0,0.05)",
+          background: hasStatusPlaceholder ? "rgba(255,255,255,0.96)" : ok ? "white" : "rgba(255,0,0,0.05)",
         }}
       />
       {!ok ? <div style={{ fontSize: 11, color: "var(--kb-red)" }}>Zadejte čas ve formátu HH:MM (00:00–23:59) nebo nechte prázdné.</div> : null}

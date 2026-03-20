@@ -931,6 +931,9 @@ function TimeInput(props: {
   const plannedLabel = plannedStatus ? planStatusLabel(plannedStatus) : plannedValue;
   const plannedTone =
     plannedStatus === "HOLIDAY" ? "var(--kb-red)" : plannedStatus === "OFF" ? "#0c5fd3" : "rgba(82, 85, 93, 0.6)";
+  const statusPlaceholder = plannedStatus ? planStatusLabel(plannedStatus)?.toLocaleUpperCase("cs-CZ") ?? null : null;
+  const effectivePlaceholder = !local && statusPlaceholder ? statusPlaceholder : placeholder;
+  const hasStatusPlaceholder = Boolean(statusPlaceholder);
 
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
@@ -940,7 +943,7 @@ function TimeInput(props: {
       ) : null}
       <input
         inputMode="numeric"
-        placeholder={placeholder}
+        placeholder={effectivePlaceholder}
         value={local}
         readOnly={readOnly}
         disabled={readOnly}
@@ -957,13 +960,23 @@ function TimeInput(props: {
           minWidth: 0,
           height: 44,
           borderRadius: 12,
-          border: ok ? "1px solid rgba(35, 41, 44, 0.18)" : "1px solid rgba(255,0,0,0.6)",
+          border: ok
+            ? hasStatusPlaceholder
+              ? `1px solid ${plannedTone}`
+              : "1px solid rgba(35, 41, 44, 0.18)"
+            : "1px solid rgba(255,0,0,0.6)",
           outline: "none",
           padding: "0 12px",
           fontSize: 16,
           fontWeight: 700,
           letterSpacing: 0.2,
-          background: readOnly ? "rgba(82,85,93,0.18)" : ok ? "white" : "rgba(255,0,0,0.05)",
+          background: readOnly
+            ? "rgba(82,85,93,0.18)"
+            : hasStatusPlaceholder
+              ? "rgba(255,255,255,0.96)"
+              : ok
+                ? "white"
+                : "rgba(255,0,0,0.05)",
           color: readOnly ? "var(--kb-brand-ink-600)" : undefined,
           cursor: readOnly ? "not-allowed" : "text",
         }}
