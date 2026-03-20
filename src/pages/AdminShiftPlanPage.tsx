@@ -86,6 +86,7 @@ export default function AdminShiftPlanPage() {
   const [refreshTick, setRefreshTick] = useState(0);
   const [tableScrollWidth, setTableScrollWidth] = useState(0);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [instanceQuery, setInstanceQuery] = useState("");
   const successTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const tableWrapperRef = useRef<HTMLDivElement | null>(null);
   const topScrollRef = useRef<HTMLDivElement | null>(null);
@@ -300,7 +301,19 @@ export default function AdminShiftPlanPage() {
   }, [plan?.rows.length]);
 
   const selectedIds = plan?.selected_instance_ids ?? [];
-  const activeInstances = plan?.active_instances ?? [];
+  const activeInstances = useMemo(() => plan?.active_instances ?? [], [plan?.active_instances]);
+  const filteredInstances = useMemo(() => {
+    const tokens = instanceQuery
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (tokens.length === 0) return activeInstances;
+    return activeInstances.filter((it) => {
+      const hay = `${it.display_name ?? ""} ${it.id} ${it.employment_template}`.toLowerCase();
+      return tokens.every((t) => hay.includes(t));
+    });
+  }, [activeInstances, instanceQuery]);
   const rows = plan?.rows ?? [];
 
   const handleMonthChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -496,27 +509,49 @@ export default function AdminShiftPlanPage() {
         </div>
       </div>
 
-      <div className="plan-chip-row">
-        {activeInstances.map((instance) => {
-          const selected = selectedIds.includes(instance.id);
-
-          return (
-            <button
-              key={instance.id}
-              type="button"
-              className={`plan-chip${selected ? " selected" : ""}`}
-              onClick={() => handleToggleInstance(instance.id)}
-            >
-              <div>
-                <div className="plan-chip-name">{instance.display_name ?? instance.id.slice(0, 8)}</div>
-                <div className="plan-chip-meta">{instance.employment_template}</div>
-              </div>
-              <span className="plan-chip-badge">{selected ? "zařazeno" : "přidat"}</span>
-            </button>
-          );
-        })}
-
-        {activeInstances.length === 0 ? <div className="plan-chip-empty">Žádná aktivní zařízení.</div> : null}
+      <div className="plan-instance-picker">
+        <div className="plan-instance-header">
+          <div>
+            <div className="plan-instance-title">Výběr uživatelů pro plán</div>
+            <div className="plan-instance-subtitle">Zobrazuje se pouze seznam uživatelů, ne existující docházky.</div>
+          </div>
+          <div className="plan-instance-count">
+            Vybráno {selectedIds.length}/{activeInstances.length}
+          </div>
+        </div>
+        <div className="plan-instance-filter">
+          <label htmlFor="plan-instance-search">Filtrovat</label>
+          <input
+            id="plan-instance-search"
+            type="text"
+            placeholder="např. Novák, pokoj, DPP…"
+            value={instanceQuery}
+            onChange={(e) => setInstanceQuery(e.target.value)}
+          />
+        </div>
+        <div className="plan-instance-list">
+          {filteredInstances.map((inst) => {
+            const selected = selectedIds.includes(inst.id);
+            return (
+              <label key={inst.id} className={`plan-instance-row${selected ? " selected" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => handleToggleInstance(inst.id)}
+                  aria-label={`Zahrnout ${inst.display_name ?? inst.id}`}
+                />
+                <div className="plan-instance-main">
+                  <div className="plan-instance-name">{inst.display_name ?? inst.id.slice(0, 8)}</div>
+                  <div className="plan-instance-meta">{inst.employment_template}</div>
+                </div>
+                <div className="plan-instance-id">{inst.id.slice(0, 8)}…</div>
+              </label>
+            );
+          })}
+          {filteredInstances.length === 0 ? (
+            <div className="plan-instance-empty">Žádný uživatel neodpovídá filtru.</div>
+          ) : null}
+        </div>
       </div>
 
       {loading ? <div className="plan-loading">Načítám plán…</div> : null}
