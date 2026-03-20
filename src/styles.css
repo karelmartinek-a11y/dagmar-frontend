@@ -533,6 +533,7 @@ textarea {
   border-radius: var(--kb-radius);
   box-shadow: var(--kb-shadow);
   overflow: auto;
+  max-height: calc(100vh - var(--kb-systembar-h) - 24px);
 }
 
 .kb-sidebar-head {
@@ -1084,6 +1085,9 @@ textarea {
   vertical-align: middle;
   background: #ffffff;
   position: relative;
+}
+
+.plan-table-cell-inner {
   display: flex;
   flex-direction: column;
   align-items: center;

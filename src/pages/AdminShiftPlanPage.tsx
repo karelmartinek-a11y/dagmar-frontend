@@ -723,23 +723,25 @@ export default function AdminShiftPlanPage() {
                               key={cellKey}
                               onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
                             >
-                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9:]*"
-                                className="plan-table-input"
-                                value={isBlocked ? "" : value}
-                                onChange={(event) =>
-                                  handleInputChange(rowId, day.date, "arrival_time", event.target.value)
-                                }
-                                onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
-                                onKeyDown={handleInputKeyDown}
-                                placeholder="HH:MM"
-                                maxLength={5}
-                                disabled={isBlocked}
-                              />
-                              <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
+                              <div className="plan-table-cell-inner">
+                                {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9:]*"
+                                  className="plan-table-input"
+                                  value={isBlocked ? "" : value}
+                                  onChange={(event) =>
+                                    handleInputChange(rowId, day.date, "arrival_time", event.target.value)
+                                  }
+                                  onBlur={() => handleInputBlur(rowId, day.date, "arrival_time")}
+                                  onKeyDown={handleInputKeyDown}
+                                  placeholder="HH:MM"
+                                  maxLength={5}
+                                  disabled={isBlocked}
+                                />
+                                <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
+                              </div>
                             </td>
                           );
                         })}
@@ -778,23 +780,25 @@ export default function AdminShiftPlanPage() {
                               key={cellKey}
                               onContextMenu={(event) => handleCellContextMenu(event, rowId, day.date)}
                             >
-                              {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9:]*"
-                                className="plan-table-input"
-                                value={isBlocked ? "" : value}
-                                onChange={(event) =>
-                                  handleInputChange(rowId, day.date, "departure_time", event.target.value)
-                                }
-                                onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
-                                onKeyDown={handleInputKeyDown}
-                                placeholder="HH:MM"
-                                maxLength={5}
-                                disabled={isBlocked}
-                              />
-                              <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
+                              <div className="plan-table-cell-inner">
+                                {statusLabel ? <div className="plan-table-status-label">{statusLabel}</div> : null}
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9:]*"
+                                  className="plan-table-input"
+                                  value={isBlocked ? "" : value}
+                                  onChange={(event) =>
+                                    handleInputChange(rowId, day.date, "departure_time", event.target.value)
+                                  }
+                                  onBlur={() => handleInputBlur(rowId, day.date, "departure_time")}
+                                  onKeyDown={handleInputKeyDown}
+                                  placeholder="HH:MM"
+                                  maxLength={5}
+                                  disabled={isBlocked}
+                                />
+                                <div className="plan-saving">{savingCells[cellKey] ? "Ukládám…" : null}</div>
+                              </div>
                             </td>
                           );
                         })}
