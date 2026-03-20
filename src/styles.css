@@ -589,6 +589,10 @@ textarea {
   border-color: rgba(38, 43, 49, 0.24);
 }
 
+.kb-sidebar-extra {
+  padding: 8px 14px 14px 14px;
+}
+
 .kb-sidebar-foot {
   padding: 12px 14px 14px 14px;
   border-top: 1px solid var(--kb-border);
@@ -874,32 +878,6 @@ textarea {
   padding: 12px;
   font-size: 13px;
   color: var(--muted);
-}
-
-.plan-layout {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.plan-instance-picker--sidebar {
-  position: sticky;
-  top: 12px;
-}
-
-.plan-main {
-  min-width: 0;
-}
-
-@media (max-width: 1100px) {
-  .plan-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .plan-instance-picker--sidebar {
-    position: static;
-  }
 }
 
 .plan-error {

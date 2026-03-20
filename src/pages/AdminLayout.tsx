@@ -168,6 +168,8 @@ export default function AdminLayout() {
           ))}
         </nav>
 
+        <div id="admin-sidebar-extra" className="kb-sidebar-extra" />
+
         <div className="kb-sidebar-foot">
           <Button type="button" variant="primary" style={{ width: "100%" }} onClick={() => {
             void onLogout();
