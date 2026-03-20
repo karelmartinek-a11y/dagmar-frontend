@@ -831,13 +831,11 @@ textarea {
 .plan-instance-list {
   border: 1px solid var(--line);
   border-radius: 12px;
-  max-height: 240px;
-  overflow: auto;
 }
 
 .plan-instance-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: center;
   padding: 10px 12px;
@@ -864,12 +862,6 @@ textarea {
 }
 
 .plan-instance-meta {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.plan-instance-id {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   color: var(--muted);
 }
@@ -1089,9 +1081,14 @@ textarea {
 .plan-table-cell {
   min-width: 70px;
   padding: 6px 5px;
-  vertical-align: top;
+  vertical-align: middle;
   background: #ffffff;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .plan-table-cell--weekend {

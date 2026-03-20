@@ -552,7 +552,6 @@ export default function AdminShiftPlanPage() {
                         <div className="plan-instance-name">{inst.display_name ?? inst.id.slice(0, 8)}</div>
                         <div className="plan-instance-meta">{inst.employment_template}</div>
                       </div>
-                      <div className="plan-instance-id">{inst.id.slice(0, 8)}…</div>
                     </label>
                   );
                 })}
@@ -599,7 +598,6 @@ export default function AdminShiftPlanPage() {
                       <div className="plan-instance-name">{inst.display_name ?? inst.id.slice(0, 8)}</div>
                       <div className="plan-instance-meta">{inst.employment_template}</div>
                     </div>
-                    <div className="plan-instance-id">{inst.id.slice(0, 8)}…</div>
                   </label>
                 );
               })}
