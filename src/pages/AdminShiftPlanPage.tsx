@@ -514,11 +514,11 @@ export default function AdminShiftPlanPage() {
     <div className="plan-instance-picker plan-instance-picker--sidebar">
       <div className="plan-instance-header">
         <div>
-          <div className="plan-instance-title">VĂ˝bÄ›r uĹľivatelĹŻ pro plĂˇn</div>
-          <div className="plan-instance-subtitle">Jen seznam uĹľivatelĹŻ, ne existujĂ­cĂ­ dochĂˇzky.</div>
+          <div className="plan-instance-title">Výběr uživatelů pro plán</div>
+          <div className="plan-instance-subtitle">Jen seznam uživatelů, ne existující docházky.</div>
         </div>
         <div className="plan-instance-count">
-          VybrĂˇno {selectedIds.length}/{activeInstances.length}
+          Vybráno {selectedIds.length}/{activeInstances.length}
         </div>
       </div>
       <div className="plan-instance-filter">
@@ -526,7 +526,7 @@ export default function AdminShiftPlanPage() {
         <input
           id="plan-instance-search"
           type="text"
-          placeholder="napĹ™. NovĂˇk, pokoj nebo typ Ăşvazku"
+          placeholder="např. Novák, pokoj nebo typ úvazku"
           value={instanceQuery}
           onChange={(e) => setInstanceQuery(e.target.value)}
         />
@@ -549,7 +549,7 @@ export default function AdminShiftPlanPage() {
             </label>
           );
         })}
-        {filteredInstances.length === 0 ? <div className="plan-instance-empty">Ĺ˝ĂˇdnĂ˝ uĹľivatel neodpovĂ­dĂˇ filtru.</div> : null}
+        {filteredInstances.length === 0 ? <div className="plan-instance-empty">Žádný uživatel neodpovídá filtru.</div> : null}
       </div>
     </div>
   );
