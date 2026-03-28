@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
 import type { ShiftPlanDayStatus } from "../api/adminShiftPlan";
 import { getPragueTimeSnapshot, type PragueTimeSource } from "../api/time";
-import { ApiError } from "../api/client";
 import type { EmploymentTemplate } from "../types/employment";
 import { portalLogin } from "../api/portal";
 import { BRAND_ASSETS, APP_NAME_SHORT } from "../brand/brand";
@@ -68,14 +67,6 @@ function errorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string") return err;
   return fallback;
-}
-
-function isLockedError(err: unknown): err is ApiError {
-  return err instanceof ApiError && err.status === 423;
-}
-
-function getLockedPortalMessage() {
-  return "Docházka za aktuální měsíc je uzavřena administrátorem. Přihlášení proběhlo, ale tento měsíc nyní nelze v portálu otevřít.";
 }
 
 function pad2(n: number) {
@@ -327,12 +318,6 @@ export function EmployeePage() {
         const res = await getAttendance(y, m, token);
         if (cancelled) return;
 
-        if (res.locked) {
-          setMonthLocked(true);
-          setRows([]);
-          return;
-        }
-
         // Normalize to full month list
         const dim = daysInMonth(y, m);
         const byDate = new Map<string, DayRow>();
@@ -354,15 +339,10 @@ export function EmployeePage() {
         }
         setRows(out);
         setMonthLocked(false);
-      } catch (err: unknown) {
+      } catch {
         if (cancelled) return;
-        if (isLockedError(err)) {
-          setMonthLocked(true);
-          setRows([]);
-        } else {
-          setRows([]);
-          setMonthLocked(false);
-        }
+        setRows([]);
+        setMonthLocked(false);
       }
     }
 
@@ -395,7 +375,7 @@ export function EmployeePage() {
       if (res.employment_template) setEmploymentTemplate(res.employment_template as EmploymentTemplate);
       if (res.afternoon_cutoff) setAfternoonCutoff(res.afternoon_cutoff);
     } catch (err: unknown) {
-      setLoginError(isLockedError(err) ? getLockedPortalMessage() : errorMessage(err, "Přihlášení se nezdařilo."));
+      setLoginError(errorMessage(err, "Přihlášení se nezdařilo."));
     } finally {
       setLoginSubmitting(false);
     }
