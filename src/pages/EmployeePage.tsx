@@ -70,6 +70,14 @@ function errorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
+function isLockedError(err: unknown): err is ApiError {
+  return err instanceof ApiError && err.status === 423;
+}
+
+function getLockedPortalMessage() {
+  return "Docházka za aktuální měsíc je uzavřena administrátorem. Přihlášení proběhlo, ale tento měsíc nyní nelze v portálu otevřít.";
+}
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -319,6 +327,12 @@ export function EmployeePage() {
         const res = await getAttendance(y, m, token);
         if (cancelled) return;
 
+        if (res.locked) {
+          setMonthLocked(true);
+          setRows([]);
+          return;
+        }
+
         // Normalize to full month list
         const dim = daysInMonth(y, m);
         const byDate = new Map<string, DayRow>();
@@ -342,7 +356,7 @@ export function EmployeePage() {
         setMonthLocked(false);
       } catch (err: unknown) {
         if (cancelled) return;
-        if (err instanceof ApiError && err.status === 423) {
+        if (isLockedError(err)) {
           setMonthLocked(true);
           setRows([]);
         } else {
@@ -381,7 +395,7 @@ export function EmployeePage() {
       if (res.employment_template) setEmploymentTemplate(res.employment_template as EmploymentTemplate);
       if (res.afternoon_cutoff) setAfternoonCutoff(res.afternoon_cutoff);
     } catch (err: unknown) {
-      setLoginError(errorMessage(err, "Přihlášení se nezdařilo."));
+      setLoginError(isLockedError(err) ? getLockedPortalMessage() : errorMessage(err, "Přihlášení se nezdařilo."));
     } finally {
       setLoginSubmitting(false);
     }

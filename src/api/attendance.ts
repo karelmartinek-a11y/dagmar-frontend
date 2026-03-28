@@ -13,6 +13,7 @@ export type AttendanceDay = {
 export type AttendanceMonthResponse = {
   days: AttendanceDay[];
   instance_display_name?: string;
+  locked?: boolean;
 };
 
 export type AttendanceUpsertBody = {
