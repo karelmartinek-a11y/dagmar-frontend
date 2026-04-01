@@ -21,6 +21,40 @@ export type AttendanceUpsertBody = {
   departure_time: string | null;
 };
 
+async function fetchAttendanceWithPortalFallback<T>(
+  path: string,
+  options: {
+    method: "GET" | "PUT";
+    query?: Record<string, string | number | boolean | null | undefined>;
+    body?: AttendanceUpsertBody;
+    instanceToken: string;
+    signal?: AbortSignal;
+  },
+): Promise<T> {
+  try {
+    return await apiFetch<T>({
+      path,
+      method: options.method,
+      query: options.query,
+      body: options.body,
+      instanceToken: options.instanceToken,
+      signal: options.signal,
+    });
+  } catch (err) {
+    if (!(err instanceof ApiError) || err.status !== 401) {
+      throw err;
+    }
+
+    return apiFetch<T>({
+      path,
+      method: options.method,
+      query: options.query,
+      body: options.body,
+      signal: options.signal,
+    });
+  }
+}
+
 export async function getAttendanceMonth(params: {
   year: number;
   month: number; // 1-12
@@ -36,8 +70,7 @@ export async function getAttendanceMonth(params: {
   }
 
   const mm = String(month).padStart(2, "0");
-  return apiFetch<AttendanceMonthResponse>({
-    path: "/api/v1/attendance",
+  return fetchAttendanceWithPortalFallback<AttendanceMonthResponse>("/api/v1/attendance", {
     method: "GET",
     query: { year, month: mm },
     instanceToken,
@@ -66,8 +99,7 @@ export async function upsertAttendance(params: {
     }
   }
 
-  return apiFetch<{ ok: true }>({
-    path: "/api/v1/attendance",
+  return fetchAttendanceWithPortalFallback<{ ok: true }>("/api/v1/attendance", {
     method: "PUT",
     body,
     instanceToken,

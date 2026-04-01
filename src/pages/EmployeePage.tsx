@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAttendance, putAttendance } from "../api/attendance";
+import { ApiError } from "../api/client";
 import type { ShiftPlanDayStatus } from "../api/adminShiftPlan";
 import { getPragueTimeSnapshot, type PragueTimeSource } from "../api/time";
 import type { EmploymentTemplate } from "../types/employment";
@@ -204,6 +205,22 @@ function addMonths(yyyyMmStr: string, delta: number) {
   return yyyyMm(dt);
 }
 
+function buildEmptyMonthRows(year: number, month: number): DayRow[] {
+  const dim = daysInMonth(year, month);
+  const out: DayRow[] = [];
+  for (let day = 1; day <= dim; day++) {
+    out.push({
+      date: `${year}-${pad2(month)}-${pad2(day)}`,
+      arrival_time: null,
+      departure_time: null,
+      planned_arrival_time: null,
+      planned_departure_time: null,
+      planned_status: null,
+    });
+  }
+  return out;
+}
+
 export function EmployeePage() {
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [token, setToken] = useState<string | null>(() => getPortalAuthState().accessToken);
@@ -339,8 +356,14 @@ export function EmployeePage() {
         }
         setRows(out);
         setMonthLocked(false);
-      } catch {
+      } catch (err) {
         if (cancelled) return;
+        const [y, m] = month.split("-").map((x) => parseInt(x, 10));
+        if (err instanceof ApiError && err.status === 423 && Number.isFinite(y) && Number.isFinite(m)) {
+          setRows(buildEmptyMonthRows(y, m));
+          setMonthLocked(true);
+          return;
+        }
         setRows([]);
         setMonthLocked(false);
       }
@@ -531,7 +554,11 @@ export function EmployeePage() {
 
     try {
       await putAttendance(payload, currentToken);
-    } catch {
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 423) {
+        setMonthLocked(true);
+        return;
+      }
       enqueue({ ...payload, enqueuedAt: Date.now() });
     } finally {
       flushQueueIfPossible();
