@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { adminListInstances, type AdminInstance } from "../api/admin";
+import { adminListInstances, adminListUsers, type AdminInstance, type PortalUser } from "../api/admin";
 import { employmentTemplateLabel } from "../utils/uiLabels";
 
 type DocType = "attendance" | "plan";
@@ -15,6 +15,7 @@ function yyyyMm(d: Date) {
 
 export default function AdminPrintsPage() {
   const [instances, setInstances] = useState<AdminInstance[]>([]);
+  const [users, setUsers] = useState<PortalUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [docType, setDocType] = useState<DocType>("attendance");
@@ -28,9 +29,10 @@ export default function AdminPrintsPage() {
     setError(null);
     (async () => {
       try {
-        const res = await adminListInstances();
+        const [instanceRes, userRes] = await Promise.all([adminListInstances(), adminListUsers()]);
         if (cancelled) return;
-        setInstances(res.instances);
+        setInstances(instanceRes.instances);
+        setUsers(userRes.users);
       } catch (err) {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Nepodařilo se načíst seznam zařízení.");
@@ -43,6 +45,17 @@ export default function AdminPrintsPage() {
     };
   }, []);
 
+  const userNameByInstanceId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const user of users) {
+      if (!user.profile_instance_id) continue;
+      map.set(user.profile_instance_id, user.name);
+    }
+    return map;
+  }, [users]);
+
+  const displayLabel = (instance: AdminInstance) => userNameByInstanceId.get(instance.id) ?? instance.display_name ?? instance.id;
+
   const filtered = useMemo(() => {
     const tokens = query
       .toLowerCase()
@@ -50,10 +63,10 @@ export default function AdminPrintsPage() {
       .filter(Boolean);
     if (tokens.length === 0) return instances;
     return instances.filter((it) => {
-      const hay = `${it.display_name ?? ""} ${it.id}`.toLowerCase();
+      const hay = `${displayLabel(it)} ${it.display_name ?? ""} ${it.id}`.toLowerCase();
       return tokens.every((t) => hay.includes(t));
     });
-  }, [instances, query]);
+  }, [instances, query, userNameByInstanceId]);
 
   const toggle = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -170,7 +183,7 @@ export default function AdminPrintsPage() {
                 <label key={it.id} className={`print-row ${selectedIds.includes(it.id) ? "print-row--selected" : ""}`}>
                   <input type="checkbox" checked={selectedIds.includes(it.id)} onChange={() => toggle(it.id)} />
                   <div className="stack" style={{ gap: 2 }}>
-                    <span className="print-name">{it.display_name ?? it.id}</span>
+                    <span className="print-name">{displayLabel(it)}</span>
                     <span className="muted small">
                       Identifikátor {it.id} · {employmentTemplateLabel(it.employment_template)}
                     </span>

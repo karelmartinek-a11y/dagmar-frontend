@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { adminListInstances, type AdminInstance } from "../api/admin";
+import { adminListInstances, adminListUsers, type AdminInstance, type PortalUser } from "../api/admin";
 import { adminGetAttendanceMonth, type AdminAttendanceDay } from "../api/adminAttendance";
 import { adminGetShiftPlanMonth, type ShiftPlanRow } from "../api/adminShiftPlan";
 import jsPDF from "jspdf";
@@ -145,6 +145,15 @@ function templateLabel(tpl: AdminInstance["employment_template"]): string {
   return employmentTemplateLabel(tpl);
 }
 
+function buildUserNameByInstanceId(users: PortalUser[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const user of users) {
+    if (!user.profile_instance_id) continue;
+    map.set(user.profile_instance_id, user.name);
+  }
+  return map;
+}
+
 export default function AdminPrintPreviewPage() {
   const [params] = useSearchParams();
   const docType = params.get("type") === "plan" ? "plan" : "attendance";
@@ -175,9 +184,10 @@ export default function AdminPrintPreviewPage() {
       setError(null);
       setPdfGenerated(false);
       try {
-        const instRes = await adminListInstances();
+        const [instRes, userRes] = await Promise.all([adminListInstances(), adminListUsers()]);
         if (cancelled) return;
         const map = new Map(instRes.instances.map((i) => [i.id, i]));
+        const userNameByInstanceId = buildUserNameByInstanceId(userRes.users);
         const selected = idList
           .map((id) => map.get(id))
           .filter(Boolean) as AdminInstance[];
@@ -192,7 +202,15 @@ export default function AdminPrintPreviewPage() {
               month: parsedMonth.month,
             });
             const cutoff = parseCutoffToMinutes(res.afternoon_cutoff ?? inst.afternoon_cutoff ?? "17:00");
-            records.push({ type: "attendance", instance: inst, days: res.days, cutoffMinutes: cutoff });
+            records.push({
+              type: "attendance",
+              instance: {
+                ...inst,
+                display_name: userNameByInstanceId.get(inst.id) ?? inst.display_name,
+              },
+              days: res.days,
+              cutoffMinutes: cutoff,
+            });
           }
           if (!cancelled) setDocs(records);
         } else {
@@ -204,7 +222,14 @@ export default function AdminPrintPreviewPage() {
             .map((row) => {
               const inst = map.get(row.instance_id);
               if (!inst) return null;
-              return { type: "plan", instance: inst, row } as DocRecord;
+              return {
+                type: "plan",
+                instance: {
+                  ...inst,
+                  display_name: userNameByInstanceId.get(inst.id) ?? inst.display_name,
+                },
+                row,
+              } as DocRecord;
             })
             .filter(Boolean) as DocRecord[];
           if (!cancelled) setDocs(records);
