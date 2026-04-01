@@ -66,7 +66,7 @@ export default function AdminPrintsPage() {
       const hay = `${displayLabel(it)} ${it.display_name ?? ""} ${it.id}`.toLowerCase();
       return tokens.every((t) => hay.includes(t));
     });
-  }, [instances, query, userNameByInstanceId]);
+  }, [displayLabel, instances, query]);
 
   const toggle = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
