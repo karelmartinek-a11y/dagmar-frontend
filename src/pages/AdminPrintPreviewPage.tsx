@@ -68,6 +68,15 @@ function formatHoursComma(mins: number) {
   return formatHours(mins).replace(".", ",");
 }
 
+function vacationMinutesForDay(day: AdminAttendanceDay | undefined): number {
+  return day?.planned_status === "HOLIDAY" ? 8 * 60 : 0;
+}
+
+function formatHoursCell(mins: number | null | undefined) {
+  if (!mins) return "";
+  return formatHoursComma(mins);
+}
+
 function formatDateLong(dateIso: string) {
   const [y, m, d] = dateIso.split("-").map((x) => parseInt(x, 10));
   const dt = new Date(y, m - 1, d);
@@ -298,6 +307,7 @@ export default function AdminPrintPreviewPage() {
                     <th style={{ width: 104 }}>Příchod 3</th>
                     <th style={{ width: 104 }}>Odchod 3</th>
                     <th style={{ width: 88 }}>Celkem</th>
+                    <th style={{ width: 88 }}>Dovolená</th>
                     <th style={{ width: 88 }}>Odpolední</th>
                     <th style={{ width: 88 }}>Víkendy a svátky</th>
                   </tr>
@@ -310,15 +320,21 @@ export default function AdminPrintPreviewPage() {
                         date: d.date,
                         arrival_time: day?.arrival_time ?? null,
                         departure_time: day?.departure_time ?? null,
+                        planned_status: day?.planned_status ?? null,
                       },
                       doc.instance.employment_template,
                       doc.cutoffMinutes,
                     );
                     const rowClass = calc.isWeekendOrHoliday ? (calc.holidayName ? "row-holiday" : "row-weekend") : "";
-                    const intervals = buildIntervals(day?.arrival_time ?? null, day?.departure_time ?? null, calc.breakTooltip);
-                    const worked = calc.workedMins === null ? "" : formatHoursComma(calc.workedMins);
-                    const afternoonStr = calc.afternoonMins ? formatHoursComma(calc.afternoonMins) : "";
-                    const weekendStr = calc.isWeekendOrHoliday ? (calc.workedMins ? formatHoursComma(calc.workedMins) : "") : "";
+                    const isVacation = day?.planned_status === "HOLIDAY";
+                    const intervals = isVacation
+                      ? { in1: "dovolená", out1: "dovolená", in2: "", out2: "", in3: "", out3: "" }
+                      : buildIntervals(day?.arrival_time ?? null, day?.departure_time ?? null, calc.breakTooltip);
+                    const vacationMins = vacationMinutesForDay(day);
+                    const worked = formatHoursCell(calc.workedMins);
+                    const vacationStr = formatHoursCell(vacationMins);
+                    const afternoonStr = formatHoursCell(calc.afternoonMins);
+                    const weekendStr = calc.isWeekendOrHoliday ? formatHoursCell(calc.workedMins) : "";
                     return (
                       <tr key={d.date} className={rowClass}>
                         <td>{formatDateLong(d.date)}</td>
@@ -329,6 +345,7 @@ export default function AdminPrintPreviewPage() {
                         <td className="t-center">{intervals.in3}</td>
                         <td className="t-center">{intervals.out3}</td>
                         <td className="t-right">{worked}</td>
+                        <td className="t-right">{vacationStr}</td>
                         <td className="t-right">{afternoonStr}</td>
                         <td className="t-right">{weekendStr}</td>
                       </tr>
@@ -337,10 +354,19 @@ export default function AdminPrintPreviewPage() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={7}></td>
+                    <td colSpan={6}></td>
+                    <td style={{ fontWeight: 700 }}>
+                      Plán: {formatHoursComma(workingDaysInMonthCs(parsedMonth.year, parsedMonth.month) * 60 * 8)} h
+                    </td>
                     <td className="t-right">{formatHoursComma(stats.totalMins)} h</td>
+                    <td className="t-right">{formatHoursComma(stats.holidayMins)} h</td>
                     <td className="t-right">{formatHoursComma(stats.afternoonMins)} h</td>
                     <td className="t-right">{formatHoursComma(stats.weekendHolidayMins)} h</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={11} style={{ fontWeight: 700 }}>
+                      Odpracováno celkem: {formatHoursComma(stats.totalMins)} h, z toho {formatHoursComma(stats.holidayMins)} h dovolená
+                    </td>
                   </tr>
                 </tfoot>
               </table>
