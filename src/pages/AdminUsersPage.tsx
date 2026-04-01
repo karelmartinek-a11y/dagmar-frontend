@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { adminCreateUser, adminDeleteUser, adminListInstances, adminListUsers, adminSendUserReset, adminUpdateUser, type PortalUser } from "../api/admin";
+import {
+  adminCreateUser,
+  adminDeleteUser,
+  adminListInstances,
+  adminListUsers,
+  adminSendUserReset,
+  adminUnlockUser,
+  adminUpdateUser,
+  type PortalUser,
+} from "../api/admin";
 import type { EmploymentTemplate } from "../types/employment";
 import { employmentTemplateLabel as formatEmploymentTemplateLabel } from "../utils/uiLabels";
 
@@ -35,6 +44,32 @@ function employmentTemplateLabel(value: PortalUser["employment_template"]): stri
   return formatEmploymentTemplateLabel(value);
 }
 
+function lockStatusLabel(user: PortalUser): string {
+  return user.is_locked ? "Je zablokován" : "Není zablokován";
+}
+
+function lockStatusTone(user: PortalUser): React.CSSProperties {
+  if (user.is_locked) {
+    return {
+      background: "rgba(239,68,68,0.09)",
+      borderColor: "rgba(239,68,68,0.24)",
+      color: "#b91c1c",
+    };
+  }
+  return {
+    background: "rgba(16,185,129,0.09)",
+    borderColor: "rgba(16,185,129,0.24)",
+    color: "#047857",
+  };
+}
+
+function lockStatusTitle(user: PortalUser): string | undefined {
+  if (!user.is_locked || !user.locked_until) return undefined;
+  const until = new Date(user.locked_until);
+  if (Number.isNaN(until.getTime())) return undefined;
+  return `Zablokováno do ${until.toLocaleString("cs-CZ")}`;
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<PortalUser[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,6 +87,7 @@ export default function AdminUsersPage() {
   const [editEmploymentTemplate, setEditEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
   const userCount = users?.length ?? 0;
   const configuredPasswordCount = (users ?? []).filter((user) => user.has_password).length;
+  const lockedUserCount = (users ?? []).filter((user) => user.is_locked).length;
 
   async function load() {
     setLoading(true);
@@ -162,6 +198,19 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function unlockUser(user: PortalUser) {
+    setSaving(true);
+    setError(null);
+    try {
+      await adminUnlockUser(user.id);
+      await load();
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Odblokování účtu se nezdařilo."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function migrateAttendancesToUsers() {
     setSaving(true);
     setError(null);
@@ -246,6 +295,10 @@ export default function AdminUsersPage() {
           <div className="admin-kpi">
             <div className="admin-kpi-value">{editingUserId ? 1 : 0}</div>
             <div className="admin-kpi-label">Právě upravované účty</div>
+          </div>
+          <div className="admin-kpi">
+            <div className="admin-kpi-value">{lockedUserCount}</div>
+            <div className="admin-kpi-label">Blokované účty</div>
           </div>
         </div>
       </section>
@@ -357,20 +410,21 @@ export default function AdminUsersPage() {
                   <th>Role</th>
                   <th>Úvazek</th>
                   <th>Heslo</th>
+                  <th>Účet</th>
                   <th style={{ textAlign: "right" }}>Akce</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={6} style={{ color: "var(--muted)" }}>
+                    <td colSpan={7} style={{ color: "var(--muted)" }}>
                       Načítám…
                     </td>
                   </tr>
                 )}
                 {!loading && (users || []).length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ color: "var(--muted)" }}>
+                    <td colSpan={7} style={{ color: "var(--muted)" }}>
                       Zatím nejsou žádní uživatelé.
                     </td>
                   </tr>
@@ -396,6 +450,11 @@ export default function AdminUsersPage() {
                           {u.has_password ? "Nastaveno" : "Nenastaveno"}
                         </span>
                       </td>
+                      <td>
+                        <span className="chip" style={lockStatusTone(u)} title={lockStatusTitle(u)}>
+                          {lockStatusLabel(u)}
+                        </span>
+                      </td>
                       <td style={{ textAlign: "right" }}>
                         <div style={{ display: "grid", gap: 6, justifyContent: "end" }}>
                           <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap" }}>
@@ -404,6 +463,9 @@ export default function AdminUsersPage() {
                             </button>
                             <button type="button" className="btn sm" onClick={() => sendReset(u.id)} disabled={saving}>
                               Poslat odkaz
+                            </button>
+                            <button type="button" className="btn sm" onClick={() => unlockUser(u)} disabled={saving || !u.is_locked}>
+                              Odblokovat
                             </button>
                           </div>
                           <div style={{ display: "flex", justifyContent: "flex-end" }}>

@@ -98,6 +98,9 @@ export type PortalUser = {
   has_password: boolean;
   employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
+  is_active?: boolean;
+  is_locked?: boolean;
+  locked_until?: string | null;
 };
 
 export type AdminUsersResponse = {
@@ -186,6 +189,13 @@ export async function adminSendUserReset(userId: number): Promise<{ ok: true }> 
 export async function adminDeleteUser(userId: number): Promise<{ ok: true }> {
   return apiFetch<{ ok: true }>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}`, {
     method: "DELETE",
+    headers: withCsrf(),
+  });
+}
+
+export async function adminUnlockUser(userId: number): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api/v1/admin/users/${encodeURIComponent(String(userId))}/unlock`, {
+    method: "POST",
     headers: withCsrf(),
   });
 }
