@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   adminCreateUser,
   adminDeleteUser,
+  adminListAttendanceProfiles,
   adminListInstances,
   adminListUsers,
   adminSendUserReset,
@@ -85,6 +86,8 @@ export default function AdminUsersPage() {
   const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState("employee");
   const [editEmploymentTemplate, setEditEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
+  const [attendanceProfiles, setAttendanceProfiles] = useState<Array<{ instance_id: string; label: string }>>([]);
+  const [editAttendanceProfileId, setEditAttendanceProfileId] = useState("");
   const userCount = users?.length ?? 0;
   const configuredPasswordCount = (users ?? []).filter((user) => user.has_password).length;
   const lockedUserCount = (users ?? []).filter((user) => user.is_locked).length;
@@ -93,8 +96,9 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await adminListUsers();
+      const [res, profilesRes] = await Promise.all([adminListUsers(), adminListAttendanceProfiles()]);
       setUsers(res.users || []);
+      setAttendanceProfiles((profilesRes.profiles || []).map((x) => ({ instance_id: x.instance_id, label: x.label })));
     } catch (err: unknown) {
       setError(errorMessage(err, "Nepodařilo se načíst uživatele."));
       setUsers([]);
@@ -134,6 +138,7 @@ export default function AdminUsersPage() {
     setEditEmail(u.email);
     setEditRole(u.role);
     setEditEmploymentTemplate(u.employment_template === "HPP" ? "HPP" : "DPP_DPC");
+    setEditAttendanceProfileId(u.attendance_profile_id ?? u.profile_instance_id ?? "");
   }
 
   function cancelEdit() {
@@ -142,6 +147,7 @@ export default function AdminUsersPage() {
     setEditEmail("");
     setEditRole("employee");
     setEditEmploymentTemplate("DPP_DPC");
+    setEditAttendanceProfileId("");
   }
 
   async function onUpdate(e: React.FormEvent) {
@@ -159,6 +165,7 @@ export default function AdminUsersPage() {
         email: editEmail.trim(),
         role: editRole,
         employment_template: editEmploymentTemplate,
+        attendance_profile_id: editAttendanceProfileId || null,
       });
       await load();
       cancelEdit();
@@ -510,6 +517,17 @@ export default function AdminUsersPage() {
                   {EMPLOYMENT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <div className="label">Vyber DL</div>
+                <select className="input" value={editAttendanceProfileId} onChange={(e) => setEditAttendanceProfileId(e.target.value)}>
+                  <option value="">Neprirazeno</option>
+                  {attendanceProfiles.map((profile) => (
+                    <option key={profile.instance_id} value={profile.instance_id}>
+                      {profile.label}
                     </option>
                   ))}
                 </select>

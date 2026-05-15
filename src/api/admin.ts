@@ -98,6 +98,8 @@ export type PortalUser = {
   has_password: boolean;
   employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
+  attendance_profile_id?: string | null;
+  attendance_profile_label?: string | null;
   is_active?: boolean;
   is_locked?: boolean;
   locked_until?: string | null;
@@ -131,7 +133,54 @@ export type AdminUpdateUserPayload = {
   role?: string;
   employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
+  attendance_profile_id?: string | null;
 };
+
+export type AttendanceProfile = {
+  instance_id: string;
+  label: string;
+  valid_from: string | null;
+  valid_to: string | null;
+  assigned_users_count: number;
+};
+
+export type AttendanceProfilesResponse = {
+  profiles: AttendanceProfile[];
+};
+
+export async function adminListAttendanceProfiles(): Promise<AttendanceProfilesResponse> {
+  return apiFetch<AttendanceProfilesResponse>("/api/v1/admin/attendance-profiles", { method: "GET" });
+}
+
+export async function adminCreateAttendanceProfile(payload: {
+  label: string;
+  valid_from?: string | null;
+  valid_to?: string | null;
+}): Promise<AttendanceProfile> {
+  return apiFetch<AttendanceProfile>("/api/v1/admin/attendance-profiles", {
+    method: "POST",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminUpdateAttendanceProfile(
+  instanceId: string,
+  payload: { label?: string; valid_from?: string | null; valid_to?: string | null },
+): Promise<AttendanceProfile> {
+  return apiFetch<AttendanceProfile>(`/api/v1/admin/attendance-profiles/${encodeURIComponent(instanceId)}`, {
+    method: "PUT",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminDeleteAttendanceProfile(instanceId: string): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api/v1/admin/attendance-profiles/${encodeURIComponent(instanceId)}`, {
+    method: "DELETE",
+    headers: withCsrf(),
+  });
+}
 
 export async function adminUpdateUser(userId: number, payload: AdminUpdateUserPayload): Promise<PortalUser> {
   const path = `/api/v1/admin/users/${encodeURIComponent(String(userId))}`;

@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApiError } from "../api/client";
 import { adminGetAttendanceMonth, adminLockAttendance, adminUpsertAttendance, adminUnlockAttendance, type AdminAttendanceDay } from "../api/adminAttendance";
-import { adminGetSettings, adminListInstances, type AdminInstance } from "../api/admin";
+import {
+  adminCreateAttendanceProfile,
+  adminDeleteAttendanceProfile,
+  adminGetSettings,
+  adminListAttendanceProfiles,
+  adminListInstances,
+  adminUpdateAttendanceProfile,
+  type AdminInstance,
+} from "../api/admin";
 import { computeDayCalc, computeMonthStats, parseCutoffToMinutes, workingDaysInMonthCs } from "../utils/attendanceCalc";
 import { normalizeTime, isValidTimeOrEmpty } from "../utils/timeInput";
 import { planStatusInputPlaceholder, planStatusLabel } from "../utils/planStatus";
@@ -71,6 +79,10 @@ function statusTone(status: string): { bg: string; fg: string; border: string } 
 
 export default function AdminAttendanceSheetsPage() {
   const [instances, setInstances] = useState<AdminInstance[] | null>(null);
+  const [profiles, setProfiles] = useState<Array<{ instance_id: string; label: string; valid_from: string | null; valid_to: string | null }>>([]);
+  const [newDlLabel, setNewDlLabel] = useState("");
+  const [newDlFrom, setNewDlFrom] = useState("");
+  const [newDlTo, setNewDlTo] = useState("");
   const [instancesLoading, setInstancesLoading] = useState(false);
   const [instancesError, setInstancesError] = useState<string | null>(null);
 
@@ -107,9 +119,10 @@ export default function AdminAttendanceSheetsPage() {
     setInstancesError(null);
     (async () => {
       try {
-        const res = await adminListInstances();
+        const [res, dlRes] = await Promise.all([adminListInstances(), adminListAttendanceProfiles()]);
         if (cancelled) return;
         setInstances(res.instances);
+        setProfiles(dlRes.profiles || []);
       } catch (err: unknown) {
         if (cancelled) return;
         setInstancesError(errorMessage(err, "Nepodařilo se načíst seznam instancí."));
@@ -139,7 +152,7 @@ export default function AdminAttendanceSheetsPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    const list = instances ?? [];
+    const list = instances?.filter((inst) => profiles.some((p) => p.instance_id === inst.id)) ?? [];
     const tokens = query
       .trim()
       .toLowerCase()
@@ -151,6 +164,44 @@ export default function AdminAttendanceSheetsPage() {
       return tokens.every((t) => hay.includes(t));
     });
   }, [instances, query]);
+
+  async function refreshProfiles() {
+    const dlRes = await adminListAttendanceProfiles();
+    setProfiles(dlRes.profiles || []);
+  }
+
+  async function createProfile() {
+    if (!newDlLabel.trim()) return;
+    await adminCreateAttendanceProfile({
+      label: newDlLabel.trim(),
+      valid_from: newDlFrom.trim() || null,
+      valid_to: newDlTo.trim() || null,
+    });
+    setNewDlLabel("");
+    setNewDlFrom("");
+    setNewDlTo("");
+    await refreshProfiles();
+  }
+
+  async function renameProfile(instanceId: string, currentLabel: string) {
+    const next = window.prompt("Novy nazev DL (ve formatu DL Prijmeni Jmeno):", currentLabel);
+    if (next == null || !next.trim()) return;
+    await adminUpdateAttendanceProfile(instanceId, { label: next.trim() });
+    await refreshProfiles();
+  }
+
+  async function setProfileValidity(instanceId: string, currentFrom: string | null, currentTo: string | null) {
+    const from = window.prompt("Platnost od (YYYY-MM-DD nebo prazdne):", currentFrom ?? "") ?? "";
+    const to = window.prompt("Platnost do (YYYY-MM-DD nebo prazdne):", currentTo ?? "") ?? "";
+    await adminUpdateAttendanceProfile(instanceId, { valid_from: from.trim() || null, valid_to: to.trim() || null });
+    await refreshProfiles();
+  }
+
+  async function deleteProfile(instanceId: string, label: string) {
+    if (!window.confirm(`Smazat ${label}?`)) return;
+    await adminDeleteAttendanceProfile(instanceId);
+    await refreshProfiles();
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -280,6 +331,52 @@ export default function AdminAttendanceSheetsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <section style={{ ...card }}>
+        <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>Sprava dochazkovych listu (DL)</div>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr auto", gap: 10, alignItems: "end" }}>
+          <div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Nazev DL</div>
+            <input className="input" value={newDlLabel} onChange={(e) => setNewDlLabel(e.target.value)} placeholder="DL Prijmeni Jmeno" />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Platny od</div>
+            <input className="input" value={newDlFrom} onChange={(e) => setNewDlFrom(e.target.value)} placeholder="YYYY-MM-DD" />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Platny do</div>
+            <input className="input" value={newDlTo} onChange={(e) => setNewDlTo(e.target.value)} placeholder="YYYY-MM-DD" />
+          </div>
+          <button type="button" className="btn solid" onClick={() => void createProfile()}>
+            Zalozit DL
+          </button>
+        </div>
+        <div className="admin-scroll" style={{ marginTop: 12 }}>
+          <table className="table" style={{ width: "100%" }}>
+            <thead>
+              <tr>
+                <th>DL</th>
+                <th>Platnost</th>
+                <th>Prirazeno</th>
+                <th style={{ textAlign: "right" }}>Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {profiles.map((profile) => (
+                <tr key={profile.instance_id}>
+                  <td>{profile.label}</td>
+                  <td>{profile.valid_from || "bez omezeni"} - {profile.valid_to || "bez omezeni"}</td>
+                  <td>{instances?.find((i) => i.id === profile.instance_id) ? "ano" : "ne"}</td>
+                  <td style={{ textAlign: "right" }}>
+                    <button type="button" className="btn sm" onClick={() => void renameProfile(profile.instance_id, profile.label)}>Prejmenovat</button>{" "}
+                    <button type="button" className="btn sm" onClick={() => void setProfileValidity(profile.instance_id, profile.valid_from, profile.valid_to)}>Platnost</button>{" "}
+                    <button type="button" className="btn sm" onClick={() => void deleteProfile(profile.instance_id, profile.label)}>Smazat</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
         <section style={{ ...card, flex: "1 1 340px", minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>Výběr instance</div>
