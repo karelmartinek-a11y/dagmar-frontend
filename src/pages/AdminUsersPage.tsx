@@ -71,6 +71,10 @@ function lockStatusTitle(user: PortalUser): string | undefined {
   return `Zablokováno do ${until.toLocaleString("cs-CZ")}`;
 }
 
+function userActiveLabel(user: PortalUser): string {
+  return user.is_active === false ? "Deaktivovaný" : "Aktivní";
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<PortalUser[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,6 +92,7 @@ export default function AdminUsersPage() {
   const [editEmploymentTemplate, setEditEmploymentTemplate] = useState<EmploymentTemplate>("DPP_DPC");
   const [attendanceProfiles, setAttendanceProfiles] = useState<Array<{ instance_id: string; label: string }>>([]);
   const [editAttendanceProfileId, setEditAttendanceProfileId] = useState("");
+  const [editIsActive, setEditIsActive] = useState(true);
   const userCount = users?.length ?? 0;
   const configuredPasswordCount = (users ?? []).filter((user) => user.has_password).length;
   const lockedUserCount = (users ?? []).filter((user) => user.is_locked).length;
@@ -139,6 +144,7 @@ export default function AdminUsersPage() {
     setEditRole(u.role);
     setEditEmploymentTemplate(u.employment_template === "HPP" ? "HPP" : "DPP_DPC");
     setEditAttendanceProfileId(u.attendance_profile_id ?? u.profile_instance_id ?? "");
+    setEditIsActive(u.is_active !== false);
   }
 
   function cancelEdit() {
@@ -148,6 +154,7 @@ export default function AdminUsersPage() {
     setEditRole("employee");
     setEditEmploymentTemplate("DPP_DPC");
     setEditAttendanceProfileId("");
+    setEditIsActive(true);
   }
 
   async function onUpdate(e: React.FormEvent) {
@@ -166,6 +173,7 @@ export default function AdminUsersPage() {
         role: editRole,
         employment_template: editEmploymentTemplate,
         attendance_profile_id: editAttendanceProfileId || null,
+        is_active: editIsActive,
       });
       await load();
       cancelEdit();
@@ -213,6 +221,28 @@ export default function AdminUsersPage() {
       await load();
     } catch (err: unknown) {
       setError(errorMessage(err, "Odblokování účtu se nezdařilo."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleUserActive(user: PortalUser) {
+    const nextActive = user.is_active === false;
+    const confirmed = window.confirm(
+      nextActive
+        ? `Aktivovat uživatele ${user.name}?`
+        : `Deaktivovat uživatele ${user.name}? Deaktivovaný účet se nebude moci přihlásit.`,
+    );
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      await adminUpdateUser(user.id, { is_active: nextActive });
+      if (editingUserId === user.id) setEditIsActive(nextActive);
+      await load();
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Změna stavu účtu se nezdařila."));
     } finally {
       setSaving(false);
     }
@@ -417,21 +447,22 @@ export default function AdminUsersPage() {
                   <th>Role</th>
                   <th>Úvazek</th>
                   <th>Heslo</th>
-                  <th>Účet</th>
+                  <th>Zámek</th>
+                  <th>Stav</th>
                   <th style={{ textAlign: "right" }}>Akce</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={7} style={{ color: "var(--muted)" }}>
+                    <td colSpan={8} style={{ color: "var(--muted)" }}>
                       Načítám…
                     </td>
                   </tr>
                 )}
                 {!loading && (users || []).length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ color: "var(--muted)" }}>
+                    <td colSpan={8} style={{ color: "var(--muted)" }}>
                       Zatím nejsou žádní uživatelé.
                     </td>
                   </tr>
@@ -462,6 +493,9 @@ export default function AdminUsersPage() {
                           {lockStatusLabel(u)}
                         </span>
                       </td>
+                      <td>
+                        <span className="chip">{userActiveLabel(u)}</span>
+                      </td>
                       <td style={{ textAlign: "right" }}>
                         <div style={{ display: "grid", gap: 6, justifyContent: "end" }}>
                           <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap" }}>
@@ -473,6 +507,9 @@ export default function AdminUsersPage() {
                             </button>
                             <button type="button" className="btn sm" onClick={() => unlockUser(u)} disabled={saving || !u.is_locked}>
                               Odblokovat
+                            </button>
+                            <button type="button" className="btn sm" onClick={() => toggleUserActive(u)} disabled={saving}>
+                              {u.is_active === false ? "Aktivovat" : "Deaktivovat"}
                             </button>
                           </div>
                           <div style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -530,6 +567,13 @@ export default function AdminUsersPage() {
                       {profile.label}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <div className="label">Stav účtu</div>
+                <select className="input" value={editIsActive ? "active" : "inactive"} onChange={(e) => setEditIsActive(e.target.value === "active")}>
+                  <option value="active">Aktivní</option>
+                  <option value="inactive">Deaktivovaný</option>
                 </select>
               </div>
               </div>

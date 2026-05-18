@@ -134,6 +134,7 @@ export type AdminUpdateUserPayload = {
   employment_template?: EmploymentTemplate | null;
   profile_instance_id?: string | null;
   attendance_profile_id?: string | null;
+  is_active?: boolean;
 };
 
 export type AttendanceProfile = {
