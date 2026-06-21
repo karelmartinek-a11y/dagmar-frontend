@@ -74,6 +74,7 @@ jobs:
             git checkout main
             git reset --hard origin/main
             rm -rf node_modules
+            export NODE_OPTIONS=--dns-result-order=ipv4first
             npm ci
             npm run build
             FRONT_TAG=$(git rev-parse --short HEAD)
