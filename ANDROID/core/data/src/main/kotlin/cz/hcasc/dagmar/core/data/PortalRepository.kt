@@ -27,7 +27,7 @@ class PortalRepository @Inject constructor(
         val response = portalApi.login(PortalLoginRequest(email, password))
         val state = PortalAuthState(
             accessToken = response.instance_token,
-            profileId = response.instance_id,
+            employmentId = response.employment_id,
             displayName = response.display_name,
         )
         authStore.save(state)
@@ -39,23 +39,27 @@ class PortalRepository @Inject constructor(
     }
 
     suspend fun fetchAttendance(year: Int, month: String): List<AttendanceDay> {
-        return attendanceApi.month(year, month).days
+        val employmentId = authStore.state.first().employmentId ?: return emptyList()
+        return attendanceApi.month(employmentId, year, month).days
     }
 
     suspend fun recordChange(day: AttendanceDay) {
-        val token = authStore.state.first().accessToken ?: return
-        val change = AttendanceChange(day.date, day.arrival_time, day.departure_time, System.currentTimeMillis())
+        val auth = authStore.state.first()
+        auth.accessToken ?: return
+        val employmentId = auth.employmentId ?: return
+        val change = AttendanceChange(employmentId, day.date, day.arrival_time, day.departure_time, System.currentTimeMillis())
         try {
-            attendanceApi.upsert(AttendanceUpdateRequest(day.date, day.arrival_time, day.departure_time))
-            queue.flush(token)
+            attendanceApi.upsert(AttendanceUpdateRequest(employmentId, day.date, day.arrival_time, day.departure_time))
+            queue.flush()
         } catch (t: Throwable) {
             queue.enqueue(change)
         }
     }
 
     suspend fun flushOffline() {
-        val token = authStore.state.first().accessToken
-        queue.flush(token)
+        val auth = authStore.state.first()
+        auth.accessToken ?: return
+        queue.flush()
     }
 
     suspend fun resetPassword(token: String, password: String) {

@@ -2,7 +2,7 @@
 // - Uses fetch
 // - Attaches instance token when available
 // - Provides small retry/backoff helpers for polling endpoints
-// - Never stores attendance offline; only instance_id/token may be persisted elsewhere
+// - Never stores attendance offline; only access token and UI state may be persisted elsewhere
 
 export type ApiErrorBody = {
   code?: string;

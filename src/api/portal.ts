@@ -13,7 +13,6 @@ export type PortalLoginEmployment = {
 };
 
 export type PortalLoginResponse = {
-  instance_id: string;
   instance_token: string;
   display_name: string;
   employment_id: number | null;

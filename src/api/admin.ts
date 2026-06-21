@@ -15,7 +15,6 @@ export type AdminInstance = {
   client_type: ClientType;
   status: InstanceStatus;
   display_name: string | null;
-  profile_instance_id?: string | null;
   created_at: string;
   last_seen_at: string | null;
   afternoon_cutoff?: string | null;

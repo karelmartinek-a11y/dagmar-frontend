@@ -98,10 +98,9 @@ data class PortalLoginRequest(val email: String, val password: String)
 
 @Serializable
 data class PortalLoginResponse(
-    val instance_id: String,
     val instance_token: String,
     val display_name: String? = null,
-    val employment_template: String? = null,
+    val employment_id: Int? = null,
     val afternoon_cutoff: String? = null,
 )
 
@@ -121,7 +120,12 @@ data class AttendanceDay(
 data class AttendanceMonthResponse(val days: List<AttendanceDay>)
 
 @Serializable
-data class AttendanceUpdateRequest(val date: String, val arrival_time: String? = null, val departure_time: String? = null)
+data class AttendanceUpdateRequest(
+    val employment_id: Int,
+    val date: String,
+    val arrival_time: String? = null,
+    val departure_time: String? = null,
+)
 
 interface PortalApi {
     @POST("/api/v1/portal/login")
@@ -134,6 +138,7 @@ interface PortalApi {
 interface AttendanceApi {
     @GET("/api/v1/attendance")
     suspend fun month(
+        @Query("employment_id") employmentId: Int,
         @Query("year") year: Int,
         @Query("month") month: String,
     ): AttendanceMonthResponse
@@ -152,7 +157,6 @@ data class AdminUserDto(
     val email: String,
     val role: String,
     val has_password: Boolean,
-    val profile_instance_id: String? = null,
     val is_active: Boolean = true,
 )
 
@@ -176,25 +180,61 @@ data class AdminInstance(val id: String, val display_name: String? = null)
 data class AdminAttendanceMonthResponse(val days: List<AttendanceDay>, val locked: Boolean = false)
 
 @Serializable
-data class LockMonthRequest(val instance_id: String, val year: Int, val month: Int)
+data class AdminAttendanceRequest(val employment_id: Int, val date: String, val arrival_time: String? = null, val departure_time: String? = null)
 
 @Serializable
-data class ShiftPlanRow(val instance_id: String, val display_name: String? = null, val employment_template: String, val days: List<AttendanceDay>)
+data class LockMonthRequest(val employment_id: Int, val year: Int, val month: Int)
+
+@Serializable
+data class AdminEmploymentMeta(
+    val id: Int,
+    val user_id: Int,
+    val user_name: String,
+    val title: String,
+    val employment_type: String,
+    val display_label: String,
+    val start_date: String,
+    val end_date: String? = null,
+)
+
+@Serializable
+data class ShiftPlanDay(
+    val date: String,
+    val arrival_time: String? = null,
+    val departure_time: String? = null,
+    val status: String? = null,
+)
+
+@Serializable
+data class ShiftPlanRow(
+    val employment_id: Int,
+    val user_name: String,
+    val title: String,
+    val employment_type: String,
+    val display_label: String,
+    val days: List<ShiftPlanDay>,
+)
 
 @Serializable
 data class ShiftPlanMonthResponse(
     val year: Int,
     val month: Int,
-    val selected_instance_ids: List<String> = emptyList(),
-    val active_instances: List<AdminInstance> = emptyList(),
+    val selected_employment_ids: List<Int> = emptyList(),
+    val available_employments: List<AdminEmploymentMeta> = emptyList(),
     val rows: List<ShiftPlanRow> = emptyList(),
 )
 
 @Serializable
-data class ShiftPlanSelectionRequest(val year: Int, val month: Int, val instance_ids: List<String>)
+data class ShiftPlanSelectionRequest(val year: Int, val month: Int, val employment_ids: List<Int>)
 
 @Serializable
-data class ShiftPlanUpsertRequest(val instance_id: String, val date: String, val arrival_time: String? = null, val departure_time: String? = null)
+data class ShiftPlanUpsertRequest(
+    val employment_id: Int,
+    val date: String,
+    val arrival_time: String? = null,
+    val departure_time: String? = null,
+    val status: String? = null,
+)
 
 @Serializable
 data class SmtpSettings(
@@ -234,13 +274,13 @@ interface AdminApi {
 
     @GET("/api/v1/admin/attendance")
     suspend fun getAttendance(
-        @Query("instance_id") instanceId: String,
+        @Query("employment_id") employmentId: Int,
         @Query("year") year: Int,
         @Query("month") month: String,
     ): AdminAttendanceMonthResponse
 
     @PUT("/api/v1/admin/attendance")
-    suspend fun upsertAttendance(@Body request: AttendanceUpdateRequest): ApiOk
+    suspend fun upsertAttendance(@Body request: AdminAttendanceRequest): ApiOk
 
     @POST("/api/v1/admin/attendance/lock")
     suspend fun lockMonth(@Body request: LockMonthRequest): ApiOk
@@ -261,7 +301,7 @@ interface AdminApi {
     @Streaming
     suspend fun export(
         @Query("month") month: String,
-        @Query("instance_id") instanceId: String? = null,
+        @Query("employment_id") employmentId: Int? = null,
         @Query("bulk") bulk: Boolean? = null,
     ): Response<ResponseBody>
 

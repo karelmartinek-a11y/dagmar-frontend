@@ -24,6 +24,7 @@ private val Context.attendanceQueueDataStore by preferencesDataStore(DATA_STORE_
 
 @Serializable
 data class AttendanceChange(
+    val employment_id: Int,
     val date: String,
     val arrival_time: String? = null,
     val departure_time: String? = null,
@@ -55,13 +56,19 @@ class AttendanceQueueRepository @Inject constructor(
         }
     }
 
-    suspend fun flush(instanceToken: String?) {
-        if (instanceToken == null) return
+    suspend fun flush() {
         mutex.withLock {
             val prefs = dataStore.data.first()
             val pending = prefs[queueKey]?.let { json.decodeFromString<List<AttendanceChange>>(it) } ?: emptyList()
             for (change in pending.sortedBy { it.enqueuedAt }) {
-                attendanceApi.upsert(AttendanceUpdateRequest(change.date, change.arrival_time, change.departure_time))
+                attendanceApi.upsert(
+                    AttendanceUpdateRequest(
+                        employment_id = change.employment_id,
+                        date = change.date,
+                        arrival_time = change.arrival_time,
+                        departure_time = change.departure_time,
+                    ),
+                )
             }
             dataStore.edit { it.remove(queueKey) }
         }

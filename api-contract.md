@@ -1,9 +1,9 @@
-# DAGMAR – API Contract
+# DAGMAR – frontend kontrakt
 
-Verze: 2026-05-20  
+Verze: 2026-06-12  
 Base path: `/api/v1`
 
-Frontend očekává, že evidence docházky, plán služeb, zámky i exporty jsou vázané na `employment_id`. `instance_id` zůstává jen pro přihlašovací token a legacy provisioning.
+Frontend očekává, že evidence docházky, plán služeb, zámky i exporty jsou vázané na `employment_id`. Po přihlášení si ukládá pouze Bearer token a pracovní stav UI; historický autentizační identifikátor instance už z login response nepřebírá.
 
 ## Portal login
 
@@ -11,7 +11,6 @@ Frontend očekává, že evidence docházky, plán služeb, zámky i exporty jso
 Response:
 ```json
 {
-  "instance_id": "uuid",
   "instance_token": "string",
   "display_name": "Jan Novák",
   "employment_id": 17,
@@ -40,26 +39,9 @@ Frontend:
 ## Employee evidence
 
 ### GET `/api/v1/attendance?employment_id=17&year=2026&month=3`
-Response:
-```json
-{
-  "employment_id": 17,
-  "employment_label": "Jan Novák – HPP – Recepce",
-  "days": [
-    {
-      "date": "2026-03-01",
-      "arrival_time": "08:00",
-      "departure_time": "16:00",
-      "planned_arrival_time": "08:00",
-      "planned_departure_time": "16:00",
-      "planned_status": null,
-      "is_within_employment_period": true
-    }
-  ]
-}
-```
-
 ### PUT `/api/v1/attendance`
+
+Request:
 ```json
 {
   "employment_id": 17,
@@ -72,39 +54,6 @@ Response:
 ## Admin users
 
 ### GET `/api/v1/admin/users`
-Response:
-```json
-{
-  "users": [
-    {
-      "id": 1,
-      "name": "Jan Novák",
-      "email": "jan@example.cz",
-      "phone": "+420123456789",
-      "role": "employee",
-      "has_password": true,
-      "is_active": true,
-      "is_locked": false,
-      "locked_until": null,
-      "login_status": "ACTIVE",
-      "login_status_reason": null,
-      "employments": [
-        {
-          "id": 17,
-          "user_id": 1,
-          "title": "Recepce",
-          "employment_type": "HPP",
-          "start_date": "2025-01-01",
-          "end_date": null,
-          "is_active": true,
-          "label": "Jan Novák – HPP – Recepce"
-        }
-      ]
-    }
-  ]
-}
-```
-
 ### POST `/api/v1/admin/users`
 ### PUT `/api/v1/admin/users/{user_id}`
 ### DELETE `/api/v1/admin/users/{user_id}`
@@ -118,24 +67,7 @@ Response:
 ### PUT `/api/v1/admin/employments/{employment_id}`
 ### DELETE `/api/v1/admin/employments/{employment_id}`
 
-Při zkrácení období může přijít `409` s:
-```json
-{
-  "detail": {
-    "code": "employment_period_conflict",
-    "attendance_count": 2,
-    "shift_plan_count": 1,
-    "attendance_lock_count": 0,
-    "shift_plan_selection_count": 1,
-    "reminder_count": 0,
-    "problem_range_start": "2026-03-01",
-    "problem_range_end": "2026-04-30",
-    "requires_confirmation": true
-  }
-}
-```
-
-Frontend musí zobrazit potvrzovací dialog v češtině a po souhlasu zopakovat požadavek s `confirm_delete_out_of_range: true`.
+Při zkrácení období může přijít `409` s `employment_period_conflict`. Frontend musí zobrazit potvrzovací dialog v češtině a po souhlasu zopakovat požadavek s `confirm_delete_out_of_range: true`.
 
 ## Admin evidence docházky
 
@@ -143,16 +75,6 @@ Frontend musí zobrazit potvrzovací dialog v češtině a po souhlasu zopakovat
 ### PUT `/api/v1/admin/attendance`
 ### POST `/api/v1/admin/attendance/lock`
 ### POST `/api/v1/admin/attendance/unlock`
-
-Request:
-```json
-{
-  "employment_id": 17,
-  "date": "2026-03-01",
-  "arrival_time": "08:00",
-  "departure_time": "16:00"
-}
-```
 
 Lock:
 ```json
