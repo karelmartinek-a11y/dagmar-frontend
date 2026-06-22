@@ -7,6 +7,7 @@ describe("admin login next-path sanitizace", () => {
   it("propusti nove admin routy prehled a instances", () => {
     expect(sanitizeAdminNextPath("?next=/admin/prehled", origin)).toBe("/admin/prehled");
     expect(sanitizeAdminNextPath("?next=/admin/instances", origin)).toBe("/admin/instances");
+    expect(sanitizeAdminNextPath("?next=/admin/integrace", origin)).toBe("/admin/integrace");
   });
 
   it("vrati fallback pro cizi nebo nebezpecne cesty", () => {

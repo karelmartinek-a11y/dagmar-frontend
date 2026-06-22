@@ -382,6 +382,28 @@ export async function adminMergeInstances(
 
 export type AdminSettings = { afternoon_cutoff: string };
 
+export type IntegrationClient = {
+  id: number;
+  name: string;
+  status: "ACTIVE" | "DISABLED" | "REVOKED";
+  scopes: string[];
+  allowed_employment_ids: number[];
+  allowed_employee_ids: number[];
+  ip_allowlist: string[];
+  expires_at: string | null;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  active_secret_fingerprint: string | null;
+  active_secret_last4: string | null;
+};
+
+export type IntegrationClientSecretResponse = {
+  client: IntegrationClient;
+  plaintext_token: string;
+};
+
 export async function adminGetSettings(): Promise<AdminSettings> {
   return apiFetch<AdminSettings>("/api/v1/admin/settings", { method: "GET" });
 }
@@ -391,6 +413,64 @@ export async function adminSetSettings(cutoff: string): Promise<{ ok: true }> {
     method: "PUT",
     headers: withCsrf(),
     body: { afternoon_cutoff: cutoff },
+  });
+}
+
+export async function adminListIntegrationClients(): Promise<IntegrationClient[]> {
+  return apiFetch<IntegrationClient[]>("/api/v1/admin/integrations/clients", { method: "GET" });
+}
+
+export async function adminCreateIntegrationClient(payload: {
+  name: string;
+  scopes: string[];
+  allowed_employment_ids: number[];
+  allowed_employee_ids: number[];
+  ip_allowlist: string[];
+  expires_at: string | null;
+  created_by?: string | null;
+}): Promise<IntegrationClientSecretResponse> {
+  return apiFetch<IntegrationClientSecretResponse>("/api/v1/admin/integrations/clients", {
+    method: "POST",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminRotateIntegrationClient(clientId: number): Promise<IntegrationClientSecretResponse> {
+  return apiFetch<IntegrationClientSecretResponse>(`/api/v1/admin/integrations/clients/${clientId}/rotate`, {
+    method: "POST",
+    headers: withCsrf(),
+  });
+}
+
+export async function adminDisableIntegrationClient(clientId: number): Promise<IntegrationClient> {
+  return apiFetch<IntegrationClient>(`/api/v1/admin/integrations/clients/${clientId}/disable`, {
+    method: "POST",
+    headers: withCsrf(),
+  });
+}
+
+export async function adminEnableIntegrationClient(
+  clientId: number,
+  payload?: {
+    scopes?: string[];
+    allowed_employment_ids?: number[];
+    allowed_employee_ids?: number[];
+    ip_allowlist?: string[];
+    expires_at?: string | null;
+  }
+): Promise<IntegrationClient> {
+  return apiFetch<IntegrationClient>(`/api/v1/admin/integrations/clients/${clientId}/enable`, {
+    method: "POST",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminRevokeIntegrationSecret(clientId: number): Promise<IntegrationClient> {
+  return apiFetch<IntegrationClient>(`/api/v1/admin/integrations/clients/${clientId}/revoke-secret`, {
+    method: "POST",
+    headers: withCsrf(),
   });
 }
 

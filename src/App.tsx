@@ -12,6 +12,7 @@ import AdminShiftPlanPage from "./pages/AdminShiftPlanPage";
 import AdminPrintsPage from "./pages/AdminPrintsPage";
 import AdminPrintPreviewPage from "./pages/AdminPrintPreviewPage";
 import AdminInstancesPage from "./pages/AdminInstancesPage";
+import AdminIntegrationsPage from "./pages/AdminIntegrationsPage";
 import PortalResetPage from "./pages/PortalResetPage";
 
 type VersionPayload = {
@@ -91,6 +92,7 @@ function AppShell() {
           <Route path="tisky" element={<AdminPrintsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="instances" element={<AdminInstancesPage />} />
+          <Route path="integrace" element={<AdminIntegrationsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/app" replace />} />

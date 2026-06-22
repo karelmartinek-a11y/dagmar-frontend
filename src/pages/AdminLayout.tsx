@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { to: "/admin/export", label: "Export" },
   { to: "/admin/settings", label: "Nastavení" },
   { to: "/admin/instances", label: "Zařízení" },
+  { to: "/admin/integrace", label: "Integrace" },
 ];
 
 function locationLabel(pathname: string) {

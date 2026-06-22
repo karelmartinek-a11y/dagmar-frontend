@@ -11,6 +11,7 @@ const VALID_ADMIN_PATHS = new Set([
   "/admin/tisky/preview",
   "/admin/settings",
   "/admin/instances",
+  "/admin/integrace",
 ]);
 
 export function getAdminFallbackPath() {
