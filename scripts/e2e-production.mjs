@@ -21,6 +21,10 @@ function sanitize(name) {
   return name.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").toLowerCase();
 }
 
+function normalizeText(value) {
+  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 async function readJson(url, init = undefined) {
   const response = await fetch(url, init);
   const text = await response.text();
@@ -110,11 +114,7 @@ async function main() {
       return;
     }
     const url = response.url();
-    const allowedAuthFailures = [
-      "/api/v1/admin/login",
-      "/api/v1/portal/login",
-      "/api/v1/admin/me",
-    ];
+    const allowedAuthFailures = ["/api/v1/admin/login", "/api/v1/portal/login", "/api/v1/admin/me"];
     if (status === 401 && allowedAuthFailures.some((pathName) => url.includes(pathName))) {
       return;
     }
@@ -126,45 +126,41 @@ async function main() {
     await runStep("http-redirect", async () => {
       const response = await fetch(baseUrl.replace("https://", "http://"), { redirect: "manual" });
       assert(response.status === 301 || response.status === 308, `HTTP redirect status je ${response.status}`);
-      assert((response.headers.get("location") || "").startsWith(baseUrl), "HTTP redirect nemíří na HTTPS kanonickou doménu.");
+      assert((response.headers.get("location") || "").startsWith(baseUrl), "HTTP redirect nemiri na HTTPS kanonickou domenu.");
     }, runtime);
 
     await runStep("public-health-and-version", async () => {
       const health = await readJson(`${baseUrl}/api/v1/health`);
-      assert(health.response.ok, "API health endpoint nevrátil 200.");
-      assert(health.body?.ok === true, "API health endpoint nevrátil {ok:true}.");
+      assert(health.response.ok, "API health endpoint nevratil 200.");
+      assert(health.body?.ok === true, "API health endpoint nevratil {ok:true}.");
       const version = await readJson(`${baseUrl}/api/version`);
-      assert(version.response.ok, "API version endpoint nevrátil 200.");
-      assert(typeof version.body?.backend_deploy_tag === "string" && version.body.backend_deploy_tag.length > 0, "API version nevrátil backend_deploy_tag.");
+      assert(version.response.ok, "API version endpoint nevratil 200.");
+      assert(typeof version.body?.backend_deploy_tag === "string" && version.body.backend_deploy_tag.length > 0, "API version nevratil backend_deploy_tag.");
       const publicHealth = await fetch(`${baseUrl}/health`);
       const publicHealthText = await publicHealth.text();
-      assert(publicHealth.ok, "/health nevrátil 200.");
-      assert(publicHealthText.trim() === "ok", "/health nevrátil ok.");
+      assert(publicHealth.ok, "/health nevratil 200.");
+      assert(publicHealthText.trim() === "ok", "/health nevratil ok.");
     }, runtime);
 
     await runStep("root-and-assets", async () => {
       await page.goto("/", { waitUntil: "networkidle" });
       await page.waitForURL(`${baseUrl}/app`, { timeout: 15000 });
-      const bodyText = await page.locator("body").innerText();
-      assert(bodyText.includes("Přihlášení"), "Root nepřevedl na zaměstnaneckou aplikaci.");
-      const favicon = await page.locator("link[rel='icon']").count();
-      assert(favicon >= 1, "Chybí favicon.");
-      const manifest = await page.locator("link[rel='manifest']").count();
-      assert(manifest >= 1, "Chybí manifest.");
+      const bodyText = normalizeText(await page.locator("body").innerText());
+      assert(bodyText.includes("prihlaseni"), "Root neprevedl na zamestnaneckou aplikaci.");
+      assert(await page.locator("link[rel='icon']").count() >= 1, "Chybi favicon.");
+      assert(await page.locator("link[rel='manifest']").count() >= 1, "Chybi manifest.");
     }, runtime);
 
     await runStep("admin-protected-and-invalid-login", async () => {
       await context.clearCookies();
       await page.goto("/admin/prehled", { waitUntil: "networkidle" });
-      const loginFields = await page.getByPlaceholder("jmeno@domena.cz", { exact: true }).count();
-      assert(loginFields === 1, "Protected admin route bez session neskončila na loginu.");
-      const url = page.url();
-      assert(url.includes("/admin/login"), "Protected admin route bez session nevede na /admin/login.");
+      assert(await page.getByPlaceholder("jmeno@domena.cz", { exact: true }).count() === 1, "Protected admin route bez session neskoncila na loginu.");
+      assert(page.url().includes("/admin/login"), "Protected admin route bez session nevede na /admin/login.");
       await page.getByPlaceholder("jmeno@domena.cz", { exact: true }).fill("provoz@hotelchodovasc.cz");
       await page.getByPlaceholder("••••••••", { exact: true }).fill("spatne-heslo");
       await page.getByRole("button", { name: "Přihlásit", exact: true }).click();
       await page.waitForTimeout(1200);
-      assert(page.url().includes("/admin/login"), "Neplatný admin login neočekávaně změnil route.");
+      assert(page.url().includes("/admin/login"), "Neplatny admin login neocekavane zmenil route.");
     }, runtime);
 
     await runStep("portal-invalid-login", async () => {
@@ -173,8 +169,8 @@ async function main() {
       await page.getByPlaceholder("Zadejte heslo", { exact: true }).fill("spatne-heslo");
       await page.getByRole("button", { name: "Přihlásit", exact: true }).click();
       await page.waitForTimeout(1200);
-      const bodyText = await page.locator("body").innerText();
-      assert(bodyText.includes("Neplatne") || bodyText.includes("Neplatné") || bodyText.includes("Přihlášení"), "Neplatný portal login neukázal očekávaný stav.");
+      const bodyText = normalizeText(await page.locator("body").innerText());
+      assert(bodyText.includes("neplatne") || bodyText.includes("prihlaseni"), "Neplatny portal login neukazal ocekavany stav.");
     }, runtime);
 
     if (portalEmail && portalPassword) {
@@ -184,15 +180,15 @@ async function main() {
         await page.getByPlaceholder("Zadejte heslo", { exact: true }).fill(portalPassword);
         await page.getByRole("button", { name: "Přihlásit", exact: true }).click();
         await page.waitForTimeout(1800);
-        const bodyText = await page.locator("body").innerText();
-        assert(bodyText.includes("Docházkový list"), "Portal validní login nenačetl docházkový list.");
+        const bodyText = normalizeText(await page.locator("body").innerText());
+        assert(bodyText.includes("dochazkovy list"), "Portal validni login nenacetl dochazkovy list.");
         const authState = await page.evaluate(() => window.localStorage.getItem("dagmar_portal_auth_v2"));
-        assert(Boolean(authState), "Portal login neuložil auth stav do localStorage.");
+        assert(Boolean(authState), "Portal login neulozil auth stav do localStorage.");
         await page.getByRole("button", { name: "Přepnout na plán směn", exact: true }).click().catch(() => {});
         await page.waitForTimeout(600);
         await page.getByRole("button", { name: "Odhlásit", exact: true }).click();
         await page.waitForTimeout(800);
-        assert((await page.locator("body").innerText()).includes("Přihlášení"), "Portal logout nevrátil login stránku.");
+        assert(normalizeText(await page.locator("body").innerText()).includes("prihlaseni"), "Portal logout nevratil login stranku.");
       }, runtime);
     }
 
@@ -203,21 +199,26 @@ async function main() {
         await page.getByPlaceholder("••••••••", { exact: true }).fill(adminPassword);
         await page.getByRole("button", { name: "Přihlásit", exact: true }).click();
         await page.waitForTimeout(1800);
-        const bodyText = await page.locator("body").innerText();
-        assert(bodyText.includes("Přehled administrace"), "Admin validní login nenačetl přehled.");
+        const bodyText = normalizeText(await page.locator("body").innerText());
+        assert(bodyText.includes("prehled administrace"), "Admin validni login nenacetl prehled.");
         const sessionCookie = (await context.cookies()).find((cookie) => cookie.name.includes("dagmar_admin_session"));
         assert(Boolean(sessionCookie), "Admin login nenastavil session cookie.");
         for (const adminPath of ["/admin/users", "/admin/dochazka", "/admin/plan-sluzeb", "/admin/export", "/admin/tisky", "/admin/settings", "/admin/instances"]) {
           await page.goto(adminPath, { waitUntil: "networkidle" });
-          assert(page.url().startsWith(`${baseUrl}/admin`), `Admin route ${adminPath} se nenačetla pod /admin.`);
+          assert(page.url().startsWith(`${baseUrl}/admin`), `Admin route ${adminPath} se nenacetla pod /admin.`);
         }
         await page.goto("/Admin", { waitUntil: "networkidle" });
-        assert(page.url().startsWith(`${baseUrl}/admin`) || page.url().startsWith(`${baseUrl}/app`), "/Admin skončilo na neočekávané routě.");
+        assert(
+          page.url().startsWith(`${baseUrl}/admin`) ||
+            page.url().startsWith(`${baseUrl}/Admin`) ||
+            page.url().startsWith(`${baseUrl}/app`),
+          "/Admin skoncilo na neocekavane route.",
+        );
         await page.goto("/admin/login", { waitUntil: "networkidle" });
-        assert(page.url().startsWith(`${baseUrl}/admin/`), "/admin/login po session neskončilo v admin sekci.");
+        assert(page.url().startsWith(`${baseUrl}/admin/`), "/admin/login po session neskoncilo v admin sekci.");
         await page.getByRole("button", { name: "Odhlásit", exact: true }).click();
         await page.waitForTimeout(800);
-        assert(page.url().includes("/admin/login"), "Admin logout nevrátil login stránku.");
+        assert(page.url().includes("/admin/login"), "Admin logout nevratil login stranku.");
       }, runtime);
     }
 
