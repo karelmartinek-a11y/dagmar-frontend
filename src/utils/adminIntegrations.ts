@@ -54,3 +54,10 @@ export function applyPermissionProfile(
 export function normalizeScopeSelection(scopeIds: string[]): string[] {
   return Array.from(new Set(scopeIds)).sort();
 }
+
+export function integrationScopeWarning(scopeId: string): string | null {
+  if (scopeId === "attendance:delete") {
+    return "Mazání docházky je nevratný zásah do evidence. Zapínejte jen pro auditovaný proces oprav a jen po výslovném schválení správce.";
+  }
+  return null;
+}

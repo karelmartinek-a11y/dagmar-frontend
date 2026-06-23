@@ -14,7 +14,14 @@ import {
   type IntegrationClientOptions,
 } from "../api/admin";
 import { ConfirmDialog, EmptyState, InlineNotice, PageHeader, SidePanel, StateBadge, Toast } from "../components/admin/AdminUI";
-import { applyPermissionProfile, buildDraftFromClient, buildEmptyIntegrationDraft, normalizeScopeSelection, type IntegrationDraft } from "../utils/adminIntegrations";
+import {
+  applyPermissionProfile,
+  buildDraftFromClient,
+  buildEmptyIntegrationDraft,
+  integrationScopeWarning,
+  normalizeScopeSelection,
+  type IntegrationDraft,
+} from "../utils/adminIntegrations";
 import Button from "../ui/Button";
 import { employmentTemplateLabel } from "../utils/uiLabels";
 
@@ -587,6 +594,7 @@ function IntegrationForm(props: {
                   <div>{scope.data_access}</div>
                   <div>{scope.when_to_enable}</div>
                   <div>Riziko: {scope.risk}</div>
+                  {integrationScopeWarning(scope.id) ? <InlineNotice tone="warning">{integrationScopeWarning(scope.id)}</InlineNotice> : null}
                   {!scope.available ? <div>{scope.unavailable_reason}</div> : null}
                 </span>
               </label>

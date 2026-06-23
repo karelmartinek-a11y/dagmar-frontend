@@ -6,6 +6,9 @@ const scopes = [
   ["employments:read", "Čtení seznamu úvazků."],
   ["shift_plan:read", "Čtení plánu směn."],
   ["attendance:read", "Čtení denní docházky."],
+  ["attendance:create", "Vytvoření nového docházkového záznamu pro existující employment_id a datum."],
+  ["attendance:update", "Částečná úprava existujícího docházkového záznamu."],
+  ["attendance:delete", "Smazání existujícího docházkového záznamu."],
   ["punches:read", "Čtení odvozených průchodů."],
   ["locks:read", "Čtení měsíčních zámků docházky."],
   ["openapi:read", "Stažení chráněného OpenAPI JSON integračního API."],
@@ -38,7 +41,28 @@ const endpoints = [
     scope: "attendance:read",
     purpose: "Denní docházka v období.",
     params: "Povinné: date_from, date_to. Volitelné: employment_id, employee_id, include_plan, include_locks, include_punches, include_corrections, limit, cursor.",
-    note: "Maximální období je 31 dnů. include_corrections vrací aktuálně correction_status: not_tracked.",
+    note: "Maximální období je 31 dnů. include_corrections aktuálně vrací correction_status: not_tracked.",
+  },
+  {
+    path: "POST /attendances",
+    scope: "attendance:create",
+    purpose: "Vytvoření nového docházkového záznamu.",
+    params: "JSON body: employment_id, date, arrival_time?, departure_time?.",
+    note: "Pokud docházka pro employment_id + date už existuje, API vrátí 409 duplicate_attendance.",
+  },
+  {
+    path: "PATCH /attendances/{attendance_id}",
+    scope: "attendance:update",
+    purpose: "Částečná úprava docházkového záznamu.",
+    params: "JSON body: arrival_time?, departure_time?, expected_updated_at?.",
+    note: "Lze měnit jen skutečně uložené časy docházky. Ostatní pole jsou technická nebo systémová.",
+  },
+  {
+    path: "DELETE /attendances/{attendance_id}",
+    scope: "attendance:delete",
+    purpose: "Smazání docházkového záznamu.",
+    params: "Volitelné JSON body: expected_updated_at.",
+    note: "Mazání respektuje stejný datový rozsah jako čtení a nikdy neobchází zamčené období.",
   },
   {
     path: "GET /punches",
@@ -52,7 +76,7 @@ const endpoints = [
     scope: "locks:read",
     purpose: "Měsíční zámky docházky.",
     params: "Zadejte year+month nebo date_from+date_to. Dále volitelně employment_id, employee_id, limit, cursor.",
-    note: "Vrací pouze existující zámky. Aktuální implementace zde nemá 31denní limit.",
+    note: "Vrací pouze existující zámky.",
   },
   {
     path: "GET /openapi.json",
@@ -64,58 +88,78 @@ const endpoints = [
 ] as const;
 
 const errorRows = [
+  ["400", "invalid_request", "Neplatné nebo chybějící parametry."],
+  ["400", "validation_error", "Neplatný JSON payload nebo neplatný formát hodnot."],
+  ["400", "invalid_attendance_payload", "Payload neobsahuje žádné zapisovatelné pole docházky."],
+  ["400", "period_too_large", "Období na shift-plan, attendances nebo punches přesáhlo 31 dnů."],
   ["401", "missing_token", "Požadavek neposlal bearer token."],
   ["401", "invalid_token", "Token neodpovídá aktivnímu secretu nebo má neplatný formát."],
   ["403", "client_disabled", "Klient je zakázaný nebo expiroval."],
   ["403", "ip_forbidden", "IP adresa není v allowlistu klienta."],
   ["403", "insufficient_scope", "Klient nemá potřebný scope nebo žádá data mimo povolený rozsah."],
-  ["400", "invalid_request", "Neplatné nebo chybějící parametry."],
-  ["400", "period_too_large", "Období na shift-plan, attendances nebo punches přesáhlo 31 dnů."],
-  ["404", "not_found", "Nepodporovaný endpoint v integračním namespace."],
+  ["404", "not_found", "Požadovaný úvazek nebo docházkový záznam nebyl nalezen."],
+  ["409", "conflict", "Docházka byla mezitím změněna nebo datum neleží v platném období úvazku."],
+  ["409", "duplicate_attendance", "Docházka pro employment_id + date už existuje."],
+  ["409", "attendance_locked", "Docházka spadá do zamčeného období a nelze ji měnit."],
   ["429", "rate_limited", "Byl překročen limit požadavků."],
   ["500", "internal_error", "Došlo k interní chybě."],
 ] as const;
 
 const sampleError = `{
   "error": {
-    "code": "missing_token",
-    "message": "Chybí přístupový token.",
+    "code": "attendance_locked",
+    "message": "Docházka za zvolené období je uzamčena.",
     "request_id": "0f86d61ffe3d448d91981d8cb373e766"
   }
 }`;
 
-const healthExample = `curl -sS \\
+const createExample = `curl -sS \\
+  -X POST \\
   -H "Authorization: Bearer ${placeholderToken}" \\
-  ${baseUrl}/health`;
+  -H "Content-Type: application/json" \\
+  -d '{
+    "employment_id": 101,
+    "date": "2026-06-12",
+    "arrival_time": "08:00",
+    "departure_time": "16:30"
+  }' \\
+  ${baseUrl}/attendances`;
 
-const punchesExample = `curl -sS \\
+const patchExample = `curl -sS \\
+  -X PATCH \\
   -H "Authorization: Bearer ${placeholderToken}" \\
-  "${baseUrl}/punches?date_from=2026-06-10&date_to=2026-06-16"`;
+  -H "Content-Type: application/json" \\
+  -d '{
+    "departure_time": "16:45",
+    "expected_updated_at": "2026-06-23T09:14:00Z"
+  }' \\
+  ${baseUrl}/attendances/501`;
 
-const paginationExample = `curl -sS \\
+const deleteExample = `curl -sS \\
+  -X DELETE \\
   -H "Authorization: Bearer ${placeholderToken}" \\
-  "${baseUrl}/employments?limit=100&cursor=eyJjdXJzb3Jfa2V5IjoxMDF9"`;
-
-const periodErrorExample = `curl -sS \\
-  -H "Authorization: Bearer ${placeholderToken}" \\
-  "${baseUrl}/attendances?date_from=2026-06-01&date_to=2026-07-15"`;
+  -H "Content-Type: application/json" \\
+  -d '{
+    "expected_updated_at": "2026-06-23T09:14:00Z"
+  }' \\
+  ${baseUrl}/attendances/501`;
 
 export default function IntegrationApiDocsPage() {
   return (
     <main className="integration-docs">
       <section className="integration-docs-hero">
         <div className="integration-docs-hero-copy">
-          <div className="integration-docs-eyebrow">Read-only integrační API</div>
+          <div className="integration-docs-eyebrow">Integrační API pro docházku</div>
           <h1>Dokumentace integračního API Dagmar</h1>
           <p>
-            Veřejná partnerská dokumentace k externímu API pod <code>/api/v1/integration</code>. Popisuje aktuálně
-            implementovaný stav a je určená pro technického partnera, který potřebuje bezpečně číst úvazky, plán směn,
-            docházku, odvozené průchody a zámky.
+            Veřejná partnerská dokumentace k externímu API pod <code>/api/v1/integration</code>. API umožňuje bezpečně číst
+            úvazky, plán směn, docházku, odvozené průchody a zámky. Zápisová část se týká výhradně docházky a nikdy
+            neslouží pro správu uživatelů, zaměstnanců, úvazků, hesel, plánů služeb ani zámků.
           </p>
           <div className="integration-docs-badges">
             <span>Base URL: {baseUrl}</span>
             <span>API verze: v1</span>
-            <span>Contract version: 2026-06-22</span>
+            <span>Contract version: 2026-06-23</span>
             <span>Datum dokumentace: 2026-06-23</span>
           </div>
         </div>
@@ -125,39 +169,35 @@ export default function IntegrationApiDocsPage() {
             <li>Získejte od správce Dagmar integrační bearer token.</li>
             <li>Posílejte jej v hlavičce <code>Authorization: Bearer {placeholderToken}</code>.</li>
             <li>Začněte endpointem <code>/health</code>.</li>
-            <li>Potom integrujte <code>employments</code>, <code>shift-plan</code>, <code>attendances</code>, <code>punches</code> a <code>locks</code>.</li>
+            <li>Potom si podle přidělených scopes zapněte read-only nebo write scénáře pro docházku.</li>
           </ol>
           <p className="integration-docs-small">
-            API není určené pro zápis. Nepoužívejte admin session ani zaměstnanecký bearer token.
+            Admin session cookie ani zaměstnanecký bearer token zde nefungují. Používejte pouze integrační tokeny s prefixem
+            <code> dgi_</code>.
           </p>
         </aside>
       </section>
 
       <section className="integration-docs-grid">
         <article className="integration-docs-card">
-          <h2>Autentizace</h2>
-          <p>
-            Integrační API používá samostatný bearer token s prefixem <code>dgi_</code>. Token je oddělený od admin
-            session i od zaměstnaneckého tokenu.
-          </p>
-          <pre><code>{`Authorization: Bearer ${placeholderToken}`}</code></pre>
+          <h2>Bezpečnostní model</h2>
           <ul>
-            <li>Token získává partner od správce Dagmar mimo API.</li>
-            <li>Token neposílejte v URL ani v query stringu.</li>
-            <li>Používejte pouze HTTPS.</li>
-            <li>Po úniku tokenu požádejte správce o okamžitou rotaci.</li>
+            <li>Každý klient má vlastní integrační token, scopes a datový rozsah.</li>
+            <li>Zápisové scopes negarantuje čtení ani naopak. Správce je přiděluje explicitně.</li>
+            <li>Klient zapisuje pouze docházku vedenou podle <code>employment_id</code>.</li>
+            <li>API respektuje zamčené měsíce a neobchází je potichu.</li>
+            <li>Write operace se auditují detailněji než běžné read requesty.</li>
           </ul>
         </article>
 
         <article className="integration-docs-card">
-          <h2>Datový model</h2>
+          <h2>Skutečný model docházky</h2>
           <ul>
-            <li><code>employee_id</code> je identifikátor osoby v systému Dagmar.</li>
-            <li><code>employment_id</code> je identifikátor konkrétního úvazku.</li>
-            <li>Jeden zaměstnanec může mít více úvazků.</li>
-            <li>Lokální časy jsou vracené jako <code>HH:MM</code>.</li>
-            <li>UTC timestampy jako <code>2026-06-22T22:28:47Z</code>.</li>
-            <li>Timezone datových endpointů je <code>Europe/Prague</code>.</li>
+            <li>Jeden docházkový záznam je svázán s <code>employment_id</code> a jedním kalendářním datem.</li>
+            <li>Unikátní invariant je <code>employment_id + date</code>.</li>
+            <li>Zapisovatelná pole jsou aktuálně jen <code>arrival_time</code> a <code>departure_time</code>.</li>
+            <li>Technická pole jako <code>id</code>, <code>created_at</code>, <code>updated_at</code> nebo <code>instance_id</code> nejsou přímo zapisovatelná.</li>
+            <li>Model dnes neobsahuje veřejně zapisovatelné poznámky, korekce, absence ani další doménové flagy.</li>
           </ul>
         </article>
       </section>
@@ -183,9 +223,8 @@ export default function IntegrationApiDocsPage() {
           </table>
         </div>
         <p className="integration-docs-note">
-          Klient může být navíc omezený na konkrétní <code>employment_id</code> a <code>employee_id</code>. Bez
-          explicitního filtru API vrací jen povolený rozsah. Pokud klient explicitně požádá o data mimo svůj rozsah,
-          vrátí <code>403 insufficient_scope</code>.
+          Klient může být navíc omezený na konkrétní <code>employment_id</code> a <code>employee_id</code>. Write request mimo
+          povolený rozsah vrátí <code>403 insufficient_scope</code>.
         </p>
       </section>
 
@@ -208,29 +247,23 @@ export default function IntegrationApiDocsPage() {
 
       <section className="integration-docs-grid">
         <article className="integration-docs-card">
-          <h2>Stránkování</h2>
-          <p>
-            List endpointy vrací obálku <code>data</code> + <code>pagination</code>. Výchozí <code>limit</code> je
-            100, maximum 500. Klient iteruje přes opaque <code>next_cursor</code>.
-          </p>
-          <pre><code>{`{
-  "pagination": {
-    "limit": 100,
-    "next_cursor": "eyJjdXJzb3Jfa2V5IjoxMDF9",
-    "has_more": true
-  }
-}`}</code></pre>
-          <pre><code>{paginationExample}</code></pre>
+          <h2>Zámky, konflikty a idempotence</h2>
+          <ul>
+            <li>Zamčené období vrací <code>409 attendance_locked</code>.</li>
+            <li>Duplicitní vytvoření stejného <code>employment_id + date</code> vrací <code>409 duplicate_attendance</code>.</li>
+            <li>Pro update a delete lze poslat <code>expected_updated_at</code> a zabránit přepsání cizí změny.</li>
+            <li>Pokud klient pošle zastaralé <code>expected_updated_at</code>, API vrátí <code>409 conflict</code>.</li>
+            <li>Samostatný upsert endpoint v této verzi není podporovaný.</li>
+          </ul>
         </article>
 
         <article className="integration-docs-card">
-          <h2>Limity a rate limiting</h2>
+          <h2>Co API neumí</h2>
           <ul>
-            <li><code>shift-plan</code>, <code>attendances</code> a <code>punches</code> mají maximum 31 dnů.</li>
-            <li><code>health</code> má limit 60 požadavků za minutu.</li>
-            <li>Datové endpointy mají limit 120 požadavků za minutu.</li>
-            <li><code>openapi.json</code> má limit 10 požadavků za minutu.</li>
-            <li>Při <code>429 rate_limited</code> použijte backoff a snižte paralelismus.</li>
+            <li>Neumí spravovat uživatele, zaměstnance ani úvazky.</li>
+            <li>Neumí měnit plán služeb ani měsíční zámky.</li>
+            <li>Neumí měnit technická a auditní pole docházky.</li>
+            <li><code>/changes</code> stále není implementovaný endpoint.</li>
           </ul>
         </article>
       </section>
@@ -247,9 +280,9 @@ export default function IntegrationApiDocsPage() {
               </tr>
             </thead>
             <tbody>
-              {errorRows.map(([status, code, meaning]) => (
-                <tr key={`${status}-${code}`}>
-                  <td>{status}</td>
+              {errorRows.map(([statusCode, code, meaning]) => (
+                <tr key={`${statusCode}-${code}`}>
+                  <td>{statusCode}</td>
                   <td><code>{code}</code></td>
                   <td>{meaning}</td>
                 </tr>
@@ -262,23 +295,23 @@ export default function IntegrationApiDocsPage() {
 
       <section className="integration-docs-grid">
         <article className="integration-docs-card">
-          <h2>Příklady</h2>
-          <h3>Health</h3>
-          <pre><code>{healthExample}</code></pre>
-          <h3>Odvozené průchody</h3>
-          <pre><code>{punchesExample}</code></pre>
-          <h3>Příliš velké období</h3>
-          <pre><code>{periodErrorExample}</code></pre>
+          <h2>Ukázky zápisu</h2>
+          <h3>Vytvoření docházky</h3>
+          <pre><code>{createExample}</code></pre>
+          <h3>Úprava docházky</h3>
+          <pre><code>{patchExample}</code></pre>
+          <h3>Smazání docházky</h3>
+          <pre><code>{deleteExample}</code></pre>
         </article>
 
         <article className="integration-docs-card">
-          <h2>OpenAPI a nepodporované funkce</h2>
+          <h2>Limity a audit</h2>
           <ul>
-            <li>OpenAPI JSON je dostupný na <code>{baseUrl}/openapi.json</code>.</li>
-            <li>OpenAPI endpoint je chráněný a vyžaduje scope <code>openapi:read</code>.</li>
-            <li><code>/changes</code> není implementovaný endpoint.</li>
-            <li>API nepodporuje zápis docházky, úpravy plánů, zámky ani správu zaměstnanců.</li>
-            <li><code>punches</code> vrací jen odvozené průchody z denní docházky, ne raw terminálové eventy.</li>
+            <li><code>shift-plan</code>, <code>attendances</code> a <code>punches</code> mají maximum 31 dnů.</li>
+            <li><code>health</code> má limit 60 požadavků za minutu.</li>
+            <li>Datové endpointy mají limit 120 požadavků za minutu.</li>
+            <li><code>openapi.json</code> má limit 10 požadavků za minutu.</li>
+            <li>Write operace auditují klienta, request id, endpoint, attendance_id, employment_id, datum, předchozí stav, nový stav, IP, user agent a výsledek.</li>
           </ul>
         </article>
       </section>

@@ -33,7 +33,7 @@ describe("admin integrations API", () => {
     configurable: true,
   });
 
-  it("odesle create payload na admin integrations endpoint", async () => {
+  it("odesle create payload na admin integrations endpoint vcetne zapisovych scopes", async () => {
     sessionStorageMock.setItem("dagmar_csrf", "csrf-token");
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -44,9 +44,9 @@ describe("admin integrations API", () => {
             name: "mzdovy-import",
             status: "ACTIVE",
             status_label: "Aktivní",
-            scopes: ["integration:health"],
-            scope_labels: ["Kontrola dostupnosti API"],
-            scope_summary: "Kontrola dostupnosti API",
+            scopes: ["attendance:create", "attendance:delete", "integration:health"],
+            scope_labels: ["Vytváření docházky", "Mazání docházky", "Kontrola dostupnosti API"],
+            scope_summary: "Kontrola dostupnosti API, Vytváření docházky, Mazání docházky",
             data_scope_summary: "Všechny aktivní úvazky",
             ip_restriction_mode: "NONE",
             ip_restriction_summary: "Bez IP omezení",
@@ -59,8 +59,8 @@ describe("admin integrations API", () => {
             active_secret_last4: "WXYZ",
             available_actions: ["rotate", "disable", "revoke"],
             configuration: {
-              selected_scope_ids: ["integration:health"],
-              permission_profile_id: "HEALTH_ONLY",
+              selected_scope_ids: ["attendance:create", "attendance:delete", "integration:health"],
+              permission_profile_id: null,
               data_scope_mode: "ALL_ACTIVE_EMPLOYMENTS",
               selected_employee_ids: [],
               selected_employment_ids: [],
@@ -85,7 +85,7 @@ describe("admin integrations API", () => {
 
     const result = await adminCreateIntegrationClient({
       name: "mzdovy-import",
-      selected_scope_ids: ["integration:health"],
+      selected_scope_ids: ["integration:health", "attendance:create", "attendance:delete"],
       data_scope_mode: "ALL_ACTIVE_EMPLOYMENTS",
       selected_employee_ids: [],
       selected_employment_ids: [],
@@ -101,5 +101,7 @@ describe("admin integrations API", () => {
     const init = fetchMock.mock.calls[0]?.[1];
     expect(init?.method).toBe("POST");
     expect((init?.headers as Record<string, string>)["X-CSRF-Token"]).toBe("csrf-token");
+    expect(init?.body).toContain("attendance:create");
+    expect(init?.body).toContain("attendance:delete");
   });
 });

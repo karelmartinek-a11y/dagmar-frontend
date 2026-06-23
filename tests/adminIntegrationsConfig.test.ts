@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { IntegrationClientDetail, IntegrationClientOptions } from "../src/api/admin";
-import { applyPermissionProfile, buildDraftFromClient, buildEmptyIntegrationDraft, onlyFreeTextFieldIds } from "../src/utils/adminIntegrations";
+import {
+  applyPermissionProfile,
+  buildDraftFromClient,
+  buildEmptyIntegrationDraft,
+  integrationScopeWarning,
+  onlyFreeTextFieldIds,
+} from "../src/utils/adminIntegrations";
 
 const options: IntegrationClientOptions = {
   name_rules: {
@@ -17,6 +23,36 @@ const options: IntegrationClientOptions = {
       data_access: "Bez osobních dat.",
       when_to_enable: "Vždy.",
       risk: "Nízké",
+      available: true,
+      unavailable_reason: null,
+    },
+    {
+      id: "attendance:create",
+      label: "Vytváření docházky",
+      description: "Zakládání docházky.",
+      data_access: "Jen docházka.",
+      when_to_enable: "Když partner zapisuje docházku.",
+      risk: "Vysoké",
+      available: true,
+      unavailable_reason: null,
+    },
+    {
+      id: "attendance:update",
+      label: "Úprava docházky",
+      description: "Úpravy docházky.",
+      data_access: "Jen docházka.",
+      when_to_enable: "Když partner opravuje docházku.",
+      risk: "Vysoké",
+      available: true,
+      unavailable_reason: null,
+    },
+    {
+      id: "attendance:delete",
+      label: "Mazání docházky",
+      description: "Mazání docházky.",
+      data_access: "Jen docházka.",
+      when_to_enable: "Jen výjimečně.",
+      risk: "Kritické",
       available: true,
       unavailable_reason: null,
     },
@@ -116,5 +152,10 @@ describe("adminIntegrations config helpers", () => {
     expect(draft.name).toBe("Partner Export");
     expect(draft.data_scope_mode).toBe("ALL_ACTIVE_EMPLOYMENTS");
     expect(draft.selected_scope_ids).toEqual(["integration:health"]);
+  });
+
+  it("vraci specialni varovani pro mazani dochazky", () => {
+    expect(integrationScopeWarning("attendance:delete")).toContain("nevratný zásah");
+    expect(integrationScopeWarning("attendance:read")).toBeNull();
   });
 });
