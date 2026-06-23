@@ -14,6 +14,7 @@ import AdminPrintPreviewPage from "./pages/AdminPrintPreviewPage";
 import AdminInstancesPage from "./pages/AdminInstancesPage";
 import AdminIntegrationsPage from "./pages/AdminIntegrationsPage";
 import PortalResetPage from "./pages/PortalResetPage";
+import IntegrationApiDocsPage from "./pages/IntegrationApiDocsPage";
 
 type VersionPayload = {
   frontend_commit?: string;
@@ -79,6 +80,7 @@ function AppShell() {
         <Route path="/" element={<Navigate to="/app" replace />} />
 
         <Route path="/app" element={<EmployeePage />} />
+        <Route path="/integration-api" element={<IntegrationApiDocsPage />} />
         <Route path="/reset" element={<PortalResetPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/tisky/preview" element={<AdminPrintPreviewPage />} />
