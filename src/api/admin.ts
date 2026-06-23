@@ -382,14 +382,98 @@ export async function adminMergeInstances(
 
 export type AdminSettings = { afternoon_cutoff: string };
 
-export type IntegrationClient = {
+export type IntegrationScopeOption = {
+  id: string;
+  label: string;
+  description: string;
+  data_access: string;
+  when_to_enable: string;
+  risk: string;
+  available: boolean;
+  unavailable_reason?: string | null;
+};
+
+export type IntegrationPermissionProfile = {
+  id: string;
+  label: string;
+  description: string;
+  scopes: string[];
+};
+
+export type IntegrationDataScopeMode = {
+  id: string;
+  label: string;
+  description: string;
+  supports_inactive_toggle: boolean;
+};
+
+export type IntegrationRestrictionMode = {
+  id: string;
+  label: string;
+  description: string;
+  editable: boolean;
+};
+
+export type IntegrationExpirationOption = {
+  id: string;
+  label: string;
+  description: string;
+  requires_custom_date: boolean;
+};
+
+export type IntegrationEmployeeOption = {
+  id: number;
+  label: string;
+  email: string;
+  is_active: boolean;
+  employment_count: number;
+  active_employment_count: number;
+  employment_labels: string[];
+};
+
+export type IntegrationEmploymentOption = {
+  id: number;
+  user_id: number;
+  label: string;
+  employment_type: EmploymentTemplate;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+};
+
+export type IntegrationClientOptions = {
+  name_rules: {
+    min_length: number;
+    max_length: number;
+    allowed_hint: string;
+    forbidden_hint: string;
+  };
+  scopes: IntegrationScopeOption[];
+  permission_profiles: IntegrationPermissionProfile[];
+  data_scope_modes: IntegrationDataScopeMode[];
+  employees: IntegrationEmployeeOption[];
+  employments: IntegrationEmploymentOption[];
+  ip_restriction_modes: IntegrationRestrictionMode[];
+  expiration_options: IntegrationExpirationOption[];
+  statuses: Array<{
+    id: string;
+    label: string;
+    description: string;
+    count_hint?: number;
+  }>;
+};
+
+export type IntegrationClientListItem = {
   id: number;
   name: string;
-  status: "ACTIVE" | "DISABLED" | "REVOKED";
+  status: "ACTIVE" | "DISABLED" | "REVOKED" | "EXPIRED";
+  status_label: string;
   scopes: string[];
-  allowed_employment_ids: number[];
-  allowed_employee_ids: number[];
-  ip_allowlist: string[];
+  scope_labels: string[];
+  scope_summary: string;
+  data_scope_summary: string;
+  ip_restriction_mode: "NONE" | "SERVER_MANAGED";
+  ip_restriction_summary: string;
   expires_at: string | null;
   last_used_at: string | null;
   created_at: string;
@@ -397,10 +481,37 @@ export type IntegrationClient = {
   created_by: string | null;
   active_secret_fingerprint: string | null;
   active_secret_last4: string | null;
+  available_actions: string[];
+};
+
+export type IntegrationClientConfiguration = {
+  selected_scope_ids: string[];
+  permission_profile_id: string | null;
+  data_scope_mode: "ALL_EMPLOYMENTS" | "ALL_ACTIVE_EMPLOYMENTS" | "SELECTED_EMPLOYEES" | "SELECTED_EMPLOYMENTS";
+  selected_employee_ids: number[];
+  selected_employment_ids: number[];
+  include_inactive_employments: boolean;
+  ip_restriction_mode: "NONE" | "SERVER_MANAGED";
+  expiration_choice: "NONE" | "DAYS_30" | "DAYS_90" | "YEAR_1" | "CUSTOM_DATE";
+  custom_expiration_date: string | null;
+};
+
+export type IntegrationClientDetail = IntegrationClientListItem & {
+  configuration: IntegrationClientConfiguration;
+  audit_summary: {
+    request_count: number;
+    last_error: {
+      status_code: number;
+      error_code?: string | null;
+      requested_at: string;
+    } | null;
+    last_source_ip: string | null;
+    last_path: string | null;
+  };
 };
 
 export type IntegrationClientSecretResponse = {
-  client: IntegrationClient;
+  client: IntegrationClientDetail;
   plaintext_token: string;
 };
 
@@ -416,21 +527,52 @@ export async function adminSetSettings(cutoff: string): Promise<{ ok: true }> {
   });
 }
 
-export async function adminListIntegrationClients(): Promise<IntegrationClient[]> {
-  return apiFetch<IntegrationClient[]>("/api/v1/admin/integrations/clients", { method: "GET" });
+export async function adminGetIntegrationClientOptions(): Promise<IntegrationClientOptions> {
+  return apiFetch<IntegrationClientOptions>("/api/v1/admin/integrations/clients/options", { method: "GET" });
+}
+
+export async function adminListIntegrationClients(): Promise<IntegrationClientListItem[]> {
+  return apiFetch<IntegrationClientListItem[]>("/api/v1/admin/integrations/clients", { method: "GET" });
+}
+
+export async function adminGetIntegrationClientDetail(clientId: number): Promise<IntegrationClientDetail> {
+  return apiFetch<IntegrationClientDetail>(`/api/v1/admin/integrations/clients/${clientId}`, { method: "GET" });
 }
 
 export async function adminCreateIntegrationClient(payload: {
   name: string;
-  scopes: string[];
-  allowed_employment_ids: number[];
-  allowed_employee_ids: number[];
-  ip_allowlist: string[];
-  expires_at: string | null;
-  created_by?: string | null;
+  selected_scope_ids: string[];
+  data_scope_mode: "ALL_EMPLOYMENTS" | "ALL_ACTIVE_EMPLOYMENTS" | "SELECTED_EMPLOYEES" | "SELECTED_EMPLOYMENTS";
+  selected_employee_ids: number[];
+  selected_employment_ids: number[];
+  include_inactive_employments: boolean;
+  ip_restriction_mode: "NONE" | "SERVER_MANAGED";
+  expiration_choice: "NONE" | "DAYS_30" | "DAYS_90" | "YEAR_1" | "CUSTOM_DATE";
+  custom_expiration_date: string | null;
 }): Promise<IntegrationClientSecretResponse> {
   return apiFetch<IntegrationClientSecretResponse>("/api/v1/admin/integrations/clients", {
     method: "POST",
+    headers: withCsrf(),
+    body: payload,
+  });
+}
+
+export async function adminUpdateIntegrationClient(
+  clientId: number,
+  payload: {
+    name: string;
+    selected_scope_ids: string[];
+    data_scope_mode: "ALL_EMPLOYMENTS" | "ALL_ACTIVE_EMPLOYMENTS" | "SELECTED_EMPLOYEES" | "SELECTED_EMPLOYMENTS";
+    selected_employee_ids: number[];
+    selected_employment_ids: number[];
+    include_inactive_employments: boolean;
+    ip_restriction_mode: "NONE" | "SERVER_MANAGED";
+    expiration_choice: "NONE" | "DAYS_30" | "DAYS_90" | "YEAR_1" | "CUSTOM_DATE";
+    custom_expiration_date: string | null;
+  }
+): Promise<IntegrationClientDetail> {
+  return apiFetch<IntegrationClientDetail>(`/api/v1/admin/integrations/clients/${clientId}`, {
+    method: "PUT",
     headers: withCsrf(),
     body: payload,
   });
@@ -443,32 +585,22 @@ export async function adminRotateIntegrationClient(clientId: number): Promise<In
   });
 }
 
-export async function adminDisableIntegrationClient(clientId: number): Promise<IntegrationClient> {
-  return apiFetch<IntegrationClient>(`/api/v1/admin/integrations/clients/${clientId}/disable`, {
+export async function adminDisableIntegrationClient(clientId: number): Promise<IntegrationClientDetail> {
+  return apiFetch<IntegrationClientDetail>(`/api/v1/admin/integrations/clients/${clientId}/disable`, {
     method: "POST",
     headers: withCsrf(),
   });
 }
 
-export async function adminEnableIntegrationClient(
-  clientId: number,
-  payload?: {
-    scopes?: string[];
-    allowed_employment_ids?: number[];
-    allowed_employee_ids?: number[];
-    ip_allowlist?: string[];
-    expires_at?: string | null;
-  }
-): Promise<IntegrationClient> {
-  return apiFetch<IntegrationClient>(`/api/v1/admin/integrations/clients/${clientId}/enable`, {
+export async function adminEnableIntegrationClient(clientId: number): Promise<IntegrationClientDetail> {
+  return apiFetch<IntegrationClientDetail>(`/api/v1/admin/integrations/clients/${clientId}/enable`, {
     method: "POST",
     headers: withCsrf(),
-    body: payload,
   });
 }
 
-export async function adminRevokeIntegrationSecret(clientId: number): Promise<IntegrationClient> {
-  return apiFetch<IntegrationClient>(`/api/v1/admin/integrations/clients/${clientId}/revoke-secret`, {
+export async function adminRevokeIntegrationSecret(clientId: number): Promise<IntegrationClientDetail> {
+  return apiFetch<IntegrationClientDetail>(`/api/v1/admin/integrations/clients/${clientId}/revoke-secret`, {
     method: "POST",
     headers: withCsrf(),
   });
